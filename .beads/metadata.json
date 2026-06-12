@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "AI_Novel_Writing_Assistant",
+  "project_id": "ff9bb187-8f83-464c-9b98-f643e751d1e8"
+}
