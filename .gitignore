@@ -45,3 +45,7 @@ server/prisma-diff-migrations-to-schema.sql
 *.db
 .beads-credential-key
 .beads/proxieddb/
+
+# agent runtime artifacts (not project files)
+.pi/
+progress.md
