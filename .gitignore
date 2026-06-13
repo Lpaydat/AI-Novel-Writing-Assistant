@@ -49,3 +49,5 @@ server/prisma-diff-migrations-to-schema.sql
 # agent runtime artifacts (not project files)
 .pi/
 progress.md
+
+.node-version
