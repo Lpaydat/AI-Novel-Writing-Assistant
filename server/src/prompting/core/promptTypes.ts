@@ -82,6 +82,12 @@ export interface PromptInvocationMeta {
   sceneIndex?: number;
   roundIndex?: number;
   triggerReason?: string;
+  /** Resolved locale after variant routing (zh fallback applies). For diagnosability. */
+  resolvedLocale?: PromptLanguage;
+  /** Key of the variant actually rendered (id@version@language). */
+  resolvedVariant?: string;
+  /** True when the requested locale had no variant and fell back to zh. */
+  localeFallback?: boolean;
   contextBlockIds: string[];
   droppedContextBlockIds: string[];
   summarizedContextBlockIds: string[];
@@ -135,6 +141,8 @@ export interface PromptExecutionOptions {
   sceneIndex?: number;
   roundIndex?: number;
   triggerReason?: string;
+  /** Requested locale for this run (zh default). Drives prompt-variant routing. */
+  locale?: PromptLanguage;
 }
 
 export interface PromptExecutionMeta {
@@ -211,6 +219,12 @@ export interface PromptAsset<I, O, R = O> {
   postValidateFailureRecovery?: (input: PromptPostValidateFailureRecoveryInput<I, R>) => O;
 }
 
-export function buildPromptAssetKey(asset: Pick<PromptAsset<unknown, unknown, unknown>, "id" | "version">): string {
-  return `${asset.id}@${asset.version}`;
+/**
+ * Registry key for a prompt asset: `id@version@language`. The language segment
+ * lets zh + en variants of the same id/version coexist (no Duplicate
+ * registration crash). zh is the anchor callers resolve by default; the runner
+ * swaps to an en variant only when options.locale differs and a variant exists.
+ */
+export function buildPromptAssetKey(asset: Pick<PromptAsset<unknown, unknown, unknown>, "id" | "version" | "language">): string {
+  return `${asset.id}@${asset.version}@${asset.language}`;
 }

@@ -18,7 +18,7 @@ import {
 } from "../../llm/usageTracking";
 import { logMemoryUsage } from "../../runtime/memoryTelemetry";
 import { toText } from "../../services/novel/novelP0Utils";
-import { hasRegisteredPromptAsset } from "../registry";
+import { hasRegisteredPromptAsset, resolvePromptVariant } from "../registry";
 import {
   CUSTOM_ADDENDUM_CONTEXT_GROUP,
   isPromptAddendumSupported,
@@ -34,10 +34,12 @@ import type {
   PromptAsset,
   PromptExecutionOptions,
   PromptInvocationMeta,
+  PromptLanguage,
   PromptRenderContext,
   PromptRunResult,
   PromptStreamRunResult,
 } from "./promptTypes";
+import { buildPromptAssetKey } from "./promptTypes";
 
 type PromptRunnerLLMFactory = typeof getLLM;
 type PromptRunnerStructuredInvoker = typeof invokeStructuredLlmDetailed;
@@ -70,6 +72,9 @@ function buildPromptInvocationMeta(
   semanticRetryUsed: boolean,
   semanticRetryAttempts: number,
   options?: PromptExecutionOptions,
+  resolvedLocale?: PromptLanguage,
+  resolvedVariant?: string,
+  localeFallback = false,
 ): PromptInvocationMeta {
   return {
     promptId: asset.id,
@@ -86,6 +91,9 @@ function buildPromptInvocationMeta(
     sceneIndex: options?.sceneIndex,
     roundIndex: options?.roundIndex,
     triggerReason: options?.triggerReason,
+    resolvedLocale,
+    resolvedVariant,
+    localeFallback,
     contextBlockIds: context.selectedBlockIds,
     droppedContextBlockIds: context.droppedBlockIds,
     summarizedContextBlockIds: context.summarizedBlockIds,
@@ -258,24 +266,55 @@ export function preparePromptExecution<I, O, R = O>(input: {
   invocation: PromptInvocationMeta;
 } {
   assertRegistered(input.asset as PromptAsset<unknown, unknown, unknown>);
-  const context = buildRenderContext(input.asset as PromptAsset<unknown, unknown, unknown>, input.contextBlocks ?? []);
-  const renderedMessages = input.asset.render(input.promptInput, context);
+
+  // Locale-aware variant routing (F2). When a locale is requested and differs
+  // from the anchor asset's language, swap to the resolved variant here — ONE
+  // edit covers all 4 runners (runStructuredPrompt, runTextPrompt,
+  // streamTextPrompt, streamStructuredPrompt) since they all funnel through
+  // preparePromptExecution. zh (default) is byte-identical: no locale passed
+  // means the anchor asset renders unchanged. outputSchema is read from the
+  // anchor BEFORE this swap by the structured runners — en variants reuse the
+  // zh outputSchema (schemas describe JSON structure, not language), so the
+  // swap does not touch it.
+  let resolvedAsset = input.asset as PromptAsset<unknown, unknown, unknown>;
+  let resolvedLocale: PromptLanguage | undefined;
+  let resolvedVariant: string | undefined;
+  let localeFallback = false;
+  const requestedLocale = input.options?.locale;
+  if (requestedLocale && requestedLocale !== input.asset.language) {
+    const resolved = resolvePromptVariant(input.asset.id, input.asset.version, requestedLocale);
+    if (resolved) {
+      resolvedAsset = resolved.asset;
+      resolvedLocale = resolved.resolvedLocale;
+      resolvedVariant = resolved.resolvedVariant;
+      localeFallback = resolved.localeFallback;
+    }
+  } else {
+    resolvedLocale = input.asset.language;
+    resolvedVariant = buildPromptAssetKey(input.asset as PromptAsset<unknown, unknown, unknown>);
+  }
+
+  const context = buildRenderContext(resolvedAsset, input.contextBlocks ?? []);
+  const renderedMessages = resolvedAsset.render(input.promptInput, context);
   return {
     messages: appendStructuredOutputHintMessages({
-      asset: input.asset,
+      asset: resolvedAsset as PromptAsset<I, O, R>,
       promptInput: input.promptInput,
       context,
       messages: renderedMessages,
     }),
     context,
     invocation: buildPromptInvocationMeta(
-      input.asset as PromptAsset<unknown, unknown, unknown>,
+      resolvedAsset,
       context,
       false,
       0,
       false,
       0,
       input.options,
+      resolvedLocale,
+      resolvedVariant,
+      localeFallback,
     ),
   };
 }
@@ -308,6 +347,9 @@ function logPromptCompletion(input: {
       `semanticRetryAttempts=${input.meta.semanticRetryAttempts}`,
       `provider=${input.provider ?? "default"}`,
       `model=${input.model ?? "default"}`,
+      `resolvedLocale=${input.meta.resolvedLocale ?? "zh"}`,
+      `resolvedVariant=${input.meta.resolvedVariant ?? ""}`,
+      `localeFallback=${input.meta.localeFallback ?? false}`,
       `latencyMs=${input.latencyMs}`,
     ].join(" "),
   );

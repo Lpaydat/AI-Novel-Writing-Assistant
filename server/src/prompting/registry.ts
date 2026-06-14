@@ -1,4 +1,4 @@
-import type { PromptAsset } from "./core/promptTypes";
+import type { PromptAsset, PromptLanguage } from "./core/promptTypes";
 import { buildPromptAssetKey } from "./core/promptTypes";
 
 type UnknownPromptAsset = PromptAsset<unknown, unknown, unknown>;
@@ -594,8 +594,8 @@ function loadRegisteredPromptAsset(key: string): UnknownPromptAsset | null {
   return promptAssetByKey.get(key) ?? null;
 }
 
-export function hasRegisteredPromptAsset(id: string, version: string): boolean {
-  return loadRegisteredPromptAsset(`${id}@${version}`) != null;
+export function hasRegisteredPromptAsset(id: string, version: string, language: PromptLanguage = "zh"): boolean {
+  return loadRegisteredPromptAsset(`${id}@${version}@${language}`) != null;
 }
 
 export function listRegisteredPromptAssets(): UnknownPromptAsset[] {
@@ -603,6 +603,53 @@ export function listRegisteredPromptAssets(): UnknownPromptAsset[] {
   return [...promptAssetByKey.values()];
 }
 
-export function getRegisteredPromptAsset(id: string, version: string): UnknownPromptAsset | null {
-  return loadRegisteredPromptAsset(`${id}@${version}`);
+export function getRegisteredPromptAsset(id: string, version: string, language: PromptLanguage = "zh"): UnknownPromptAsset | null {
+  return loadRegisteredPromptAsset(`${id}@${version}@${language}`);
+}
+
+/** Result of locale-aware variant resolution. */
+export interface ResolvedPromptVariant {
+  asset: UnknownPromptAsset;
+  /** The locale actually rendered (zh when an en variant is missing). */
+  resolvedLocale: PromptLanguage;
+  /** The registry key of the asset actually rendered. */
+  resolvedVariant: string;
+  /** True when the requested locale had no variant and fell back to zh. */
+  localeFallback: boolean;
+}
+
+/**
+ * Resolve the prompt variant for a locale, with zh fallback.
+ *
+ * - locale "zh" (or omitted): returns the zh anchor directly.
+ * - locale "en": returns the en variant if registered; otherwise falls back to
+ *   the zh anchor, logs a warning (so a silent Chinese generation is
+ *   diagnosable), and sets `localeFallback: true`.
+ *
+ * Callers keep importing/passing the zh anchor; only the runner routes through
+ * this when `options.locale` is set. PromptWorkbench and other 2-arg callers
+ * are unaffected (they default to the zh anchor via getRegisteredPromptAsset).
+ */
+export function resolvePromptVariant(id: string, version: string, locale: PromptLanguage = "zh"): ResolvedPromptVariant | null {
+  if (locale === "zh") {
+    const asset = getRegisteredPromptAsset(id, version, "zh");
+    if (!asset) {
+      return null;
+    }
+    return { asset, resolvedLocale: "zh", resolvedVariant: buildPromptAssetKey(asset), localeFallback: false };
+  }
+  // locale === "en"
+  const enVariant = getRegisteredPromptAsset(id, version, "en");
+  if (enVariant) {
+    return { asset: enVariant, resolvedLocale: "en", resolvedVariant: buildPromptAssetKey(enVariant), localeFallback: false };
+  }
+  const zhAnchor = getRegisteredPromptAsset(id, version, "zh");
+  if (!zhAnchor) {
+    return null;
+  }
+  console.warn(
+    `[prompt-locale] no en variant for ${id}@${version}; falling back to zh. ` +
+      `Register an en variant (language: "en") to enable English output for this prompt.`,
+  );
+  return { asset: zhAnchor, resolvedLocale: "zh", resolvedVariant: buildPromptAssetKey(zhAnchor), localeFallback: true };
 }
