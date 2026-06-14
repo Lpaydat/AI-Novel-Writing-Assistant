@@ -13,8 +13,8 @@
  */
 
 export const STORAGE_KEY = "ai-novel-locale";
-export const SUPPORTED_LOCALES = /** @type {const} */ (["zh", "en"]);
-export const DEFAULT_LOCALE = /** @type {"zh"} */ ("zh");
+export const SUPPORTED_LOCALES = ["zh", "en"] as const;
+export const DEFAULT_LOCALE = "zh" as const;
 
 /** The set of locales the client treats as valid Accept-Language tokens. */
 const SUPPORTED_LOCALE_SET = new Set(SUPPORTED_LOCALES);

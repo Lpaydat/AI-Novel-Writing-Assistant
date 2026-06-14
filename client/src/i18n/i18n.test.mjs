@@ -115,6 +115,26 @@ test("persistActiveLocale writes the resolved locale into localStorage", () => {
   assert.equal(store.get(STORAGE_KEY), "zh");
 });
 
+test("locale switch round-trip: persist then read reflects the new locale (LocaleSwitcher contract)", () => {
+  // The LocaleSwitcher (client/src/components/common/LocaleSwitcher.tsx) calls
+  // changeAppLocale -> persistActiveLocale; the next getActiveLocale() (which
+  // drives the Accept-Language header + the next boot) must reflect it.
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem: (key) => (store.has(key) ? store.get(key) : null),
+    setItem: (key, value) => void store.set(key, String(value)),
+    removeItem: (key) => void store.delete(key),
+  };
+
+  assert.equal(getActiveLocale(), "zh", "starts at default zh");
+
+  persistActiveLocale("en");
+  assert.equal(getActiveLocale(), "en", "after switch to en");
+
+  persistActiveLocale("zh");
+  assert.equal(getActiveLocale(), "zh", "after switch back to zh");
+});
+
 test("zh byte-identity: golden was captured verbatim from original Home.tsx", () => {
   // Every golden string (minus interpolation placeholders) must literally appear
   // in the original Home.tsx fixture. Guards against capture errors.
