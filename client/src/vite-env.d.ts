@@ -8,6 +8,11 @@ interface ImportMetaEnv {
   readonly VITE_WORLD_VIS_ENABLED?: string;
 }
 
+interface AiNovelLocale {
+  /** The pinned localStorage key holding the active locale token ("zh" | "en"). */
+  "ai-novel-locale"?: string;
+}
+
 interface Window {
   __AI_NOVEL_RUNTIME__?: {
     mode?: "web" | "desktop";
@@ -87,6 +92,7 @@ interface Window {
     openLogsDirectory?: () => Promise<unknown>;
     copyLogPath?: () => Promise<string | undefined>;
     restartApp?: () => Promise<unknown>;
+    setLocale?: (locale: "zh" | "en") => Promise<unknown>;
     importLegacyDatabase?: (options?: { preferSuggested?: boolean }) => Promise<{
       scheduled: boolean;
       cancelled: boolean;

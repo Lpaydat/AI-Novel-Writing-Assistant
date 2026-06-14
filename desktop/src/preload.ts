@@ -50,6 +50,7 @@ contextBridge.exposeInMainWorld("__AI_NOVEL_DESKTOP__", {
   openLogsDirectory: () => ipcRenderer.invoke("desktop:open-logs-directory"),
   copyLogPath: () => ipcRenderer.invoke("desktop:copy-log-path"),
   restartApp: () => ipcRenderer.invoke("desktop:restart-app"),
+  setLocale: (locale: "zh" | "en") => ipcRenderer.invoke("desktop:set-locale", locale),
   importLegacyDatabase: (options?: { preferSuggested?: boolean }) =>
     ipcRenderer.invoke("desktop:import-legacy-database", options),
 });

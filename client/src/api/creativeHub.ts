@@ -7,6 +7,7 @@ import type {
   CreativeHubThreadState,
 } from "@ai-novel/shared/types/creativeHub";
 import { API_BASE_URL } from "@/lib/constants";
+import { getLocaleHeaders } from "@/i18n/localeHeaders";
 import { apiClient } from "./client";
 
 function ensureThreadId(threadId: string): string {
@@ -104,6 +105,7 @@ export async function* streamCreativeHubRun(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getLocaleHeaders(),
     },
     body: JSON.stringify(requestBody),
     signal: abortSignal,

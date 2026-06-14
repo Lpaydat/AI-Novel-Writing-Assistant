@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import type { ApiResponse } from "@ai-novel/shared/types/api";
 import { API_BASE_URL, API_TIMEOUT_MS } from "@/lib/constants";
 import { toast } from "@/components/ui/toast";
+import { getLocaleHeaders } from "@/i18n/localeHeaders";
 
 export interface ApiHttpError extends Error {
   status?: number;
@@ -17,6 +18,14 @@ declare module "axios" {
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT_MS,
+});
+
+// Locale-transport (F1<->F2 contract): stamp the active locale as a bare
+// `Accept-Language` token (zh|en) on every request, read from localStorage so
+// it always reflects the latest switch. See client/src/i18n/localeHeaders.ts.
+apiClient.interceptors.request.use((config) => {
+  config.headers.set("Accept-Language", getLocaleHeaders()["Accept-Language"]);
+  return config;
 });
 
 const AUTO_DISMISS_SERVER_ERROR_TOAST = {

@@ -25,6 +25,7 @@ import {
   desktopBootstrapStore,
   desktopUpdaterStore,
 } from "./runtime/state";
+import { writeLocaleFile, type DesktopLocale } from "./runtime/localeStore";
 import { initializeDesktopUpdater, type DesktopUpdaterController } from "./runtime/updater";
 
 const APP_USER_MODEL_ID = "com.ai-novel.desktop";
@@ -426,6 +427,13 @@ function registerDesktopIpcHandlers(): void {
   ipcMain.handle("desktop:get-bootstrap-snapshot", () => desktopBootstrapStore.getSnapshot());
   ipcMain.handle("desktop:get-updater-snapshot", () => desktopUpdaterStore.getSnapshot());
   ipcMain.handle("desktop:get-data-import-snapshot", () => getDesktopDataImportSnapshot());
+  // F1->U4 contract: persist the renderer's active locale into the
+  // userData-backed locale.json so the main process can read it without
+  // waiting for the renderer. Bare token zh|en; see runtime/localeStore.ts.
+  ipcMain.handle("desktop:set-locale", (_event, locale?: string) => {
+    writeLocaleFile(app.getPath("userData"), (locale as DesktopLocale) ?? "zh");
+    return true;
+  });
   ipcMain.handle("desktop:check-for-updates", async () => {
     await updaterController?.checkForUpdates();
     return desktopUpdaterStore.getSnapshot();

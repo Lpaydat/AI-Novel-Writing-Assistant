@@ -13,6 +13,7 @@ import type { SSEFrame } from "@ai-novel/shared/types/api";
 import type { ChatMessage } from "@/store/chatStore";
 import MarkdownViewer from "@/components/common/MarkdownViewer";
 import { API_BASE_URL } from "@/lib/constants";
+import { getLocaleHeaders } from "@/i18n/localeHeaders";
 
 type ChatMode = "standard" | "agent";
 type ContextMode = "global" | "novel";
@@ -213,6 +214,7 @@ export default function AssistantChatPanel({
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              ...getLocaleHeaders(),
             },
             body: JSON.stringify({
               messages: payloadMessages,

@@ -7,6 +7,24 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="apple-touch-icon" sizes="128x128" href="/apple-touch-icon.png" />
     <title>AI 小说创作工作台 | AI Novel Production Engine</title>
+    <script>
+      // Pre-React-mount locale boot. These strings render before react-i18next
+      // is initialized, so swap them from localStorage "ai-novel-locale" (the
+      // same key the i18n harness reads). zh is the HTML default (byte-identical);
+      // only `en` is patched here. Keep this in sync with client/src/locales/*/home.json boot copy.
+      (function () {
+        try {
+          var raw = localStorage.getItem("ai-novel-locale");
+          if (raw && raw.trim().toLowerCase() === "en") {
+            document.documentElement.setAttribute("lang", "en");
+            document.title = "AI Novel Production Engine";
+            window.__AI_NOVEL_BOOT_LOCALE__ = "en";
+          }
+        } catch (_) {
+          /* localStorage unavailable — keep zh default */
+        }
+      })();
+    </script>
     <style>
       :root {
         color: #0f172a;
@@ -70,11 +88,25 @@
       <div class="app-startup-shell">
         <div class="app-startup-content">
           <div class="app-startup-spinner" aria-hidden="true"></div>
-          <h1 class="app-startup-title">正在加载创作工作台</h1>
-          <p class="app-startup-copy">系统会在界面和本地创作服务准备好后自动进入。</p>
+          <h1 class="app-startup-title" data-boot-key="title">
+            正在加载创作工作台
+          </h1>
+          <p class="app-startup-copy" data-boot-key="copy">
+            系统会在界面和本地创作服务准备好后自动进入。
+          </p>
         </div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Patch the boot heading/copy for `en` after the body exists (the head
+      // script runs before <body> is parsed). zh stays as the inline default.
+      if (window.__AI_NOVEL_BOOT_LOCALE__ === "en") {
+        var t = document.querySelector('[data-boot-key="title"]');
+        var c = document.querySelector('[data-boot-key="copy"]');
+        if (t) t.textContent = "Loading the writing workspace";
+        if (c) c.textContent = "You will enter automatically once the interface and the local writing service are ready.";
+      }
+    </script>
   </body>
 </html>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { SSEFrame } from "@ai-novel/shared/types/api";
 import type { ChapterRuntimePackage } from "@ai-novel/shared/types/chapterRuntime";
 import { API_BASE_URL } from "@/lib/constants";
+import { getLocaleHeaders } from "@/i18n/localeHeaders";
 
 interface UseSSEOptions {
   headers?: Record<string, string>;
@@ -109,6 +110,7 @@ export function useSSE(options?: UseSSEOptions) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...getLocaleHeaders(),
             ...(options?.headers ?? {}),
           },
           body: JSON.stringify(body ?? {}),

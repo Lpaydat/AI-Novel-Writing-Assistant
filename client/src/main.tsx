@@ -3,6 +3,9 @@ import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, HashRouter } from "react-router-dom";
 import "highlight.js/styles/github.css";
+// i18n harness — MUST run before <App/> mounts so react-i18next is initialized
+// and the active locale (localStorage "ai-novel-locale") is applied.
+import "@/i18n";
 import DesktopBootstrapBoundary from "./components/layout/DesktopBootstrapBoundary";
 import ServerStartupGate from "./components/layout/ServerStartupGate";
 import { APP_RUNTIME } from "./lib/constants";
