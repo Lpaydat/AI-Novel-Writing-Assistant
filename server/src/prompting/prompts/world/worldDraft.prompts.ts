@@ -52,7 +52,7 @@ export interface WorldDraftRefineAlternativesPromptInput extends WorldDraftRefin
 
 const stringListSchema = z.array(z.string().trim().min(1)).default([]);
 
-const worldSkeletonSchema = z.object({
+export const worldSkeletonSchema = z.object({
   concept: z.object({
     name: z.string().trim().min(1),
     oneSentence: z.string().trim().min(1),

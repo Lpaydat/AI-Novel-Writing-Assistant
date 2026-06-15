@@ -494,6 +494,22 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     load: () => require("./prompts/world/worldDraft.prompts").worldDraftRefineAlternativesPrompt as UnknownPromptAsset,
   },
   {
+    key: "world.skeleton.generate@v1@en",
+    load: () => require("./prompts/world/worldDraft.prompts.en").worldSkeletonGenerationPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.draft.generate@v1@en",
+    load: () => require("./prompts/world/worldDraft.prompts.en").worldDraftGenerationPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.draft.refine@v1@en",
+    load: () => require("./prompts/world/worldDraft.prompts.en").worldDraftRefinePromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.draft.refine_alternatives@v1@en",
+    load: () => require("./prompts/world/worldDraft.prompts.en").worldDraftRefineAlternativesPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "world.inspiration.concept_card@v1",
     load: () => require("./prompts/world/world.prompts").worldInspirationConceptCardPrompt as UnknownPromptAsset,
   },

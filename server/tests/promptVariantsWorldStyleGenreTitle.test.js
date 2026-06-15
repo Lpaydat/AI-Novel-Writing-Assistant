@@ -217,3 +217,84 @@ test("P1 style: representative en variants render English output with no CJK", (
     assert.ok(!CJK.test(text), `${id} en variant must contain no CJK:\n${text.slice(0, 300)}`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// P1 World — worldDraft sub-family (4 assets). The remaining 14 world.prompts
+// assets ship in a follow-up phase; this test covers what landed.
+// ---------------------------------------------------------------------------
+
+const WORLD_DRAFT_VARIANTS = [
+  { id: "world.skeleton.generate", version: "v1", mode: "structured" },
+  { id: "world.draft.generate", version: "v1", mode: "structured" },
+  { id: "world.draft.refine", version: "v1", mode: "text" },
+  { id: "world.draft.refine_alternatives", version: "v1", mode: "structured" },
+];
+
+test("P1 world (worldDraft): every en variant resolves (no fallback); zh anchors intact (Risk A)", () => {
+  for (const { id, version, mode } of WORLD_DRAFT_VARIANTS) {
+    const en = resolvePromptVariant(id, version, "en");
+    assert.ok(en, `${id}@${version}@en must resolve`);
+    assert.equal(en.resolvedLocale, "en", `${id} resolvedLocale`);
+    assert.equal(en.localeFallback, false, `${id} must not fall back`);
+    assert.equal(en.asset.language, "en");
+    assert.equal(en.asset.mode, mode, `${id} mode preserved`);
+    assert.equal(en.resolvedVariant, `${id}@${version}@en`);
+
+    const zh = resolvePromptVariant(id, version, "zh");
+    assert.ok(zh, `${id} zh anchor must resolve`);
+    assert.equal(zh.resolvedVariant, `${id}@${version}@zh`);
+    assert.equal(en.asset.taskType, zh.asset.taskType, `${id} en taskType === zh`);
+    assert.equal(getRegisteredPromptAsset(id, version).language, "zh");
+  }
+});
+
+test("P1 world (worldDraft): en variants reuse zh outputSchema", () => {
+  for (const { id, version } of WORLD_DRAFT_VARIANTS) {
+    const en = getRegisteredPromptAsset(id, version, "en");
+    const zh = getRegisteredPromptAsset(id, version, "zh");
+    assert.equal(en.outputSchema, zh.outputSchema, `${id} en must reuse zh outputSchema`);
+  }
+});
+
+test("P1 world (worldDraft): representative en variants render English with no CJK", () => {
+  const emptyContext = {
+    blocks: [],
+    selectedBlockIds: [],
+    droppedBlockIds: [],
+    summarizedBlockIds: [],
+    estimatedInputTokens: 0,
+  };
+  const skeletonInput = {
+    idea: "A hidden layered city where memory is currency.",
+    worldType: "urban fantasy",
+    template: "custom",
+    options: {
+      preset: "standard",
+      counts: { rules: 4, factionGroups: 3, forces: 4, locations: 5, conflicts: 3, storyEntrySuggestions: 3 },
+    },
+  };
+  const draftInput = {
+    name: "The Memory City",
+    description: "A city where memories can be traded.",
+    worldType: "urban fantasy",
+    complexity: "medium",
+    dimensions: { geography: true, culture: false, magicSystem: true, technology: false, history: false },
+  };
+  const refineInput = {
+    worldName: "The Memory City",
+    attribute: "background",
+    refinementLevel: "deep",
+    currentValue: "The city began as a refuge.",
+  };
+  const samples = {
+    "world.skeleton.generate": skeletonInput,
+    "world.draft.generate": draftInput,
+    "world.draft.refine": refineInput,
+  };
+  for (const [id, sampleInput] of Object.entries(samples)) {
+    const en = getRegisteredPromptAsset(id, "v1", "en");
+    const messages = en.render(sampleInput, emptyContext);
+    const text = messages.map((m) => m.content).join("\n");
+    assert.ok(!CJK.test(text), `${id} en variant must contain no CJK:\n${text.slice(0, 300)}`);
+  }
+});
