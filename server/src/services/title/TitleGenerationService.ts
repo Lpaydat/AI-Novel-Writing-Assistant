@@ -4,6 +4,7 @@ import { prisma } from "../../db/prisma";
 import { resolveLLMClientOptions } from "../../llm/factory";
 import { selectStructuredOutputStrategy } from "../../llm/structuredOutput";
 import { runStructuredPrompt } from "../../prompting/core/promptRunner";
+import { getRequestLocale } from "../../middleware/locale";
 import { titleGenerationPrompt } from "../../prompting/prompts/helper/titleGeneration.prompt";
 import {
   collectUniqueSuggestions,
@@ -218,6 +219,9 @@ export class TitleGenerationService {
             model: llmOptions.model,
             temperature: llmOptions.temperature ?? 0.85,
             maxTokens: llmOptions.maxTokens,
+            // Title is pre-novel/global: locale comes from the request
+            // (Accept-Language via localeMiddleware's AsyncLocalStorage).
+            locale: getRequestLocale(),
           },
         });
 

@@ -178,6 +178,10 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     load: () => require("./prompts/helper/titleGeneration.prompt").titleGenerationPrompt as UnknownPromptAsset,
   },
   {
+    key: "title.generation@v1@en",
+    load: () => require("./prompts/helper/titleGeneration.prompt.en").titleGenerationPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "novel.volume.strategy@v2",
     load: () => require("./prompts/novel/volume/strategy.prompts").createVolumeStrategyPrompt({ maxVolumeCount: 16 }) as UnknownPromptAsset,
   },
