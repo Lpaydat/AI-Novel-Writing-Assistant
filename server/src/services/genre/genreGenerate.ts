@@ -1,4 +1,5 @@
 import type { LLMProvider } from "@ai-novel/shared/types/llm";
+import type { PromptLanguage } from "../../prompting/core/promptTypes";
 import { resolveLLMClientOptions } from "../../llm/factory";
 import { selectStructuredOutputStrategy } from "../../llm/structuredOutput";
 import { runStructuredPrompt } from "../../prompting/core/promptRunner";
@@ -16,6 +17,9 @@ export interface GenerateGenreTreeInput {
   model?: string;
   temperature?: number;
   maxTokens?: number;
+  /** Requested locale for the genre prompt (zh default). Genre is pre-novel, so it
+   * comes from the request (Accept-Language), not novel.language. */
+  locale?: PromptLanguage;
 }
 
 async function shouldForceGenreJsonOutput(input: GenerateGenreTreeInput): Promise<boolean> {
@@ -107,6 +111,7 @@ export async function generateGenreTreeDraft(input: GenerateGenreTreeInput): Pro
           model: input.model,
           temperature: input.temperature ?? 0.6,
           maxTokens: input.maxTokens,
+          locale: input.locale,
         },
       });
       const parsed = result.output;

@@ -128,3 +128,39 @@ test("F2: resolvePromptVariant returns null for an unregistered id", () => {
   assert.equal(resolvePromptVariant("does.not.exist", "v1", "zh"), null);
   assert.equal(resolvePromptVariant("does.not.exist", "v1", "en"), null);
 });
+
+test("F2: resolvePromptVariant(en) returns the en genre variant when registered", () => {
+  // genre.tree.generate@v1@en is the one English variant F2 ships. locale=en
+  // must resolve to it (resolvedLocale=en, no fallback).
+  const resolved = resolvePromptVariant("genre.tree.generate", "v1", "en");
+  assert.ok(resolved, "genre en variant must resolve");
+  assert.equal(resolved.resolvedLocale, "en");
+  assert.equal(resolved.localeFallback, false);
+  assert.equal(resolved.asset.language, "en");
+  assert.equal(resolved.resolvedVariant, "genre.tree.generate@v1@en");
+
+  // The en variant reuses the zh outputSchema (same JSON shape).
+  const zhResolved = resolvePromptVariant("genre.tree.generate", "v1", "zh");
+  assert.ok(zhResolved, "genre zh anchor must resolve");
+  assert.equal(zhResolved.resolvedLocale, "zh");
+  assert.equal(resolved.asset.outputSchema, zhResolved.asset.outputSchema, "en reuses zh outputSchema");
+});
+
+test("F2: Accept-Language middleware normalizes header -> req.locale", () => {
+  const { normalizeLocale, DEFAULT_LOCALE } = require("../dist/middleware/locale.js");
+  // Mirrors the client resolver + the F1<->F2 pinned contract.
+  assert.equal(normalizeLocale("zh"), "zh");
+  assert.equal(normalizeLocale("en"), "en");
+  assert.equal(normalizeLocale("  EN "), "en", "trim + lowercase");
+  assert.equal(normalizeLocale(null), DEFAULT_LOCALE, "missing -> zh");
+  assert.equal(normalizeLocale(""), DEFAULT_LOCALE, "empty -> zh");
+  assert.equal(normalizeLocale("fr"), DEFAULT_LOCALE, "unknown -> zh");
+  assert.equal(normalizeLocale("en-US"), DEFAULT_LOCALE, "non-bare-token -> zh");
+});
+
+test("F2: getRequestLocale defaults to zh outside a request context", () => {
+  const { getRequestLocale, DEFAULT_LOCALE } = require("../dist/middleware/locale.js");
+  // Background workers (e.g. director) have no HTTP context -> must default
+  // to zh, never crash. (Novel-scoped prompts use novel.language, not this.)
+  assert.equal(getRequestLocale(), DEFAULT_LOCALE);
+});

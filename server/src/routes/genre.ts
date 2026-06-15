@@ -81,7 +81,10 @@ router.post("/", validate({ body: createGenreSchema }), async (req, res, next) =
 
 router.post("/generate", validate({ body: generateGenreSchema }), async (req, res, next) => {
   try {
-    const data = await generateGenreTreeDraft(req.body as z.infer<typeof generateGenreSchema>);
+    const data = await generateGenreTreeDraft({
+      ...(req.body as z.infer<typeof generateGenreSchema>),
+      locale: req.locale,
+    });
     res.status(200).json({
       success: true,
       data,

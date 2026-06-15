@@ -8,6 +8,7 @@ import morgan from "morgan";
 import type { ApiResponse } from "@ai-novel/shared/types/api";
 import { ensureRuntimeDatabaseReady } from "./db/runtimeMigrations";
 import { errorHandler } from "./middleware/errorHandler";
+import { localeMiddleware } from "./middleware/locale";
 import { loadProviderApiKeys } from "./llm/factory";
 import astrologyRouter from "./routes/astrology";
 import agentCatalogRouter from "./routes/agentCatalog";
@@ -113,6 +114,10 @@ export function createApp() {
     return `${method} ${url} ${status} ${responseTime} ms - ${contentLength}${errorSuffix}`;
   }));
   app.use(express.json({ limit: jsonBodyLimit }));
+
+  // Locale (i18n): read Accept-Language -> req.locale + AsyncLocalStorage for the
+  // service layer. Must run before routes so every handler sees req.locale.
+  app.use(localeMiddleware);
 
   app.use("/api/health", healthRouter);
   app.use("/api/agent-catalog", agentCatalogRouter);

@@ -86,6 +86,10 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     load: () => require("./prompts/genre/genre.prompts").genreTreePrompt as UnknownPromptAsset,
   },
   {
+    key: "genre.tree.generate@v1@en",
+    load: () => require("./prompts/genre/genre.prompts.en").genreTreePromptEn as UnknownPromptAsset,
+  },
+  {
     key: "planner.book.plan@v1",
     load: () => require("./prompts/planner/plannerPlan.prompts").plannerBookPlanPrompt as UnknownPromptAsset,
   },
