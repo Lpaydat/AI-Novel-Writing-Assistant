@@ -79,6 +79,138 @@ export const DIRECTOR_CANDIDATE_SETUP_STEPS = [
 
 export type DirectorCandidateSetupStepKey = typeof DIRECTOR_CANDIDATE_SETUP_STEPS[number]["key"];
 
+type Locale = "zh" | "en";
+
+/**
+ * Localizable display fields for a correction preset.
+ * `value` is a stable id and is not localized here.
+ */
+export interface DirectorCorrectionPresetDisplay {
+  label: string;
+  description: string;
+  promptHint: string;
+}
+
+/**
+ * Localizable display fields for a candidate setup step.
+ * `key` is a stable id and is not localized here.
+ */
+export interface DirectorCandidateSetupStepDisplay {
+  label: string;
+  description: string;
+}
+
+// The zh branch is derived from the (unchanged) arrays, so the default-locale
+// display text stays byte-identical to pre-i18n with no duplication or drift.
+// Only the en branch carries new localized copy.
+const DIRECTOR_CORRECTION_PRESET_DISPLAY_BY_LOCALE: Record<
+  Locale,
+  Record<DirectorCorrectionPreset, DirectorCorrectionPresetDisplay>
+> = {
+  zh: Object.fromEntries(
+    DIRECTOR_CORRECTION_PRESETS.map((preset) => [
+      preset.value,
+      { label: preset.label, description: preset.description, promptHint: preset.promptHint },
+    ]),
+  ) as Record<DirectorCorrectionPreset, DirectorCorrectionPresetDisplay>,
+  en: {
+    more_hooky: {
+      label: "More hooky",
+      description:
+        "Raise the opening hook and stage-by-stage payoffs so the story drives binge-reading.",
+      promptHint: "Strengthen opening pull, payoff rewards, and follow-on hooks.",
+    },
+    stronger_conflict: {
+      label: "Stronger conflict",
+      description:
+        "Put protagonist goals and resistance into more direct collision; reduce soft progress.",
+      promptHint: "Raise mainline tension so the drive is tighter and more direct.",
+    },
+    sharper_protagonist: {
+      label: "Sharper protagonist",
+      description:
+        "Highlight the protagonist's identity, desires, and personality tags to make them more memorable.",
+      promptHint: "Boost protagonist recognizability, desire-driven motivation, and character tags.",
+    },
+    more_grounded: {
+      label: "More grounded",
+      description:
+        "Strengthen behavioral plausibility and lived-in texture; reduce floaty settings.",
+      promptHint: "Reinforce realistic texture, daily-life detail, and behavioral logic.",
+    },
+    lighter_ending: {
+      label: "Lighter ending",
+      description:
+        "Keep the punch but avoid overly oppressive or purely pessimistic endings.",
+      promptHint: "Let the ending retain a sense of hope; don't go too heavy.",
+    },
+  },
+};
+
+const DIRECTOR_CANDIDATE_SETUP_STEP_DISPLAY_BY_LOCALE: Record<
+  Locale,
+  Record<DirectorCandidateSetupStepKey, DirectorCandidateSetupStepDisplay>
+> = {
+  zh: Object.fromEntries(
+    DIRECTOR_CANDIDATE_SETUP_STEPS.map((step) => [
+      step.key,
+      { label: step.label, description: step.description },
+    ]),
+  ) as Record<DirectorCandidateSetupStepKey, DirectorCandidateSetupStepDisplay>,
+  en: {
+    candidate_seed_alignment: {
+      label: "Organize project settings",
+      description:
+        "First compress the idea, genre, target readers, and chapter scale into stable input.",
+    },
+    candidate_project_framing: {
+      label: "Align book-level framing",
+      description:
+        "Turn book-level selling points, the first-30-chapter promise, and tone constraints into candidate-generation references.",
+    },
+    candidate_direction_batch: {
+      label: "Generate book-level plans",
+      description:
+        "Produce candidate directions ready to drive full-book planning forward.",
+    },
+    candidate_title_pack: {
+      label: "Strengthen the title pack",
+      description:
+        "For each candidate set, add titles better suited to cover display and click testing.",
+    },
+  },
+};
+
+/**
+ * Locale-aware display fields (label + description + promptHint) for a correction
+ * preset. Defaults to zh (byte-identical to the preset's embedded fields); pass
+ * `"en"` for the English view. Falls back to zh if a locale entry is missing.
+ */
+export function getDirectorCorrectionPresetDisplay(
+  presetValue: DirectorCorrectionPreset,
+  locale: Locale = "zh",
+): DirectorCorrectionPresetDisplay {
+  return (
+    DIRECTOR_CORRECTION_PRESET_DISPLAY_BY_LOCALE[locale][presetValue]
+    ?? DIRECTOR_CORRECTION_PRESET_DISPLAY_BY_LOCALE.zh[presetValue]
+  );
+}
+
+/**
+ * Locale-aware display fields (label + description) for a candidate setup step.
+ * Defaults to zh (byte-identical to the step's embedded fields); pass `"en"` for
+ * the English view. Falls back to zh if a locale entry is missing.
+ */
+export function getDirectorCandidateSetupStepDisplay(
+  stepKey: DirectorCandidateSetupStepKey,
+  locale: Locale = "zh",
+): DirectorCandidateSetupStepDisplay {
+  return (
+    DIRECTOR_CANDIDATE_SETUP_STEP_DISPLAY_BY_LOCALE[locale][stepKey]
+    ?? DIRECTOR_CANDIDATE_SETUP_STEP_DISPLAY_BY_LOCALE.zh[stepKey]
+  );
+}
+
 export const DIRECTOR_RUN_MODES = [
   "full_book_autopilot",
   "auto_to_ready",

@@ -14,6 +14,18 @@ const {
   buildStyleExtractionPreset,
   buildStyleExtractionPresets,
 } = require("../../shared/dist/types/styleEngine.js");
+const {
+  DIRECTOR_AUTO_APPROVAL_GROUPS,
+  DIRECTOR_AUTO_APPROVAL_POINTS,
+  getDirectorAutoApprovalGroupDisplay,
+  getDirectorAutoApprovalPointDisplay,
+} = require("../../shared/dist/types/autoDirectorApproval.js");
+const {
+  DIRECTOR_CORRECTION_PRESETS,
+  DIRECTOR_CANDIDATE_SETUP_STEPS,
+  getDirectorCorrectionPresetDisplay,
+  getDirectorCandidateSetupStepDisplay,
+} = require("../../shared/dist/types/novelDirector.js");
 
 // Risk A: the pre-i18n zh values, snapshotted verbatim. The test never re-types
 // a Chinese literal — it asserts the default-locale (zh) view reproduces them.
@@ -71,4 +83,79 @@ test("S1: buildStyleExtractionPreset defaults to zh and resolves en", () => {
   const enPresets = buildStyleExtractionPresets(features, "en");
   const labels = enPresets.map((p) => p.label).sort();
   assert.deepEqual(labels, ["Balanced retention", "High-fidelity imitation", "Style transfer"]);
+});
+
+// ---------------------------------------------------------------------------
+// S1 Group B — Phase B1 (autoDirectorApproval + novelDirector)
+// Convention: typed arrays kept structurally unchanged (zh display fields intact
+// for backward compat). Parallel locale dictionaries keyed by stable id; the zh
+// branch is DERIVED from the array (byte-identical by construction, no drift);
+// the en branch carries new copy. Resolvers default to zh and fall back to zh.
+// ---------------------------------------------------------------------------
+
+test("S1 Group B: auto-approval groups — every id resolves zh (byte-identical to array) + en", () => {
+  for (const group of DIRECTOR_AUTO_APPROVAL_GROUPS) {
+    const zh = getDirectorAutoApprovalGroupDisplay(group.id);
+    // Risk A: zh resolver output must equal the array's own embedded fields.
+    assert.equal(zh.label, group.label, `group zh label drift at ${group.id}`);
+    assert.equal(zh.description, group.description, `group zh description drift at ${group.id}`);
+    // en branch present for every id.
+    const en = getDirectorAutoApprovalGroupDisplay(group.id, "en");
+    assert.ok(en.label && en.label.length > 0, `group en label missing at ${group.id}`);
+    assert.ok(en.description && en.description.length > 0, `group en description missing at ${group.id}`);
+    // default locale is zh
+    assert.deepEqual(getDirectorAutoApprovalGroupDisplay(group.id), zh);
+  }
+  // en value sanity check
+  assert.equal(
+    getDirectorAutoApprovalGroupDisplay("repair_replan", "en").label,
+    "Repair / replan",
+  );
+});
+
+test("S1 Group B: auto-approval points — every code resolves zh (byte-identical to array) + en", () => {
+  for (const point of DIRECTOR_AUTO_APPROVAL_POINTS) {
+    const zh = getDirectorAutoApprovalPointDisplay(point.code);
+    assert.equal(zh.label, point.label, `point zh label drift at ${point.code}`);
+    assert.equal(zh.description, point.description, `point zh description drift at ${point.code}`);
+    const en = getDirectorAutoApprovalPointDisplay(point.code, "en");
+    assert.ok(en.label && en.label.length > 0, `point en label missing at ${point.code}`);
+    assert.ok(en.description && en.description.length > 0, `point en description missing at ${point.code}`);
+    assert.deepEqual(getDirectorAutoApprovalPointDisplay(point.code), zh);
+  }
+  assert.equal(
+    getDirectorAutoApprovalPointDisplay("chapter_execution_continue", "en").label,
+    "Continue after a chapter batch completes",
+  );
+});
+
+test("S1 Group B: correction presets — every value resolves zh (byte-identical to array) + en", () => {
+  for (const preset of DIRECTOR_CORRECTION_PRESETS) {
+    const zh = getDirectorCorrectionPresetDisplay(preset.value);
+    assert.equal(zh.label, preset.label, `preset zh label drift at ${preset.value}`);
+    assert.equal(zh.description, preset.description, `preset zh description drift at ${preset.value}`);
+    assert.equal(zh.promptHint, preset.promptHint, `preset zh promptHint drift at ${preset.value}`);
+    const en = getDirectorCorrectionPresetDisplay(preset.value, "en");
+    assert.ok(en.label && en.label.length > 0, `preset en label missing at ${preset.value}`);
+    assert.ok(en.description && en.description.length > 0, `preset en description missing at ${preset.value}`);
+    assert.ok(en.promptHint && en.promptHint.length > 0, `preset en promptHint missing at ${preset.value}`);
+    assert.deepEqual(getDirectorCorrectionPresetDisplay(preset.value), zh);
+  }
+  assert.equal(getDirectorCorrectionPresetDisplay("more_hooky", "en").label, "More hooky");
+});
+
+test("S1 Group B: candidate setup steps — every key resolves zh (byte-identical to array) + en", () => {
+  for (const step of DIRECTOR_CANDIDATE_SETUP_STEPS) {
+    const zh = getDirectorCandidateSetupStepDisplay(step.key);
+    assert.equal(zh.label, step.label, `step zh label drift at ${step.key}`);
+    assert.equal(zh.description, step.description, `step zh description drift at ${step.key}`);
+    const en = getDirectorCandidateSetupStepDisplay(step.key, "en");
+    assert.ok(en.label && en.label.length > 0, `step en label missing at ${step.key}`);
+    assert.ok(en.description && en.description.length > 0, `step en description missing at ${step.key}`);
+    assert.deepEqual(getDirectorCandidateSetupStepDisplay(step.key), zh);
+  }
+  assert.equal(
+    getDirectorCandidateSetupStepDisplay("candidate_title_pack", "en").label,
+    "Strengthen the title pack",
+  );
 });

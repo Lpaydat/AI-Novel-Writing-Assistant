@@ -93,6 +93,150 @@ export const DIRECTOR_AUTO_APPROVAL_POINTS = [
 export type DirectorAutoApprovalPointCode = typeof DIRECTOR_AUTO_APPROVAL_POINTS[number]["code"];
 export type DirectorAutoApprovalRiskLevel = typeof DIRECTOR_AUTO_APPROVAL_POINTS[number]["riskLevel"];
 
+type Locale = "zh" | "en";
+
+/**
+ * Localizable display fields for an auto-approval group.
+ * `riskLevel` and `groupId` are stable enum/id values and are not localized here.
+ */
+export interface DirectorAutoApprovalGroupDisplay {
+  label: string;
+  description: string;
+}
+
+/**
+ * Localizable display fields for an auto-approval point.
+ * `riskLevel` and `groupId` are stable enum/id values and are not localized here.
+ */
+export interface DirectorAutoApprovalPointDisplay {
+  label: string;
+  description: string;
+}
+
+// The zh branch is derived from the (unchanged) arrays, so the default-locale
+// display text stays byte-identical to pre-i18n with no duplication or drift.
+// Only the en branch carries new localized copy.
+const DIRECTOR_AUTO_APPROVAL_GROUP_DISPLAY_BY_LOCALE: Record<
+  Locale,
+  Record<DirectorAutoApprovalGroupId, DirectorAutoApprovalGroupDisplay>
+> = {
+  zh: Object.fromEntries(
+    DIRECTOR_AUTO_APPROVAL_GROUPS.map((group) => [
+      group.id,
+      { label: group.label, description: group.description },
+    ]),
+  ) as Record<DirectorAutoApprovalGroupId, DirectorAutoApprovalGroupDisplay>,
+  en: {
+    low_risk_continue: {
+      label: "Low-risk continue",
+      description: "Proceed with the next prepared step without clearing assets.",
+    },
+    planning_review: {
+      label: "Planning review",
+      description:
+        "Continue after planning assets (character setup, volume strategy, chapter breakdown) pass review.",
+    },
+    chapter_execution: {
+      label: "Chapter execution",
+      description: "Enter chapter execution for a chapter range or volume range.",
+    },
+    repair_replan: {
+      label: "Repair / replan",
+      description:
+        "Continue after low-risk repair; manual confirmation recommended for replans and large rework.",
+    },
+    rewrite_cleanup: {
+      label: "Rewrite cleanup",
+      description:
+        "Regenerating or rewriting clears the target scope's assets; authorize with care.",
+    },
+  },
+};
+
+const DIRECTOR_AUTO_APPROVAL_POINT_DISPLAY_BY_LOCALE: Record<
+  Locale,
+  Record<DirectorAutoApprovalPointCode, DirectorAutoApprovalPointDisplay>
+> = {
+  zh: Object.fromEntries(
+    DIRECTOR_AUTO_APPROVAL_POINTS.map((point) => [
+      point.code,
+      { label: point.label, description: point.description },
+    ]),
+  ) as Record<DirectorAutoApprovalPointCode, DirectorAutoApprovalPointDisplay>,
+  en: {
+    candidate_direction_confirmed: {
+      label: "Continue after candidate direction confirmed",
+      description:
+        "After confirming the book-level direction, allow the AI to continue building the book and enter the main chain.",
+    },
+    character_setup_ready: {
+      label: "Continue after character setup passes",
+      description:
+        "Once the character cast is applied, allow the AI to proceed to volume strategy.",
+    },
+    volume_strategy_ready: {
+      label: "Continue after volume strategy passes",
+      description:
+        "Once volume strategy and volume skeleton are complete, allow the AI to proceed to chapter breakdown.",
+    },
+    structured_outline_ready: {
+      label: "Continue after chapter breakdown",
+      description:
+        "Once the target scope's chapter breakdown and execution resources are ready, allow the AI to proceed to writing.",
+    },
+    chapter_execution_continue: {
+      label: "Continue after a chapter batch completes",
+      description:
+        "After a chapter batch finishes, allow the AI to continue the remaining chapters.",
+    },
+    low_risk_quality_repair_continue: {
+      label: "Continue after low-risk quality repair",
+      description:
+        "When a quality repair is confirmed low-risk, allow the AI to continue chapter execution.",
+    },
+    replan_continue: {
+      label: "Continue after replan handled",
+      description:
+        "Replanning changes the downstream execution path; manual confirmation is recommended before authorizing.",
+    },
+    rewrite_cleanup_confirmed: {
+      label: "Continue after regenerate / rewrite confirmed",
+      description:
+        "After the target scope's assets are cleared, allow the AI to continue the rewrite flow.",
+    },
+  },
+};
+
+/**
+ * Locale-aware display fields (label + description) for an auto-approval group.
+ * Defaults to zh (byte-identical to the group's embedded fields); pass `"en"` for
+ * the English view. Falls back to zh if a locale entry is missing.
+ */
+export function getDirectorAutoApprovalGroupDisplay(
+  groupId: DirectorAutoApprovalGroupId,
+  locale: Locale = "zh",
+): DirectorAutoApprovalGroupDisplay {
+  return (
+    DIRECTOR_AUTO_APPROVAL_GROUP_DISPLAY_BY_LOCALE[locale][groupId]
+    ?? DIRECTOR_AUTO_APPROVAL_GROUP_DISPLAY_BY_LOCALE.zh[groupId]
+  );
+}
+
+/**
+ * Locale-aware display fields (label + description) for an auto-approval point.
+ * Defaults to zh (byte-identical to the point's embedded fields); pass `"en"` for
+ * the English view. Falls back to zh if a locale entry is missing.
+ */
+export function getDirectorAutoApprovalPointDisplay(
+  pointCode: DirectorAutoApprovalPointCode,
+  locale: Locale = "zh",
+): DirectorAutoApprovalPointDisplay {
+  return (
+    DIRECTOR_AUTO_APPROVAL_POINT_DISPLAY_BY_LOCALE[locale][pointCode]
+    ?? DIRECTOR_AUTO_APPROVAL_POINT_DISPLAY_BY_LOCALE.zh[pointCode]
+  );
+}
+
 export const ALL_DIRECTOR_AUTO_APPROVAL_POINT_CODES: DirectorAutoApprovalPointCode[] = (
   DIRECTOR_AUTO_APPROVAL_POINTS.map((item) => item.code)
 );
