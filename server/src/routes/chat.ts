@@ -165,27 +165,46 @@ router.post("/", validate({ body: chatSchema }), async (req, res, next) => {
     const llm = createLLMFromResolvedOptions(resolvedLLM);
 
     const recentMessages = body.messages.slice(-20);
+    // Creative Hub chat bypasses the prompt registry (it is the one approved
+    // Prompt-Governance exception). Localize it IN-PLACE by branching on
+    // req.locale (F2 Accept-Language middleware). zh branch byte-identical to
+    // pre-i18n (Risk A); en branch is a domain-aware rewrite.
+    const isEn = req.locale === "en";
     const systemPrompt =
       body.systemPrompt ??
-      `你是一位专业的小说创作助手，擅长帮助作者进行小说创作、世界设定、角色设计等工作。
+      (isEn
+        ? `You are a professional fiction-writing assistant, skilled at helping authors with novel creation, worldbuilding, character design, and related work.
+- Organize your answers in Markdown
+- Provide concrete, actionable writing advice
+- Combine literary craft with commercial writing practice
+- Areas of expertise: writing technique / plot ideation / character design / worldbuilding / style guidance / breaking through creative blocks`
+        : `你是一位专业的小说创作助手，擅长帮助作者进行小说创作、世界设定、角色设计等工作。
 - 使用 Markdown 格式组织回答
 - 提供具体、可操作的创作建议
 - 结合文学理论与商业写作实践
-- 擅长领域：写作技巧/情节构思/角色设计/世界观构建/文风建议/创作瓶颈突破`;
+- 擅长领域：写作技巧/情节构思/角色设计/世界观构建/文风建议/创作瓶颈突破`);
 
     const finalSystemPrompt =
       body.agentMode
         ? `${systemPrompt}
 
-作为智能创作代理，你需要：
+${isEn
+          ? `As an intelligent creative agent, you should:
+- Proactively analyze the deeper needs behind the user's request
+- Offer multiple solutions and weigh each one's pros and cons
+- Give concrete recommended next actions
+- Ask follow-up questions when you need more information`
+          : `作为智能创作代理，你需要：
 - 主动分析用户需求背后的深层问题
 - 提供多个解决方案并分析各自优劣
 - 给出具体的下一步行动建议
-- 在必要时主动提问以获取更多信息`
+- 在必要时主动提问以获取更多信息`}`
         : systemPrompt;
 
     const searchHint = body.enableSearch
-      ? "\n提示：联网检索能力当前为预留状态，请在回答中说明基于已有上下文推断。"
+      ? isEn
+        ? "\nNote: web search is currently a reserved capability; please state in your answer that you are reasoning from the available context."
+        : "\n提示：联网检索能力当前为预留状态，请在回答中说明基于已有上下文推断。"
       : "";
 
     const latestUserMessage = [...recentMessages]
@@ -215,7 +234,9 @@ router.post("/", validate({ body: chatSchema }), async (req, res, next) => {
       }
     }
     const ragHint = ragContext
-      ? `\n以下是检索到的项目知识片段（可能不完整），请优先依据这些内容回答，并在冲突时说明不确定性：\n${ragContext}\n`
+      ? isEn
+        ? `\nThe following retrieved project-knowledge fragments (possibly incomplete) are provided; answer based on them first, and note any uncertainty when they conflict:\n${ragContext}\n`
+        : `\n以下是检索到的项目知识片段（可能不完整），请优先依据这些内容回答，并在冲突时说明不确定性：\n${ragContext}\n`
       : "";
 
     const messages = [
