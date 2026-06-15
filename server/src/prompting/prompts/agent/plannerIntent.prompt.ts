@@ -9,6 +9,16 @@ import {
 } from "../../../agents/planner/intentPromptSupport";
 import type { PromptAsset } from "../../core/promptTypes";
 
+/**
+ * Shared structured-output schema for the planner-intent parse prompt.
+ * The intent payload is intentionally a free-form JSON object; downstream
+ * parsing/normalization happens in `postValidate`. Exported so the English
+ * variant (`plannerIntent.prompt.en.ts`) can reuse the exact same shape.
+ */
+export const plannerIntentSchema = z
+  .record(z.string(), z.unknown())
+  .refine((value) => !Array.isArray(value), { message: "Expected JSON object." });
+
 export const plannerIntentPrompt: PromptAsset<PlannerInput, StructuredIntent, Record<string, unknown>> = {
   id: "planner.intent.parse",
   version: "v1",
@@ -27,9 +37,7 @@ export const plannerIntentPrompt: PromptAsset<PlannerInput, StructuredIntent, Re
   semanticRetryPolicy: {
     maxAttempts: 1,
   },
-  outputSchema: z
-    .record(z.string(), z.unknown())
-    .refine((value) => !Array.isArray(value), { message: "Expected JSON object." }),
+  outputSchema: plannerIntentSchema,
   render: (input) => {
     const prompt = buildPlannerIntentPromptParts(input);
     return [

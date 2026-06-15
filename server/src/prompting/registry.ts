@@ -26,60 +26,120 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     load: () => require("./prompts/agent/plannerIntent.prompt").plannerIntentPrompt as UnknownPromptAsset,
   },
   {
+    key: "planner.intent.parse@v1@en",
+    load: () => require("./prompts/agent/plannerIntent.prompt.en").plannerIntentPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "agent.runtime.fallback_answer@v1",
     load: () => require("./prompts/agent/runtime.prompts").runtimeFallbackAnswerPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "agent.runtime.fallback_answer@v1@en",
+    load: () => require("./prompts/agent/runtime.prompts.en").runtimeFallbackAnswerPromptEn as UnknownPromptAsset,
   },
   {
     key: "agent.runtime.setup_guidance@v1",
     load: () => require("./prompts/agent/runtime.prompts").runtimeSetupGuidancePrompt as UnknownPromptAsset,
   },
   {
+    key: "agent.runtime.setup_guidance@v1@en",
+    load: () => require("./prompts/agent/runtime.prompts.en").runtimeSetupGuidancePromptEn as UnknownPromptAsset,
+  },
+  {
     key: "agent.runtime.setup_ideation@v1",
     load: () => require("./prompts/agent/runtime.prompts").runtimeSetupIdeationPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "agent.runtime.setup_ideation@v1@en",
+    load: () => require("./prompts/agent/runtime.prompts.en").runtimeSetupIdeationPromptEn as UnknownPromptAsset,
   },
   {
     key: "audit.chapter.full@v2",
     load: () => require("./prompts/audit/audit.prompts").auditChapterPrompt as UnknownPromptAsset,
   },
   {
+    key: "audit.chapter.full@v2@en",
+    load: () => require("./prompts/audit/audit.prompts.en").auditChapterFullPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "audit.chapter.light@v1",
     load: () => require("./prompts/audit/audit.prompts").auditChapterLightPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "audit.chapter.light@v1@en",
+    load: () => require("./prompts/audit/audit.prompts.en").auditChapterLightPromptEn as UnknownPromptAsset,
   },
   {
     key: "bookAnalysis.source.note@v1",
     load: () => require("./prompts/bookAnalysis/bookAnalysis.prompts").bookAnalysisSourceNotePrompt as UnknownPromptAsset,
   },
   {
+    key: "bookAnalysis.source.note@v1@en",
+    load: () => require("./prompts/bookAnalysis/bookAnalysis.prompts.en").bookAnalysisSourceNotePromptEn as UnknownPromptAsset,
+  },
+  {
     key: "bookAnalysis.section.generate@v1",
     load: () => require("./prompts/bookAnalysis/bookAnalysis.prompts").bookAnalysisSectionPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "bookAnalysis.section.generate@v1@en",
+    load: () => require("./prompts/bookAnalysis/bookAnalysis.prompts.en").bookAnalysisSectionGeneratePromptEn as UnknownPromptAsset,
   },
   {
     key: "bookAnalysis.section.optimize@v1",
     load: () => require("./prompts/bookAnalysis/bookAnalysis.prompts").bookAnalysisOptimizedDraftPrompt as UnknownPromptAsset,
   },
   {
+    key: "bookAnalysis.section.optimize@v1@en",
+    load: () => require("./prompts/bookAnalysis/bookAnalysis.prompts.en").bookAnalysisSectionOptimizePromptEn as UnknownPromptAsset,
+  },
+  {
     key: "character.base.skeleton@v1",
     load: () => require("./prompts/character/character.prompts").baseCharacterSkeletonPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "character.base.skeleton@v1@en",
+    load: () => require("./prompts/character/character.prompts.en").characterBaseSkeletonPromptEn as UnknownPromptAsset,
   },
   {
     key: "character.base.final@v1",
     load: () => require("./prompts/character/character.prompts").baseCharacterFinalPrompt as UnknownPromptAsset,
   },
   {
+    key: "character.base.final@v1@en",
+    load: () => require("./prompts/character/character.prompts.en").characterBaseFinalPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "character.sync.classify@v1",
     load: () => require("./prompts/character/characterSync.prompts").characterSyncClassificationPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "character.sync.classify@v1@en",
+    load: () => require("./prompts/character/characterSync.prompts.en").characterSyncClassifyPromptEn as UnknownPromptAsset,
   },
   {
     key: "image.character.prompt_optimize@v1",
     load: () => require("./prompts/image/image.prompts").imageCharacterPromptOptimizePrompt as UnknownPromptAsset,
   },
   {
+    key: "image.character.prompt_optimize@v1@en",
+    load: () => require("./prompts/image/image.prompts.en").imageCharacterPromptOptimizePromptEn as UnknownPromptAsset,
+  },
+  {
     key: "image.novel_cover.brief@v1",
     load: () => require("./prompts/image/image.prompts").imageNovelCoverBriefPrompt as UnknownPromptAsset,
   },
   {
+    key: "image.novel_cover.brief@v1@en",
+    load: () => require("./prompts/image/image.prompts.en").imageNovelCoverBriefPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "image.novel_cover.prompt_optimize@v1",
     load: () => require("./prompts/image/image.prompts").imageNovelCoverPromptOptimizePrompt as UnknownPromptAsset,
+  },
+  {
+    key: "image.novel_cover.prompt_optimize@v1@en",
+    load: () => require("./prompts/image/image.prompts.en").imageNovelCoverPromptOptimizePromptEn as UnknownPromptAsset,
   },
   {
     key: "genre.tree.generate@v1",

@@ -9,18 +9,23 @@ const {
 const { buildPromptAssetKey } = require("../dist/prompting/core/promptTypes.js");
 const { preparePromptExecution } = require("../dist/prompting/core/promptRunner.js");
 
-// Pick a real registered zh prompt as the anchor for these tests. We do not
-// assume any specific id beyond it being a real zh asset the registry loads.
+// Pick a real registered zh prompt as the anchor for these tests. We prefer a
+// zh anchor that has NO en variant registered, so the en-with-fallback tests
+// below remain valid as the registry grows (more zh anchors get en siblings
+// over time). Falls back to any zh anchor if every zh anchor has an en variant.
 function firstRegisteredZhAsset() {
-  const { listRegisteredPromptAssets } = require("../dist/prompting/registry.js");
+  const { listRegisteredPromptAssets, hasRegisteredPromptAsset } = require("../dist/prompting/registry.js");
   const zh = listRegisteredPromptAssets().filter((a) => a.language === "zh");
   assert.ok(zh.length > 0, "registry must have at least one zh prompt registered");
-  return zh[0];
+  return (
+    zh.find((a) => !hasRegisteredPromptAsset(a.id, a.version, "en")) ?? zh[0]
+  );
 }
 
-/** A zh asset whose render({}) does not throw — for preparePromptExecution tests. */
+/** A zh asset whose render({}) does not throw AND has no en variant, for the
+ *  preparePromptExecution fallback tests. */
 function firstRenderSafeZhAsset() {
-  const { listRegisteredPromptAssets } = require("../dist/prompting/registry.js");
+  const { listRegisteredPromptAssets, hasRegisteredPromptAsset } = require("../dist/prompting/registry.js");
   const zh = listRegisteredPromptAssets().filter((a) => a.language === "zh");
   const emptyContext = {
     blocks: [],
@@ -29,9 +34,12 @@ function firstRenderSafeZhAsset() {
     summarizedBlockIds: [],
     estimatedInputTokens: 0,
   };
-  const safe = zh.find((a) => {
-    try { a.render({}, emptyContext); return true; } catch { return false; }
-  });
+  // Prefer render-safe + no-en-variant so the fallback assertion holds; else any render-safe zh.
+  const safe =
+    zh.find((a) => {
+      try { a.render({}, emptyContext); return !hasRegisteredPromptAsset(a.id, a.version, "en"); } catch { return false; }
+    })
+    ?? zh.find((a) => { try { a.render({}, emptyContext); return true; } catch { return false; } });
   assert.ok(safe, "need at least one render-safe zh asset for preparePromptExecution tests");
   return safe;
 }
