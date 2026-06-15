@@ -704,3 +704,176 @@ export const WORKFLOW_CHECKPOINT_CATALOG: readonly WorkflowCheckpointCatalogEntr
     defaultProgress: 0.1,
   },
 ] as const;
+
+type Locale = "zh" | "en";
+
+/**
+ * Localizable display field for a workflow display stage. `key` is a stable id.
+ */
+export interface WorkflowDisplayStageDisplay {
+  label: string;
+}
+
+/**
+ * Localizable display field for a workflow step-catalog entry. `id`/`nodeKey` and
+ * all structural fields (stage/progress/reads/writes/...) are stable data.
+ */
+export interface WorkflowStepCatalogEntryDisplay {
+  label: string;
+}
+
+/**
+ * Localizable display fields for a workflow checkpoint-catalog entry. The
+ * optional status-specific labels only exist on some checkpoints (e.g.
+ * `chapter_batch_ready`). `checkpoint`/`approvalPoint` are stable ids.
+ */
+export interface WorkflowCheckpointCatalogEntryDisplay {
+  label: string;
+  runningLabel?: string;
+  pausedLabel?: string;
+  waitingApprovalLabel?: string;
+}
+
+// The zh branch is derived from the (unchanged) arrays, so the default-locale
+// display text stays byte-identical to pre-i18n with no duplication or drift.
+// Optional checkpoint labels are carried through only when present. Only the en
+// branch carries new localized copy.
+const WORKFLOW_DISPLAY_STAGE_DISPLAY_BY_LOCALE: Readonly<
+  Record<Locale, Readonly<Record<WorkflowStepCatalogDisplayStage, WorkflowDisplayStageDisplay>>>
+> = {
+  zh: Object.fromEntries(
+    WORKFLOW_DISPLAY_STAGES.map((stage) => [stage.key, { label: stage.label }]),
+  ) as Record<WorkflowStepCatalogDisplayStage, WorkflowDisplayStageDisplay>,
+  en: {
+    project_setup: { label: "Project setup" },
+    story_planning: { label: "Story macro planning" },
+    character_setup: { label: "Character setup" },
+    volume_strategy: { label: "Volume strategy" },
+    structured_outline: { label: "Pacing / chapter breakdown" },
+    chapter_execution: { label: "Chapter execution" },
+    quality_repair: { label: "Quality repair" },
+  },
+};
+
+const WORKFLOW_STEP_CATALOG_DISPLAY_BY_LOCALE: Readonly<
+  Record<Locale, Readonly<Record<string, WorkflowStepCatalogEntryDisplay>>>
+> = {
+  zh: Object.fromEntries(
+    WORKFLOW_STEP_CATALOG.map((entry) => [entry.id, { label: entry.label }]),
+  ) as Record<string, WorkflowStepCatalogEntryDisplay>,
+  en: {
+    [DIRECTOR_WORKFLOW_STEP_IDS.candidate.candidate_generation]: { label: "Generate book-level candidates" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.candidate.candidate_refine]: { label: "Refine candidate directions" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.candidate.candidate_patch]: { label: "Targeted candidate patch" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.candidate.candidate_title_refine]: { label: "Refine candidate titles" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.confirmNovelCreate]: { label: "Create novel project" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.takeover]: { label: "Run AI auto-director takeover" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.planning.story_macro]: { label: "Generate story macro plan" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.planning.book_contract]: { label: "Generate book creation contract" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.planning.world_setup]: { label: "Prepare book world" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.planning.character_setup]: { label: "Prepare character cast & assets" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.planning.volume_strategy]: { label: "Generate volume strategy & progression route" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.structuredOutline.beat_sheet]: { label: "Generate target volume beat sheet" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.structuredOutline.chapter_list]: { label: "Generate volume chapter list" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.structuredOutline.chapter_detail_bundle]: {
+      label: "Refine chapter task sheets & execution resources",
+    },
+    [DIRECTOR_WORKFLOW_STEP_IDS.executionContractSync]: { label: "Sync chapter execution contract" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.execution.chapter_execution]: { label: "Run chapter generation batch" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.execution.chapter_quality_review]: { label: "Review chapter quality" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.execution.chapter_repair]: { label: "Repair chapter issues" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.execution.chapter_state_commit]: { label: "Commit chapter continuity state" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.execution.payoff_ledger_sync]: { label: "Sync reader promises & foreshadowing" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.execution.character_resource_sync]: { label: "Sync character resource state" },
+    [DIRECTOR_WORKFLOW_STEP_IDS.execution.quality_repair]: { label: "Run chapter quality repair" },
+  },
+};
+
+const WORKFLOW_CHECKPOINT_CATALOG_DISPLAY_BY_LOCALE: Readonly<
+  Record<Locale, Readonly<Record<NovelWorkflowMilestoneType, WorkflowCheckpointCatalogEntryDisplay>>>
+> = {
+  zh: Object.fromEntries(
+    WORKFLOW_CHECKPOINT_CATALOG.map((entry) => {
+      const display: WorkflowCheckpointCatalogEntryDisplay = { label: entry.label };
+      if (entry.runningLabel != null) display.runningLabel = entry.runningLabel;
+      if (entry.pausedLabel != null) display.pausedLabel = entry.pausedLabel;
+      if (entry.waitingApprovalLabel != null) display.waitingApprovalLabel = entry.waitingApprovalLabel;
+      return [entry.checkpoint, display];
+    }),
+  ) as Record<NovelWorkflowMilestoneType, WorkflowCheckpointCatalogEntryDisplay>,
+  en: {
+    candidate_selection_required: {
+      label: "Awaiting book-level direction confirmation",
+    },
+    book_contract_ready: {
+      label: "Book-level plan ready",
+    },
+    character_setup_required: {
+      label: "Character setup awaiting confirmation",
+    },
+    volume_strategy_ready: {
+      label: "Volume strategy ready",
+    },
+    chapter_batch_ready: {
+      label: "Chapter execution can continue",
+      waitingApprovalLabel: "Chapter breakdown complete; ready to enter chapter execution",
+      pausedLabel: "Auto-execution paused",
+    },
+    replan_required: {
+      label: "Quality repair needs handling",
+    },
+    workflow_completed: {
+      label: "Director main flow completed",
+    },
+    rewrite_snapshot_created: {
+      label: "Pre-rewrite backup created",
+    },
+  },
+};
+
+/**
+ * Locale-aware label for a workflow display stage. Defaults to zh (byte-identical
+ * to the stage's embedded label); pass `"en"` for the English view. Falls back to
+ * zh if a locale entry is missing.
+ */
+export function getWorkflowDisplayStageDisplay(
+  stageKey: WorkflowStepCatalogDisplayStage,
+  locale: Locale = "zh",
+): WorkflowDisplayStageDisplay {
+  return (
+    WORKFLOW_DISPLAY_STAGE_DISPLAY_BY_LOCALE[locale][stageKey]
+    ?? WORKFLOW_DISPLAY_STAGE_DISPLAY_BY_LOCALE.zh[stageKey]
+  );
+}
+
+/**
+ * Locale-aware label for a workflow step-catalog entry, keyed by the entry's
+ * stable `id`. Defaults to zh (byte-identical to the entry's embedded label);
+ * pass `"en"` for the English view. Falls back to zh if a locale entry is
+ * missing.
+ */
+export function getWorkflowStepCatalogEntryDisplay(
+  stepId: string,
+  locale: Locale = "zh",
+): WorkflowStepCatalogEntryDisplay {
+  return (
+    WORKFLOW_STEP_CATALOG_DISPLAY_BY_LOCALE[locale][stepId]
+    ?? WORKFLOW_STEP_CATALOG_DISPLAY_BY_LOCALE.zh[stepId]
+  );
+}
+
+/**
+ * Locale-aware display fields (label + optional status-specific labels) for a
+ * workflow checkpoint-catalog entry. Defaults to zh (byte-identical to the
+ * entry's embedded fields, including which optional labels exist); pass `"en"`
+ * for the English view. Falls back to zh if a locale entry is missing.
+ */
+export function getWorkflowCheckpointCatalogEntryDisplay(
+  checkpoint: NovelWorkflowMilestoneType,
+  locale: Locale = "zh",
+): WorkflowCheckpointCatalogEntryDisplay {
+  return (
+    WORKFLOW_CHECKPOINT_CATALOG_DISPLAY_BY_LOCALE[locale][checkpoint]
+    ?? WORKFLOW_CHECKPOINT_CATALOG_DISPLAY_BY_LOCALE.zh[checkpoint]
+  );
+}

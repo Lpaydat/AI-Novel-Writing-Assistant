@@ -30,6 +30,15 @@ const {
   getDirectorCorrectionPresetDisplay,
   getDirectorCandidateSetupStepDisplay,
 } = require("../../shared/dist/types/novelDirector.js");
+const {
+  WORKFLOW_DISPLAY_STAGES,
+  WORKFLOW_STEP_CATALOG,
+  WORKFLOW_CHECKPOINT_CATALOG,
+  DIRECTOR_WORKFLOW_STEP_IDS,
+  getWorkflowDisplayStageDisplay,
+  getWorkflowStepCatalogEntryDisplay,
+  getWorkflowCheckpointCatalogEntryDisplay,
+} = require("../../shared/dist/types/directorWorkflowStepCatalogData.js");
 
 // Risk A: the pre-i18n zh values, snapshotted verbatim. The test never re-types
 // a Chinese literal — it asserts the default-locale (zh) view reproduces them.
@@ -186,4 +195,57 @@ test("S1 Group B: book-analysis presets — every key resolves zh (byte-identica
     assert.deepEqual(getBookAnalysisPresetDisplay(preset.key), zh);
   }
   assert.equal(getBookAnalysisPresetDisplay("standard", "en").title, "Standard analysis");
+});
+
+test("S1 Group B: workflow display stages — every key resolves zh (byte-identical to array) + en", () => {
+  for (const stage of WORKFLOW_DISPLAY_STAGES) {
+    const zh = getWorkflowDisplayStageDisplay(stage.key);
+    assert.equal(zh.label, stage.label, `stage zh label drift at ${stage.key}`);
+    const en = getWorkflowDisplayStageDisplay(stage.key, "en");
+    assert.ok(en.label && en.label.length > 0, `stage en label missing at ${stage.key}`);
+    assert.deepEqual(getWorkflowDisplayStageDisplay(stage.key), zh);
+  }
+  assert.equal(getWorkflowDisplayStageDisplay("quality_repair", "en").label, "Quality repair");
+});
+
+test("S1 Group B: workflow step catalog — every id resolves zh (byte-identical to array) + en", () => {
+  assert.equal(WORKFLOW_STEP_CATALOG.length, 22, "catalog size guard");
+  const seenIds = new Set();
+  for (const entry of WORKFLOW_STEP_CATALOG) {
+    assert.ok(!seenIds.has(entry.id), `duplicate step id ${entry.id}`);
+    seenIds.add(entry.id);
+    const zh = getWorkflowStepCatalogEntryDisplay(entry.id);
+    assert.equal(zh.label, entry.label, `step zh label drift at ${entry.id}`);
+    const en = getWorkflowStepCatalogEntryDisplay(entry.id, "en");
+    assert.ok(en.label && en.label.length > 0, `step en label missing at ${entry.id}`);
+    assert.deepEqual(getWorkflowStepCatalogEntryDisplay(entry.id), zh);
+  }
+  assert.equal(
+    getWorkflowStepCatalogEntryDisplay(DIRECTOR_WORKFLOW_STEP_IDS.execution.chapter_execution, "en").label,
+    "Run chapter generation batch",
+  );
+});
+
+test("S1 Group B: workflow checkpoint catalog — multi-field zh byte-identity + en incl. optional labels", () => {
+  for (const entry of WORKFLOW_CHECKPOINT_CATALOG) {
+    const zh = getWorkflowCheckpointCatalogEntryDisplay(entry.checkpoint);
+    // label always present and byte-identical
+    assert.equal(zh.label, entry.label, `checkpoint zh label drift at ${entry.checkpoint}`);
+    // optional fields must be carried through exactly when present, absent otherwise
+    assert.equal(zh.runningLabel, entry.runningLabel, `runningLabel drift at ${entry.checkpoint}`);
+    assert.equal(zh.pausedLabel, entry.pausedLabel, `pausedLabel drift at ${entry.checkpoint}`);
+    assert.equal(zh.waitingApprovalLabel, entry.waitingApprovalLabel, `waitingApprovalLabel drift at ${entry.checkpoint}`);
+    const en = getWorkflowCheckpointCatalogEntryDisplay(entry.checkpoint, "en");
+    assert.ok(en.label && en.label.length > 0, `checkpoint en label missing at ${entry.checkpoint}`);
+    assert.deepEqual(getWorkflowCheckpointCatalogEntryDisplay(entry.checkpoint), zh);
+  }
+  // The one checkpoint with optional labels: chapter_batch_ready
+  const batchZh = getWorkflowCheckpointCatalogEntryDisplay("chapter_batch_ready");
+  assert.equal(batchZh.pausedLabel, "自动执行已暂停");
+  assert.equal(batchZh.waitingApprovalLabel, "节奏拆章完成，可进入章节执行");
+  assert.equal(batchZh.runningLabel, undefined, "runningLabel should be absent on chapter_batch_ready");
+  const batchEn = getWorkflowCheckpointCatalogEntryDisplay("chapter_batch_ready", "en");
+  assert.equal(batchEn.label, "Chapter execution can continue");
+  assert.equal(batchEn.pausedLabel, "Auto-execution paused");
+  assert.equal(batchEn.waitingApprovalLabel, "Chapter breakdown complete; ready to enter chapter execution");
 });
