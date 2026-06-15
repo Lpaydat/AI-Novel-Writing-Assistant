@@ -9,6 +9,10 @@ const {
 const {
   BOOK_ANALYSIS_STRUCTURED_FIELD_LABELS,
   getBookAnalysisStructuredFieldLabel,
+  getBookAnalysisSectionDisplay,
+  getBookAnalysisPresetDisplay,
+  BOOK_ANALYSIS_SECTIONS,
+  BOOK_ANALYSIS_PRESETS,
 } = require("../../shared/dist/types/bookAnalysis.js");
 const {
   buildStyleExtractionPreset,
@@ -158,4 +162,28 @@ test("S1 Group B: candidate setup steps — every key resolves zh (byte-identica
     getDirectorCandidateSetupStepDisplay("candidate_title_pack", "en").label,
     "Strengthen the title pack",
   );
+});
+
+test("S1 Group B: book-analysis sections — every key resolves zh (byte-identical to array) + en", () => {
+  for (const section of BOOK_ANALYSIS_SECTIONS) {
+    const zh = getBookAnalysisSectionDisplay(section.key);
+    assert.equal(zh.title, section.title, `section zh title drift at ${section.key}`);
+    const en = getBookAnalysisSectionDisplay(section.key, "en");
+    assert.ok(en.title && en.title.length > 0, `section en title missing at ${section.key}`);
+    assert.deepEqual(getBookAnalysisSectionDisplay(section.key), zh);
+  }
+  assert.equal(getBookAnalysisSectionDisplay("plot_structure", "en").title, "Plot structure");
+});
+
+test("S1 Group B: book-analysis presets — every key resolves zh (byte-identical to array) + en", () => {
+  for (const preset of BOOK_ANALYSIS_PRESETS) {
+    const zh = getBookAnalysisPresetDisplay(preset.key);
+    assert.equal(zh.title, preset.title, `preset zh title drift at ${preset.key}`);
+    assert.equal(zh.summary, preset.summary, `preset zh summary drift at ${preset.key}`);
+    const en = getBookAnalysisPresetDisplay(preset.key, "en");
+    assert.ok(en.title && en.title.length > 0, `preset en title missing at ${preset.key}`);
+    assert.ok(en.summary && en.summary.length > 0, `preset en summary missing at ${preset.key}`);
+    assert.deepEqual(getBookAnalysisPresetDisplay(preset.key), zh);
+  }
+  assert.equal(getBookAnalysisPresetDisplay("standard", "en").title, "Standard analysis");
 });

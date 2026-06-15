@@ -176,6 +176,99 @@ export function getBookAnalysisStructuredFieldLabel(key: string, locale: Locale 
   return BOOK_ANALYSIS_STRUCTURED_FIELD_LABELS_BY_LOCALE[locale][key] ?? key;
 }
 
+/**
+ * Localizable display fields for a book-analysis section.
+ * `key` is a stable id and is not localized here.
+ */
+export interface BookAnalysisSectionDisplay {
+  title: string;
+}
+
+/**
+ * Localizable display fields for a book-analysis preset.
+ * `key` and `sectionKeys` are stable data and are not localized here.
+ */
+export interface BookAnalysisPresetDisplay {
+  title: string;
+  summary: string;
+}
+
+// The zh branch is derived from the (unchanged) arrays, so the default-locale
+// display text stays byte-identical to pre-i18n with no duplication or drift.
+// Only the en branch carries new localized copy.
+const BOOK_ANALYSIS_SECTION_DISPLAY_BY_LOCALE: Readonly<
+  Record<Locale, Readonly<Record<BookAnalysisSectionKey, BookAnalysisSectionDisplay>>>
+> = {
+  zh: Object.fromEntries(
+    BOOK_ANALYSIS_SECTIONS.map((section) => [section.key, { title: section.title }]),
+  ) as Record<BookAnalysisSectionKey, BookAnalysisSectionDisplay>,
+  en: {
+    overview: { title: "Book analysis overview" },
+    plot_structure: { title: "Plot structure" },
+    timeline: { title: "Story timeline" },
+    character_system: { title: "Character system" },
+    worldbuilding: { title: "Worldbuilding & settings" },
+    themes: { title: "Themes" },
+    style_technique: { title: "Style & technique" },
+    market_highlights: { title: "Commercial selling points" },
+  },
+};
+
+const BOOK_ANALYSIS_PRESET_DISPLAY_BY_LOCALE: Readonly<
+  Record<Locale, Readonly<Record<BookAnalysisPreset, BookAnalysisPresetDisplay>>>
+> = {
+  zh: Object.fromEntries(
+    BOOK_ANALYSIS_PRESETS.map((preset) => [preset.key, { title: preset.title, summary: preset.summary }]),
+  ) as Record<BookAnalysisPreset, BookAnalysisPresetDisplay>,
+  en: {
+    quick: {
+      title: "Quick analysis",
+      summary:
+        "Prioritize positioning, mainline structure, character system, and writing traits — a low-cost first pass to judge whether a deeper analysis is worthwhile.",
+    },
+    standard: {
+      title: "Standard analysis",
+      summary:
+        "Covers most information needed for creative reuse; skips the timeline by default. Suited for most web-novel reference analyses.",
+    },
+    complete: {
+      title: "Complete analysis",
+      summary:
+        "Generates every analysis section, including the story timeline. Suited for long-form continuation, imitation, or deep review.",
+    },
+  },
+};
+
+/**
+ * Locale-aware display fields (title) for a book-analysis section. Defaults to zh
+ * (byte-identical to the section's embedded title); pass `"en"` for the English
+ * view. Falls back to zh if a locale entry is missing.
+ */
+export function getBookAnalysisSectionDisplay(
+  sectionKey: BookAnalysisSectionKey,
+  locale: Locale = "zh",
+): BookAnalysisSectionDisplay {
+  return (
+    BOOK_ANALYSIS_SECTION_DISPLAY_BY_LOCALE[locale][sectionKey]
+    ?? BOOK_ANALYSIS_SECTION_DISPLAY_BY_LOCALE.zh[sectionKey]
+  );
+}
+
+/**
+ * Locale-aware display fields (title + summary) for a book-analysis preset.
+ * Defaults to zh (byte-identical to the preset's embedded fields); pass `"en"`
+ * for the English view. Falls back to zh if a locale entry is missing.
+ */
+export function getBookAnalysisPresetDisplay(
+  presetKey: BookAnalysisPreset,
+  locale: Locale = "zh",
+): BookAnalysisPresetDisplay {
+  return (
+    BOOK_ANALYSIS_PRESET_DISPLAY_BY_LOCALE[locale][presetKey]
+    ?? BOOK_ANALYSIS_PRESET_DISPLAY_BY_LOCALE.zh[presetKey]
+  );
+}
+
 export const BOOK_ANALYSIS_STRUCTURED_FIELD_SPECS: Readonly<Record<BookAnalysisSectionKey, ReadonlyArray<BookAnalysisStructuredFieldSpec>>> = {
   overview: [
     { key: "oneLinePositioning", type: "string" },
