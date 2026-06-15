@@ -7,6 +7,8 @@ import type { LLMProvider } from "@ai-novel/shared/types/llm";
 import type { TaskType } from "../../llm/modelRouter";
 import { createContextBlock } from "../../prompting/core/contextBudget";
 import { runTextPrompt, streamTextPrompt } from "../../prompting/core/promptRunner";
+import type { PromptLanguage } from "../../prompting/core/promptTypes";
+import { prisma } from "../../db/prisma";
 import { resolvePromptContextBlocksForAsset } from "../../prompting/context/promptContextResolution";
 import {
   buildChapterWriterContextBlocks,
@@ -289,6 +291,15 @@ export class ChapterWritingGraph {
       fallbackBlocks: sanitized.allowedBlocks,
     });
 
+    // Novel-scoped: locale comes from novel.language (DB), not req.locale. The
+    // director runs as a background worker; this graph is reached with only
+    // novelId, so resolve the language here.
+    const novelRow = await prisma.novel.findUnique({
+      where: { id: input.novelId },
+      select: { language: true },
+    });
+    const writerLocale = (novelRow?.language ?? "zh") as PromptLanguage;
+
     const streamed = await streamTextPrompt({
       asset: chapterWriterPrompt,
       promptInput: {
@@ -310,6 +321,7 @@ export class ChapterWritingGraph {
         chapterId: input.chapter.id,
         stage: "writer_draft",
         triggerReason: "chapter_initial_draft",
+        locale: writerLocale,
       },
     });
 

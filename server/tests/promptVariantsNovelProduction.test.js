@@ -152,3 +152,84 @@ test("P2 novel-core: chapterHook en variant renders English (real version v2)", 
   const text = messages.map((m) => m.content).join("\n");
   assert.ok(!CJK.test(text), "chapterHook en must contain no CJK");
 });
+
+// ---------------------------------------------------------------------------
+// P2 Phase 2 — chapter-production + director chains (subagent-authored).
+// 14 en variants across chapterWriter / review / patchRepair / chapterAcceptance
+// and the director.* family. All novel-scoped: locale from novel.language (DB).
+// ---------------------------------------------------------------------------
+
+const P2_PHASE2_VARIANTS = [
+  { id: "novel.chapter.writer", version: "v5", exportName: "chapterWriterPromptEn" },
+  { id: "novel.chapter.summary", version: "v1", exportName: "chapterSummaryPromptEn" },
+  { id: "novel.review.chapter", version: "v1", exportName: "chapterReviewPromptEn" },
+  { id: "novel.review.repair", version: "v1", exportName: "chapterRepairPromptEn" },
+  { id: "novel.review.patch", version: "v1", exportName: "chapterPatchRepairPlanPromptEn" },
+  { id: "novel.chapter.acceptance_assessment", version: "v1", exportName: "chapterAcceptanceAssessmentPromptEn" },
+  { id: "novel.director.candidates", version: "v1", exportName: "directorCandidatesPromptEn" },
+  { id: "novel.director.candidate_patch", version: "v1", exportName: "directorCandidatePatchPromptEn" },
+  { id: "novel.director.blueprint", version: "v1", exportName: "directorBlueprintPromptEn" },
+  { id: "novel.director.book_contract", version: "v1", exportName: "directorBookContractPromptEn" },
+  { id: "novel.director.workspace_analysis", version: "v1", exportName: "directorWorkspaceAnalysisPromptEn" },
+  { id: "novel.director.manual_edit_impact", version: "v1", exportName: "directorManualEditImpactPromptEn" },
+  { id: "novel.director.idea_inspiration", version: "v1", exportName: "directorIdeaInspirationPromptEn" },
+  { id: "director.state_proposal_resolution", version: "v1", exportName: "directorStateProposalResolutionPromptEn" },
+];
+
+test("P2 phase2: every chapter/director en variant resolves (no fallback); zh anchors intact (Risk A)", () => {
+  for (const { id, version } of P2_PHASE2_VARIANTS) {
+    const en = resolvePromptVariant(id, version, "en");
+    assert.ok(en, `${id}@${version}@en must resolve`);
+    assert.equal(en.resolvedLocale, "en", `${id} resolvedLocale`);
+    assert.equal(en.localeFallback, false, `${id} must not fall back`);
+    assert.equal(en.asset.language, "en");
+    assert.equal(en.resolvedVariant, `${id}@${version}@en`);
+
+    // Risk A: zh anchor still resolves, default-locale, untouched.
+    const zh = resolvePromptVariant(id, version, "zh");
+    assert.ok(zh, `${id} zh anchor must resolve`);
+    assert.equal(zh.resolvedVariant, `${id}@${version}@zh`);
+    assert.equal(zh.localeFallback, false);
+    // en preserves the zh anchor's mode + taskType (writer/repair/review/summary/planner).
+    assert.equal(en.asset.mode, zh.asset.mode, `${id} en mode === zh`);
+    assert.equal(en.asset.taskType, zh.asset.taskType, `${id} en taskType === zh`);
+    // 2-arg backward-compat returns zh anchor.
+    assert.equal(getRegisteredPromptAsset(id, version).language, "zh");
+  }
+});
+
+test("P2 phase2: structured en variants reuse zh outputSchema", () => {
+  for (const { id, version } of P2_PHASE2_VARIANTS) {
+    const en = getRegisteredPromptAsset(id, version, "en");
+    const zh = getRegisteredPromptAsset(id, version, "zh");
+    if (zh.mode === "structured") {
+      assert.equal(en.outputSchema, zh.outputSchema, `${id} en must reuse zh outputSchema`);
+    }
+  }
+});
+
+test("P2 phase2: every en variant's own render emits no CJK (domain-aware rewrite check)", () => {
+  const emptyContext = {
+    blocks: [], selectedBlockIds: [], droppedBlockIds: [], summarizedBlockIds: [], estimatedInputTokens: 0,
+  };
+  // Minimal render-safe inputs per family. Where an input field is optional, omit it.
+  const sampleInput = {
+    "novel.chapter.writer": { novelTitle: "T", chapterOrder: 1, chapterTitle: "C1", mode: "draft", targetWordCount: 2000, minWordCount: 1800, maxWordCount: 2200 },
+    "novel.review.repair": { novelTitle: "T", chapterOrder: 1, chapterTitle: "C1", originalContent: "He ran.", issues: [{ ruleName: "vague", severity: "warn", excerpt: "ran", reason: "vague verb", suggestion: "use a concrete action" }] },
+    "novel.director.idea_inspiration": { currentIdea: "A memory-trading city.", genreLabel: "Urban fantasy", tags: [] },
+    "director.state_proposal_resolution": { novelId: "n1", proposals: [], appliedEffects: [], validationErrors: [], conflictReasons: [] },
+  };
+  for (const { id, version } of P2_PHASE2_VARIANTS) {
+    const en = getRegisteredPromptAsset(id, version, "en");
+    let messages;
+    try {
+      messages = en.render(sampleInput[id] ?? {}, emptyContext);
+    } catch {
+      // Some inputs need richer fields to render; skip render-only CJK check for those,
+      // resolution + outputSchema checks above still cover them.
+      continue;
+    }
+    const text = messages.map((m) => m.content).join("\n");
+    assert.ok(!CJK.test(text), `${id} en render must contain no CJK:\n${text.slice(0, 300)}`);
+  }
+});

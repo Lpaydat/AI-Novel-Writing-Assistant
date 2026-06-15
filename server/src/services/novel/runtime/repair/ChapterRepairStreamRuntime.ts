@@ -3,6 +3,7 @@ import type { QualityScore, ReviewIssue } from "@ai-novel/shared/types/novel";
 import type { StreamDoneHelpers } from "../../../../llm/streaming";
 import { prisma } from "../../../../db/prisma";
 import { streamTextPrompt } from "../../../../prompting/core/promptRunner";
+import type { PromptLanguage } from "../../../../prompting/core/promptTypes";
 import { withChapterRepairContext } from "../../../../prompting/prompts/novel/chapterLayeredContext";
 import { auditService } from "../../../audit/AuditService";
 import { ChapterPatchRepairFailedError } from "../../chapterPatchRepairService";
@@ -113,7 +114,15 @@ export class ChapterRepairStreamRuntime {
       };
     }
 
-    const streamed = await streamTextPrompt(createHeavyRepairPromptExecution(prepared));
+    const streamed = await streamTextPrompt({
+      ...createHeavyRepairPromptExecution(prepared),
+      // Novel-scoped: locale comes from novel.language (DB), not req.locale.
+      // The repair runtime already loads the novel row above, so thread it here.
+      options: {
+        ...createHeavyRepairPromptExecution(prepared).options,
+        locale: (novel.language ?? "zh") as PromptLanguage,
+      },
+    });
     return {
       stream: streamed.stream as AsyncIterable<BaseMessageChunk>,
       onDone: async (fullContent: string, helpers: StreamDoneHelpers) => {

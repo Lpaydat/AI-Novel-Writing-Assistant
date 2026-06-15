@@ -110,28 +110,56 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     load: () => require("./prompts/novel/directorPlanning.prompts").directorCandidatePrompt as UnknownPromptAsset,
   },
   {
+    key: "novel.director.candidates@v1@en",
+    load: () => require("./prompts/novel/directorPlanning.prompts.en").directorCandidatesPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "novel.director.candidate_patch@v1",
     load: () => require("./prompts/novel/directorPlanning.prompts").directorCandidatePatchPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "novel.director.candidate_patch@v1@en",
+    load: () => require("./prompts/novel/directorPlanning.prompts.en").directorCandidatePatchPromptEn as UnknownPromptAsset,
   },
   {
     key: "novel.director.book_contract@v1",
     load: () => require("./prompts/novel/directorPlanning.prompts").directorBookContractPrompt as UnknownPromptAsset,
   },
   {
+    key: "novel.director.book_contract@v1@en",
+    load: () => require("./prompts/novel/directorPlanning.prompts.en").directorBookContractPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "novel.director.blueprint@v1",
     load: () => require("./prompts/novel/directorPlanning.prompts").directorBlueprintPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "novel.director.blueprint@v1@en",
+    load: () => require("./prompts/novel/directorPlanning.prompts.en").directorBlueprintPromptEn as UnknownPromptAsset,
   },
   {
     key: "novel.director.workspace_analysis@v1",
     load: () => require("./prompts/novel/directorWorkspaceAnalysis.prompts").directorWorkspaceAnalysisPrompt as UnknownPromptAsset,
   },
   {
+    key: "novel.director.workspace_analysis@v1@en",
+    load: () => require("./prompts/novel/directorWorkspaceAnalysis.prompts.en").directorWorkspaceAnalysisPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "novel.director.manual_edit_impact@v1",
     load: () => require("./prompts/novel/directorManualEditImpact.prompts").directorManualEditImpactPrompt as UnknownPromptAsset,
   },
   {
+    key: "novel.director.manual_edit_impact@v1@en",
+    load: () => require("./prompts/novel/directorManualEditImpact.prompts.en").directorManualEditImpactPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "director.state_proposal_resolution@v1",
     load: () => require("./prompts/novel/directorStateProposalResolution.prompts").directorStateProposalResolutionPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "director.state_proposal_resolution@v1@en",
+    load: () => require("./prompts/novel/directorStateProposalResolution.prompts.en").directorStateProposalResolutionPromptEn as UnknownPromptAsset,
   },
   {
     key: "novel.story_macro.decomposition@v1",
@@ -184,6 +212,10 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
   {
     key: "novel.chapter.acceptance_assessment@v1",
     load: () => require("./prompts/novel/chapterAcceptance.prompts").chapterAcceptanceAssessmentPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "novel.chapter.acceptance_assessment@v1@en",
+    load: () => require("./prompts/novel/chapterAcceptance.prompts.en").chapterAcceptanceAssessmentPromptEn as UnknownPromptAsset,
   },
   {
     key: "novel.chapter.artifact_delta.extract@v1",
@@ -310,8 +342,16 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     load: () => require("./prompts/novel/review.prompts").chapterSummaryPrompt as UnknownPromptAsset,
   },
   {
+    key: "novel.chapter.summary@v1@en",
+    load: () => require("./prompts/novel/review.prompts.en").chapterSummaryPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "novel.chapter.writer@v5",
     load: () => require("./prompts/novel/chapterWriter.prompts").chapterWriterPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "novel.chapter.writer@v5@en",
+    load: () => require("./prompts/novel/chapterWriter.prompts.en").chapterWriterPromptEn as UnknownPromptAsset,
   },
   {
     key: "novel.timeline.extractor@v1",
@@ -334,12 +374,24 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     load: () => require("./prompts/novel/review.prompts").chapterReviewPrompt as UnknownPromptAsset,
   },
   {
+    key: "novel.review.chapter@v1@en",
+    load: () => require("./prompts/novel/review.prompts.en").chapterReviewPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "novel.review.repair@v1",
     load: () => require("./prompts/novel/review.prompts").chapterRepairPrompt as UnknownPromptAsset,
   },
   {
+    key: "novel.review.repair@v1@en",
+    load: () => require("./prompts/novel/review.prompts.en").chapterRepairPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "novel.review.patch@v1",
     load: () => require("./prompts/novel/chapterPatchRepair.prompts").chapterPatchRepairPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "novel.review.patch@v1@en",
+    load: () => require("./prompts/novel/chapterPatchRepair.prompts.en").chapterPatchRepairPlanPromptEn as UnknownPromptAsset,
   },
   {
     key: "novel.framing.suggest@v1",
@@ -368,6 +420,10 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
   {
     key: "novel.director.idea_inspiration@v1",
     load: () => require("./prompts/novel/ideaInspiration.prompts").directorIdeaInspirationPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "novel.director.idea_inspiration@v1@en",
+    load: () => require("./prompts/novel/ideaInspiration.prompts.en").directorIdeaInspirationPromptEn as UnknownPromptAsset,
   },
   {
     key: "novel.payoff_ledger.sync@v5",
