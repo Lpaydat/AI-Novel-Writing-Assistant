@@ -463,25 +463,45 @@ export function decideStyleFeatureDecision(
   return "keep";
 }
 
+type StyleLocale = "zh" | "en";
+
 export function buildStyleExtractionPreset(
   features: StyleExtractionFeature[],
   presetKey: StyleExtractionPreset["key"],
+  locale: StyleLocale = "zh",
 ): StyleExtractionPreset {
-  const labels: Record<StyleExtractionPreset["key"], { label: string; summary: string }> = {
-    imitate: {
-      label: "高保真仿写",
-      summary: "尽量保留高相似度特征，适合临摹、仿写和风格贴近试写。",
+  const labelsByLocale: Record<StyleLocale, Record<StyleExtractionPreset["key"], { label: string; summary: string }>> = {
+    zh: {
+      imitate: {
+        label: "高保真仿写",
+        summary: "尽量保留高相似度特征，适合临摹、仿写和风格贴近试写。",
+      },
+      balanced: {
+        label: "平衡保留",
+        summary: "保住写法骨架，同时弱化原文指纹，适合大多数写作场景。",
+      },
+      transfer: {
+        label: "写法迁移",
+        summary: "优先保留可迁移规则，主动剥离高指纹风险特征，适合整书绑定。",
+      },
     },
-    balanced: {
-      label: "平衡保留",
-      summary: "保住写法骨架，同时弱化原文指纹，适合大多数写作场景。",
-    },
-    transfer: {
-      label: "写法迁移",
-      summary: "优先保留可迁移规则，主动剥离高指纹风险特征，适合整书绑定。",
+    en: {
+      imitate: {
+        label: "High-fidelity imitation",
+        summary: "Keep high-similarity features; suited to tracing, imitation, and close-style trial writing.",
+      },
+      balanced: {
+        label: "Balanced retention",
+        summary: "Keep the style skeleton while weakening source fingerprints; suited to most writing scenarios.",
+      },
+      transfer: {
+        label: "Style transfer",
+        summary: "Prefer transferable rules and actively strip high-fingerprint features; suited to whole-book binding.",
+      },
     },
   };
 
+  const labels = labelsByLocale[locale];
   return {
     key: presetKey,
     label: labels[presetKey].label,
@@ -493,11 +513,11 @@ export function buildStyleExtractionPreset(
   };
 }
 
-export function buildStyleExtractionPresets(features: StyleExtractionFeature[]): StyleExtractionPreset[] {
+export function buildStyleExtractionPresets(features: StyleExtractionFeature[], locale: StyleLocale = "zh"): StyleExtractionPreset[] {
   return [
-    buildStyleExtractionPreset(features, "imitate"),
-    buildStyleExtractionPreset(features, "balanced"),
-    buildStyleExtractionPreset(features, "transfer"),
+    buildStyleExtractionPreset(features, "imitate", locale),
+    buildStyleExtractionPreset(features, "balanced", locale),
+    buildStyleExtractionPreset(features, "transfer", locale),
   ];
 }
 
