@@ -114,3 +114,106 @@ test("P1 title: default locale (zh) still renders the zh anchor byte-identically
   const text = prepared.messages.map((m) => m.content).join("\n");
   assert.ok(CJK.test(text), "zh anchor must still render Chinese by default");
 });
+
+// ---------------------------------------------------------------------------
+// P1 Style family (11 assets). Each en variant reuses its zh anchor's
+// outputSchema + input type; the zh anchor is byte-identical (additive).
+// NOTE: style.detection/rewrite declare version v2 (the registry's @v1 loader
+// key is a known stale hint corrected on hydration); resolution uses the REAL
+// version v2. style.profile.extract=v2, from_book_analysis=v3, from_brief=v2.
+// ---------------------------------------------------------------------------
+
+const STYLE_VARIANTS = [
+  { id: "style.detection", version: "v2", mode: "structured" },
+  { id: "style.recommendation", version: "v1", mode: "structured" },
+  { id: "style.generate", version: "v1", mode: "text" },
+  { id: "style.rewrite", version: "v2", mode: "text" },
+  { id: "style.anti_ai_rule.draft", version: "v1", mode: "structured" },
+  { id: "style.profile.extract", version: "v2", mode: "structured" },
+  { id: "style.profile.from_book_analysis", version: "v3", mode: "structured" },
+  { id: "style.profile.from_brief", version: "v2", mode: "structured" },
+  { id: "style.profile.metadata", version: "v1", mode: "structured" },
+  { id: "style.profile.select_anti_ai", version: "v1", mode: "structured" },
+  { id: "style.profile.sanitize_for_generation", version: "v1", mode: "structured" },
+];
+
+test("P1 style: every en variant is registered + resolves (no fallback); zh anchors intact (Risk A)", () => {
+  for (const { id, version, mode } of STYLE_VARIANTS) {
+    const en = resolvePromptVariant(id, version, "en");
+    assert.ok(en, `${id}@${version}@en must resolve`);
+    assert.equal(en.resolvedLocale, "en", `${id} resolvedLocale`);
+    assert.equal(en.localeFallback, false, `${id} must not fall back`);
+    assert.equal(en.asset.language, "en", `${id} language`);
+    assert.equal(en.asset.mode, mode, `${id} mode preserved`);
+    assert.equal(en.asset.taskType, en.asset.taskType, `${id} taskType present`);
+    assert.equal(en.resolvedVariant, `${id}@${version}@en`);
+
+    // Risk A: zh anchor still resolves, default-locale, untouched.
+    const zh = resolvePromptVariant(id, version, "zh");
+    assert.ok(zh, `${id} zh anchor must resolve`);
+    assert.equal(zh.resolvedLocale, "zh");
+    assert.equal(zh.localeFallback, false);
+    assert.equal(zh.resolvedVariant, `${id}@${version}@zh`);
+    // en preserves the zh anchor's taskType (planner/writer/repair per asset).
+    assert.equal(en.asset.taskType, zh.asset.taskType, `${id} en taskType === zh`);
+    // 2-arg backward-compat returns zh anchor.
+    assert.equal(getRegisteredPromptAsset(id, version).language, "zh");
+  }
+});
+
+test("P1 style: every en variant reuses its zh anchor's outputSchema", () => {
+  for (const { id, version } of STYLE_VARIANTS) {
+    const en = getRegisteredPromptAsset(id, version, "en");
+    const zh = getRegisteredPromptAsset(id, version, "zh");
+    assert.equal(en.outputSchema, zh.outputSchema, `${id} en must reuse zh outputSchema`);
+  }
+});
+
+// Representative render inputs (minimal but valid per each asset's input type).
+const STYLE_RENDER_SAMPLES = {
+  "style.detection": {
+    styleContractText: "Show, don't tell. Vary sentence length.",
+    styleContractMetaText: "meta",
+    antiRuleCatalogText: "forbidden: 'a symphony of'",
+    content: "The city was a symphony of light. He felt utterly perfect.",
+  },
+  "style.generate": {
+    styleBlock: "sharp dialogue",
+    characterBlock: "gruff detective",
+    antiAiBlock: "avoid cliches",
+    selfCheckBlock: "",
+    mode: "generate",
+    prompt: "Write the opening of chapter 1.",
+    targetLength: 600,
+  },
+  "style.rewrite": {
+    styleContractText: "concrete verbs",
+    content: "He was very sad and walked away slowly.",
+    issuesBlock: "- vague emotion (very sad)",
+  },
+  "style.profile.extract": {
+    name: "Tight thriller",
+    sourceText: "Short sentences. Clipped dialogue. No interiority.",
+  },
+  "style.profile.from_brief": {
+    brief: "A sparse, cold, hardboiled feel with snappy dialogue.",
+  },
+};
+
+test("P1 style: representative en variants render English output with no CJK", () => {
+  const emptyContext = {
+    blocks: [],
+    selectedBlockIds: [],
+    droppedBlockIds: [],
+    summarizedBlockIds: [],
+    estimatedInputTokens: 0,
+  };
+  for (const [id, sampleInput] of Object.entries(STYLE_RENDER_SAMPLES)) {
+    const { version } = STYLE_VARIANTS.find((v) => v.id === id);
+    const en = getRegisteredPromptAsset(id, version, "en");
+    const messages = en.render(sampleInput, emptyContext);
+    assert.ok(Array.isArray(messages) && messages.length >= 2, `${id} en must emit messages`);
+    const text = messages.map((m) => m.content).join("\n");
+    assert.ok(!CJK.test(text), `${id} en variant must contain no CJK:\n${text.slice(0, 300)}`);
+  }
+});

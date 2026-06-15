@@ -418,6 +418,50 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
       load: () => require("./prompts/style/style.prompts").styleProfileSanitizeForGenerationPrompt as UnknownPromptAsset,
     },
     {
+      key: "style.detection@v2@en",
+      load: () => require("./prompts/style/style.prompts.en").styleDetectionPromptEn as UnknownPromptAsset,
+    },
+    {
+      key: "style.recommendation@v1@en",
+      load: () => require("./prompts/style/style.prompts.en").styleRecommendationPromptEn as UnknownPromptAsset,
+    },
+    {
+      key: "style.generate@v1@en",
+      load: () => require("./prompts/style/style.prompts.en").styleGenerationPromptEn as UnknownPromptAsset,
+    },
+    {
+      key: "style.rewrite@v2@en",
+      load: () => require("./prompts/style/style.prompts.en").styleRewritePromptEn as UnknownPromptAsset,
+    },
+    {
+      key: "style.anti_ai_rule.draft@v1@en",
+      load: () => require("./prompts/style/style.prompts.en").antiAiRuleAiDraftPromptEn as UnknownPromptAsset,
+    },
+    {
+      key: "style.profile.extract@v2@en",
+      load: () => require("./prompts/style/style.prompts.en").styleProfileExtractionPromptEn as UnknownPromptAsset,
+    },
+    {
+      key: "style.profile.from_book_analysis@v3@en",
+      load: () => require("./prompts/style/style.prompts.en").styleProfileFromBookAnalysisPromptEn as UnknownPromptAsset,
+    },
+    {
+      key: "style.profile.from_brief@v2@en",
+      load: () => require("./prompts/style/style.prompts.en").styleProfileFromBriefPromptEn as UnknownPromptAsset,
+    },
+    {
+      key: "style.profile.metadata@v1@en",
+      load: () => require("./prompts/style/style.prompts.en").styleProfileMetadataPromptEn as UnknownPromptAsset,
+    },
+    {
+      key: "style.profile.select_anti_ai@v1@en",
+      load: () => require("./prompts/style/style.prompts.en").styleProfileAntiAiSelectionPromptEn as UnknownPromptAsset,
+    },
+    {
+      key: "style.profile.sanitize_for_generation@v1@en",
+      load: () => require("./prompts/style/style.prompts.en").styleProfileSanitizeForGenerationPromptEn as UnknownPromptAsset,
+    },
+    {
       key: "writingFormula.extract.stream@v1",
       load: () => require("./prompts/writingFormula/writingFormulaStream.prompts").writingFormulaExtractStreamPrompt as UnknownPromptAsset,
     },
