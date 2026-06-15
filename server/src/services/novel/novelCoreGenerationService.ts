@@ -6,6 +6,7 @@ import {
   streamStructuredPrompt,
   streamTextPrompt,
 } from "../../prompting/core/promptRunner";
+import type { PromptLanguage } from "../../prompting/core/promptTypes";
 import {
   novelBeatPrompt,
   novelBiblePrompt,
@@ -123,6 +124,8 @@ export class NovelCoreGenerationService {
         provider: options.provider ?? "deepseek",
         model: options.model,
         temperature: options.temperature ?? 0.7,
+        // Novel-scoped: locale comes from novel.language (DB), not req.locale.
+        locale: novel.language as PromptLanguage,
       },
     });
 
@@ -186,6 +189,8 @@ export class NovelCoreGenerationService {
         provider: options.provider ?? "deepseek",
         model: options.model,
         temperature: options.temperature ?? 0.2,
+        // Novel-scoped: locale comes from novel.language (DB), not req.locale.
+        locale: novel.language as PromptLanguage,
       },
     });
 
@@ -316,6 +321,8 @@ export class NovelCoreGenerationService {
         provider: options.provider ?? "deepseek",
         model: options.model,
         temperature: options.temperature ?? 0.6,
+        // Novel-scoped: locale comes from novel.language (DB), not req.locale.
+        locale: novel.language as PromptLanguage,
       },
     });
 
@@ -391,6 +398,8 @@ export class NovelCoreGenerationService {
         provider: options.provider ?? "deepseek",
         model: options.model,
         temperature: options.temperature ?? 0.7,
+        // Novel-scoped: locale comes from novel.language (DB), not req.locale.
+        locale: novel.language as PromptLanguage,
       },
     });
 
@@ -425,6 +434,12 @@ export class NovelCoreGenerationService {
       throw new Error("未找到可生成钩子的章节");
     }
 
+    // Novel-scoped: locale comes from novel.language (DB), not req.locale.
+    const novelRow = await prisma.novel.findUnique({
+      where: { id: novelId },
+      select: { language: true },
+    });
+
     const result = await runStructuredPrompt({
       asset: novelChapterHookPrompt,
       promptInput: {
@@ -435,6 +450,7 @@ export class NovelCoreGenerationService {
         provider: options.provider ?? "deepseek",
         model: options.model,
         temperature: options.temperature ?? 0.8,
+        locale: (novelRow?.language ?? "zh") as PromptLanguage,
       },
     });
     const payload = result.output;

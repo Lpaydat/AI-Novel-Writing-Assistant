@@ -49,7 +49,7 @@ export interface NovelChapterHookPromptInput {
   content: string;
 }
 
-const novelBeatPayloadSchema = z.array(
+export const novelBeatPayloadSchema = z.array(
   z.object({
     chapterOrder: z.union([z.number(), z.string()]).optional(),
     beatType: z.string().optional(),
@@ -59,7 +59,7 @@ const novelBeatPayloadSchema = z.array(
   }).passthrough(),
 );
 
-const novelChapterHookSchema = z.object({
+export const novelChapterHookSchema = z.object({
   hook: z.string().optional(),
   nextExpectation: z.string().optional(),
 }).passthrough();

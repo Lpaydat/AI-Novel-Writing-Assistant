@@ -146,6 +146,10 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     load: () => require("./prompts/novel/coreGeneration.prompts").novelOutlinePrompt as UnknownPromptAsset,
   },
   {
+    key: "novel.outline.generate@v1@en",
+    load: () => require("./prompts/novel/coreGeneration.prompts.en").novelOutlinePromptEn as UnknownPromptAsset,
+  },
+  {
     key: "novel.structuredOutline.generate@v1",
     load: () => require("./prompts/novel/coreGeneration.prompts").novelStructuredOutlinePrompt as UnknownPromptAsset,
   },
@@ -158,12 +162,24 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     load: () => require("./prompts/novel/coreGeneration.prompts").novelBiblePrompt as UnknownPromptAsset,
   },
   {
+    key: "novel.bible.generate@v1@en",
+    load: () => require("./prompts/novel/coreGeneration.prompts.en").novelBiblePromptEn as UnknownPromptAsset,
+  },
+  {
     key: "novel.beat.generate@v1",
     load: () => require("./prompts/novel/coreGeneration.prompts").novelBeatPrompt as UnknownPromptAsset,
   },
   {
+    key: "novel.beat.generate@v1@en",
+    load: () => require("./prompts/novel/coreGeneration.prompts.en").novelBeatPromptEn as UnknownPromptAsset,
+  },
+  {
     key: "novel.chapterHook.generate@v1",
     load: () => require("./prompts/novel/coreGeneration.prompts").novelChapterHookPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "novel.chapterHook.generate@v2@en",
+    load: () => require("./prompts/novel/coreGeneration.prompts.en").novelChapterHookPromptEn as UnknownPromptAsset,
   },
   {
     key: "novel.chapter.acceptance_assessment@v1",
