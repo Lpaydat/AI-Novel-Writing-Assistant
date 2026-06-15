@@ -561,6 +561,62 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     key: "world.axioms.suggest@v1",
     load: () => require("./prompts/world/world.prompts").worldAxiomSuggestionPrompt as UnknownPromptAsset,
   },
+  {
+    key: "world.reference.inspiration@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldReferenceInspirationPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.visualization.generate@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldVisualizationPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.inspiration.concept_card@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldInspirationConceptCardPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.inspiration.localize_concept_card@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldInspirationConceptCardLocalizationPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.property_options.generate@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldPropertyOptionsPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.deepening.questions@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldDeepeningQuestionsPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.consistency.check@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldConsistencyPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.layer.generate@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldLayerGenerationPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.layer.localize@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldLayerLocalizationPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.import.extract@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldImportExtractionPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.structure.backfill@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldStructureBackfillPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "novel.world.generate_from_theme@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").novelThemeWorldGenerationPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.structure.generate@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldStructureSectionPromptEn as UnknownPromptAsset,
+  },
+  {
+    key: "world.axioms.suggest@v1@en",
+    load: () => require("./prompts/world/world.prompts.en").worldAxiomSuggestionPromptEn as UnknownPromptAsset,
+  },
 ];
 
 const promptAssetLoaderByKey = createPromptAssetLoaderRegistry(promptAssetLoaderEntries);

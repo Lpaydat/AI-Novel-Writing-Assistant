@@ -298,3 +298,100 @@ test("P1 world (worldDraft): representative en variants render English with no C
     assert.ok(!CJK.test(text), `${id} en variant must contain no CJK:\n${text.slice(0, 300)}`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// P1 World — world.prompts.ts family (14 assets). Completes P1's world scope.
+// taskType: world.consistency.check = "review", world.import.extract =
+// "fact_extraction", the rest "planner".
+// ---------------------------------------------------------------------------
+
+const WORLD_PROMPTS_VARIANTS = [
+  { id: "world.reference.inspiration", version: "v1" },
+  { id: "world.visualization.generate", version: "v1" },
+  { id: "world.inspiration.concept_card", version: "v1" },
+  { id: "world.inspiration.localize_concept_card", version: "v1" },
+  { id: "world.property_options.generate", version: "v1" },
+  { id: "world.deepening.questions", version: "v1" },
+  { id: "world.consistency.check", version: "v1" },
+  { id: "world.layer.generate", version: "v1" },
+  { id: "world.layer.localize", version: "v1" },
+  { id: "world.import.extract", version: "v1" },
+  { id: "world.structure.backfill", version: "v1" },
+  { id: "novel.world.generate_from_theme", version: "v1" },
+  { id: "world.structure.generate", version: "v1" },
+  { id: "world.axioms.suggest", version: "v1" },
+];
+
+test("P1 world (world.prompts): every en variant resolves (no fallback); zh anchors intact (Risk A)", () => {
+  for (const { id, version } of WORLD_PROMPTS_VARIANTS) {
+    const en = resolvePromptVariant(id, version, "en");
+    assert.ok(en, `${id}@${version}@en must resolve`);
+    assert.equal(en.resolvedLocale, "en", `${id} resolvedLocale`);
+    assert.equal(en.localeFallback, false, `${id} must not fall back`);
+    assert.equal(en.asset.language, "en");
+    assert.equal(en.resolvedVariant, `${id}@${version}@en`);
+
+    // Risk A: zh anchor still resolves, default-locale, untouched.
+    const zh = resolvePromptVariant(id, version, "zh");
+    assert.ok(zh, `${id} zh anchor must resolve`);
+    assert.equal(zh.resolvedVariant, `${id}@${version}@zh`);
+    assert.equal(zh.localeFallback, false);
+    // en preserves the zh anchor's mode + taskType (incl. review / fact_extraction).
+    assert.equal(en.asset.mode, zh.asset.mode, `${id} en mode === zh`);
+    assert.equal(en.asset.taskType, zh.asset.taskType, `${id} en taskType === zh`);
+    // 2-arg backward-compat returns zh anchor.
+    assert.equal(getRegisteredPromptAsset(id, version).language, "zh");
+  }
+});
+
+test("P1 world (world.prompts): en variants reuse zh outputSchema + preserve mode/taskType", () => {
+  for (const { id, version } of WORLD_PROMPTS_VARIANTS) {
+    const en = getRegisteredPromptAsset(id, version, "en");
+    const zh = getRegisteredPromptAsset(id, version, "zh");
+    assert.equal(en.outputSchema, zh.outputSchema, `${id} en must reuse zh outputSchema`);
+  }
+  // Spot-check the two non-planner taskTypes are preserved on the en variant.
+  assert.equal(getRegisteredPromptAsset("world.consistency.check", "v1", "en").taskType, "review");
+  assert.equal(getRegisteredPromptAsset("world.import.extract", "v1", "en").taskType, "fact_extraction");
+});
+
+test("P1 world (world.prompts): representative en variants render English with no CJK", () => {
+  const emptyContext = {
+    blocks: [],
+    selectedBlockIds: [],
+    droppedBlockIds: [],
+    summarizedBlockIds: [],
+    estimatedInputTokens: 0,
+  };
+  const samples = {
+    "world.reference.inspiration": { userPrompt: "Extract the world base from this reference work." },
+    "world.visualization.generate": { worldPromptSource: "A city split into tiers by altitude." },
+    "world.deepening.questions": {
+      worldName: "The Memory City",
+      description: "Memories are currency.",
+      dataJson: "{}",
+      ragContext: "",
+    },
+    "world.consistency.check": {
+      worldName: "The Memory City",
+      axioms: "Memory trades cost the giver.",
+      coreSettingsJson: "{}",
+      ragContext: "",
+    },
+    "world.axioms.suggest": {
+      worldName: "The Memory City",
+      worldType: "urban fantasy",
+      templateName: "custom",
+      templateDescription: "",
+      description: "A city where memories are currency.",
+      blueprintPromptBlock: "",
+    },
+    "world.import.extract": { content: "The city trades in memories; the poor sell, the rich hoard." },
+  };
+  for (const [id, sampleInput] of Object.entries(samples)) {
+    const en = getRegisteredPromptAsset(id, "v1", "en");
+    const messages = en.render(sampleInput, emptyContext);
+    const text = messages.map((m) => m.content).join("\n");
+    assert.ok(!CJK.test(text), `${id} en variant must contain no CJK:\n${text.slice(0, 300)}`);
+  }
+});
