@@ -21,6 +21,7 @@ import { Link } from "react-router-dom";
 import TaskCenterManualEditImpactCard from "@/pages/tasks/components/TaskCenterManualEditImpactCard";
 import TaskCenterRuntimePolicyCard from "@/pages/tasks/components/TaskCenterRuntimePolicyCard";
 import type { NovelTaskDrawerState } from "./NovelEditView.types";
+import { formatLocaleDateTime, formatLocaleNumber } from "@/i18n/format";
 
 type DrawerTask = NonNullable<NovelTaskDrawerState["task"]>;
 
@@ -104,11 +105,11 @@ function formatDate(value: string | null | undefined): string {
   if (Number.isNaN(date.getTime())) {
     return "暂无";
   }
-  return date.toLocaleString();
+  return formatLocaleDateTime(date);
 }
 
 function formatTokenCount(value: number | null | undefined): string {
-  return new Intl.NumberFormat("zh-CN").format(Math.max(0, Math.round(value ?? 0)));
+  return formatLocaleNumber(Math.max(0, Math.round(value ?? 0)));
 }
 
 function formatStepStatus(status: "idle" | "running" | "succeeded" | "failed" | "cancelled"): string {

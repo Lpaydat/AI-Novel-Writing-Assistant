@@ -13,6 +13,7 @@ import { getDirectorBookAutomationProjection } from "@/api/novelDirector";
 import { continueNovelWorkflow } from "@/api/novelWorkflow";
 import { deleteNovel, downloadNovelExport, getNovelList } from "@/api/novel";
 import { queryKeys } from "@/api/queryKeys";
+import { formatLocaleNumber } from "@/i18n/format";
 import AICockpit from "@/components/autoDirector/AICockpit";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -79,7 +80,7 @@ function formatTokenCount(value?: number | null): string {
   const normalized = typeof value === "number" && Number.isFinite(value)
     ? Math.max(0, Math.round(value))
     : 0;
-  return new Intl.NumberFormat("zh-CN").format(normalized);
+  return formatLocaleNumber(normalized);
 }
 
 export default function NovelList() {

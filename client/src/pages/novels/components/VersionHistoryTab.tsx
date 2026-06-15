@@ -3,6 +3,7 @@ import { createNovelSnapshot, listNovelSnapshots, restoreNovelSnapshot } from "@
 import { queryKeys } from "@/api/queryKeys";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatLocaleDateTime } from "@/i18n/format";
 
 interface VersionHistoryTabProps {
   novelId: string;
@@ -115,7 +116,7 @@ export default function VersionHistoryTab({ novelId }: VersionHistoryTabProps) {
                   <div className="space-y-1">
                     <div className="font-medium">{snapshot.label || "未命名版本"}</div>
                     <div className="text-xs text-muted-foreground">
-                      {formatSnapshotTrigger(snapshot.triggerType)} · {new Date(snapshot.createdAt).toLocaleString()}
+                      {formatSnapshotTrigger(snapshot.triggerType)} · {formatLocaleDateTime(snapshot.createdAt)}
                     </div>
                   </div>
 

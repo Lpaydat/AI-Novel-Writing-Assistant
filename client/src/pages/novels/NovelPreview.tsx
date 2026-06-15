@@ -6,6 +6,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { getNovelChapters, getNovelDetail } from "@/api/novel";
 import { queryKeys } from "@/api/queryKeys";
+import { formatLocaleNumber } from "@/i18n/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +26,7 @@ function countWords(content: string | null | undefined): number {
 }
 
 function formatCount(value: number): string {
-  return new Intl.NumberFormat("zh-CN").format(value);
+  return formatLocaleNumber(value);
 }
 
 function formatChapterStatus(status?: ChapterStatus | null): string {

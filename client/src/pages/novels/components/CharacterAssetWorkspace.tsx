@@ -17,6 +17,7 @@ import CharacterAssetSidebar from "./CharacterAssetSidebar";
 import CharacterFocusSummary from "./CharacterFocusSummary";
 import { isProtagonistCharacter } from "./characterAssetWorkspace.helpers";
 import { getLastAppearanceChapter } from "./characterPanel.utils";
+import { formatLocaleDateTime } from "@/i18n/format";
 
 interface CharacterFormState {
   name: string;
@@ -602,7 +603,7 @@ export default function CharacterAssetWorkspace(props: CharacterAssetWorkspacePr
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {event.chapterOrder ? `章节 ${event.chapterOrder}` : "无章节归属"} ·{" "}
-                      {new Date(event.createdAt).toLocaleString()}
+                      {formatLocaleDateTime(event.createdAt)}
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">{event.content}</div>
                   </div>

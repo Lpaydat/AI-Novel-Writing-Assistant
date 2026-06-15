@@ -27,6 +27,7 @@ import {
 } from "@/lib/directorTaskNotice";
 import { extractWorkflowActivityTags } from "@/lib/novelWorkflowActivityTags";
 import { useDirectorChapterTitleRepair } from "@/hooks/useDirectorChapterTitleRepair";
+import { formatLocaleDateTime, formatLocaleNumber } from "@/i18n/format";
 
 type DirectorExecutionViewMode = "execution_progress" | "execution_failed";
 
@@ -74,11 +75,11 @@ function formatDate(value: string | null | undefined): string {
   if (Number.isNaN(date.getTime())) {
     return "暂无";
   }
-  return date.toLocaleString();
+  return formatLocaleDateTime(date);
 }
 
 function formatTokenCount(value: number | null | undefined): string {
-  return new Intl.NumberFormat("zh-CN").format(Math.max(0, Math.round(value ?? 0)));
+  return formatLocaleNumber(Math.max(0, Math.round(value ?? 0)));
 }
 
 function resolveAutoExecutionScopeLabel(task: UnifiedTaskDetail | null): string {

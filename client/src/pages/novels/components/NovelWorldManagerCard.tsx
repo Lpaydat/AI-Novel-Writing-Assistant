@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import NovelWorldSourcePanel, { type WorldOption } from "./novelWorld/NovelWorldSourcePanel";
+import { formatLocaleDateTime } from "@/i18n/format";
 
 interface NovelWorldManagerCardProps {
   view?: NovelWorldView | null;
@@ -146,7 +147,7 @@ function formatSyncTime(value: string | null | undefined): string | null {
   if (Number.isNaN(date.getTime())) {
     return null;
   }
-  return date.toLocaleString("zh-CN", {
+  return formatLocaleDateTime(date, undefined, {
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",

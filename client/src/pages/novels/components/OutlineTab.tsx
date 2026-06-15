@@ -9,6 +9,7 @@ import WorldInjectionHint from "./WorldInjectionHint";
 import VolumePayoffOverviewCard from "./VolumePayoffOverviewCard";
 import type { OutlineTabViewProps } from "./NovelEditView.types";
 import DirectorTakeoverEntryPanel from "./DirectorTakeoverEntryPanel";
+import { formatLocaleDateTime } from "@/i18n/format";
 
 type OutlineCharacterResource = NonNullable<OutlineTabViewProps["characterResources"]>[number];
 
@@ -477,7 +478,7 @@ export default function OutlineTab(props: OutlineTabViewProps) {
                               {versionStatusLabel(selectedVersion.status)}
                             </Badge>
                           </div>
-                          <div className="text-xs text-muted-foreground">创建时间：{new Date(selectedVersion.createdAt).toLocaleString()}</div>
+                          <div className="text-xs text-muted-foreground">创建时间：{formatLocaleDateTime(selectedVersion.createdAt)}</div>
                           <div className="mt-1 line-clamp-4 text-xs text-muted-foreground">{selectedVersion.diffSummary || "暂无差异摘要"}</div>
                         </div>
                       ) : null}

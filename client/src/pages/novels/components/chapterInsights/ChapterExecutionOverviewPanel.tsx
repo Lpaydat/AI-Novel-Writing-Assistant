@@ -4,6 +4,7 @@ import type { Chapter, StoryPlan } from "@ai-novel/shared/types/novel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { chapterStatusLabel, generationStateLabel, resolveDisplayedChapterStatus } from "../chapterExecution.shared";
+import { formatLocaleDateTime } from "@/i18n/format";
 
 interface ChapterExecutionOverviewPanelProps {
   selectedChapter?: Chapter;
@@ -76,7 +77,7 @@ export default function ChapterExecutionOverviewPanel(props: ChapterExecutionOve
   const currentWordCount = runtimePackage?.draft.wordCount ?? selectedChapter.content?.trim().length ?? 0;
   const targetWordCount = selectedChapter.targetWordCount ?? null;
   const issueCount = openAuditIssues.length || reviewResult?.issues?.length || 0;
-  const updatedAt = selectedChapter.updatedAt ? new Date(selectedChapter.updatedAt).toLocaleString("zh-CN") : "暂无";
+  const updatedAt = selectedChapter.updatedAt ? formatLocaleDateTime(selectedChapter.updatedAt) : "暂无";
 
   return (
     <section className="space-y-3 rounded-2xl border border-border/70 bg-background/95 p-4">
