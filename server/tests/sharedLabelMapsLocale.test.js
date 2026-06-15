@@ -39,6 +39,9 @@ const {
   getWorkflowStepCatalogEntryDisplay,
   getWorkflowCheckpointCatalogEntryDisplay,
 } = require("../../shared/dist/types/directorWorkflowStepCatalogData.js");
+const {
+  getWorkflowCheckpointLabel,
+} = require("../../shared/dist/types/directorWorkflowStepCatalog.js");
 
 // Risk A: the pre-i18n zh values, snapshotted verbatim. The test never re-types
 // a Chinese literal — it asserts the default-locale (zh) view reproduces them.
@@ -248,4 +251,42 @@ test("S1 Group B: workflow checkpoint catalog — multi-field zh byte-identity +
   assert.equal(batchEn.label, "Chapter execution can continue");
   assert.equal(batchEn.pausedLabel, "Auto-execution paused");
   assert.equal(batchEn.waitingApprovalLabel, "Chapter breakdown complete; ready to enter chapter execution");
+});
+
+test("S1 Group C: getWorkflowCheckpointLabel — zh byte-identity (default), localized fallback, status/paused selection", () => {
+  // Risk A: default locale zh reproduces pre-i18n behavior byte-for-byte.
+  // Unknown checkpoint, no fallback -> hardcoded zh empty label.
+  assert.equal(getWorkflowCheckpointLabel({ checkpointType: "does_not_exist" }), "暂无");
+  // Unknown checkpoint, explicit fallback -> fallback wins (caller-provided, not localized here).
+  assert.equal(
+    getWorkflowCheckpointLabel({ checkpointType: "does_not_exist", fallback: "  custom  " }),
+    "custom",
+  );
+  // Known checkpoint default -> its zh label.
+  assert.equal(getWorkflowCheckpointLabel({ checkpointType: "workflow_completed" }), "导演主流程已完成");
+  // status=waiting_approval on chapter_batch_ready -> zh waitingApprovalLabel.
+  assert.equal(
+    getWorkflowCheckpointLabel({ checkpointType: "chapter_batch_ready", status: "waiting_approval" }),
+    "节奏拆章完成，可进入章节执行",
+  );
+  // preferPausedLabel -> zh pausedLabel.
+  assert.equal(
+    getWorkflowCheckpointLabel({ checkpointType: "chapter_batch_ready", preferPausedLabel: true }),
+    "自动执行已暂停",
+  );
+
+  // en locale resolves through the catalog dictionary + localized empty fallback.
+  assert.equal(getWorkflowCheckpointLabel({ checkpointType: "does_not_exist", locale: "en" }), "None");
+  assert.equal(
+    getWorkflowCheckpointLabel({ checkpointType: "workflow_completed", locale: "en" }),
+    "Director main flow completed",
+  );
+  assert.equal(
+    getWorkflowCheckpointLabel({ checkpointType: "chapter_batch_ready", status: "waiting_approval", locale: "en" }),
+    "Chapter breakdown complete; ready to enter chapter execution",
+  );
+  assert.equal(
+    getWorkflowCheckpointLabel({ checkpointType: "chapter_batch_ready", preferPausedLabel: true, locale: "en" }),
+    "Auto-execution paused",
+  );
 });

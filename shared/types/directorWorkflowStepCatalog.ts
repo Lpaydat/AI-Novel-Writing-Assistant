@@ -7,6 +7,7 @@ import {
   WORKFLOW_CHECKPOINT_CATALOG,
   WORKFLOW_DISPLAY_STAGES,
   WORKFLOW_STEP_CATALOG,
+  getWorkflowCheckpointCatalogEntryDisplay,
   type WorkflowCheckpointCatalogEntry,
   type WorkflowStepCatalogApprovalPoint,
   type WorkflowStepCatalogDisplayStage,
@@ -138,26 +139,38 @@ export function resolveWorkflowStageFromItemOrCheckpoint(input: {
   return stage && WORKFLOW_STAGE_TO_DISPLAY_STAGE[stage] ? stage : null;
 }
 
+type Locale = "zh" | "en";
+
+// Localized "empty" fallback for an unknown checkpoint when the caller provides
+// no fallback. zh is byte-identical to the pre-i18n hardcoded value.
+const WORKFLOW_CHECKPOINT_EMPTY_LABEL: Record<Locale, string> = {
+  zh: "暂无",
+  en: "None",
+};
+
 export function getWorkflowCheckpointLabel(input: {
   checkpointType: string | null | undefined;
   status?: string | null;
   preferPausedLabel?: boolean;
   fallback?: string | null;
+  locale?: Locale;
 }): string {
+  const locale: Locale = input.locale ?? "zh";
   const checkpoint = findWorkflowCheckpointCatalogEntry(input.checkpointType);
   if (!checkpoint) {
-    return input.fallback?.trim() || "暂无";
+    return input.fallback?.trim() || WORKFLOW_CHECKPOINT_EMPTY_LABEL[locale];
   }
-  if (input.status === "waiting_approval" && checkpoint.waitingApprovalLabel) {
-    return checkpoint.waitingApprovalLabel;
+  const display = getWorkflowCheckpointCatalogEntryDisplay(checkpoint.checkpoint, locale);
+  if (input.status === "waiting_approval" && display.waitingApprovalLabel) {
+    return display.waitingApprovalLabel;
   }
-  if (input.preferPausedLabel && checkpoint.pausedLabel) {
-    return checkpoint.pausedLabel;
+  if (input.preferPausedLabel && display.pausedLabel) {
+    return display.pausedLabel;
   }
-  if (input.status && input.status !== "waiting_approval" && checkpoint.runningLabel) {
-    return checkpoint.runningLabel;
+  if (input.status && input.status !== "waiting_approval" && display.runningLabel) {
+    return display.runningLabel;
   }
-  return checkpoint.label;
+  return display.label;
 }
 
 export function resolveWorkflowApprovalPointForCheckpoint(
