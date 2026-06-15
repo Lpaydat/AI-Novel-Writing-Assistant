@@ -1,8 +1,23 @@
-﻿# 版本更新说明
+# 版本更新说明 / Release Notes
 
 这里维护项目完整的用户可见更新历史。根目录 [README.md](../../README.md) 只保留最新一次更新，完整历史请以本文件为准。
 
-## 更新历史
+This file maintains the project's complete user-visible update history. The root [README.md](../../README.md) keeps only the latest update; this file is the source of truth for the full history.
+
+## 更新历史 / Update History
+
+> 翻译说明（i18n）：为兼顾中文与英文读者，最近的几条更新提供中英双语摘要；更早的历史为完整中文原文，保留不译，以完整保存项目演化记录。To serve both Chinese and English readers, the most recent entries below carry a bilingual summary; older history is preserved in full Chinese to keep the complete evolution record.
+
+### 2026-06-09 — Cross-chapter setting-drift fix + test reset tool + quality guards backfill / 跨章设定漂移修复 + 测试重置工具 + 质量守卫补录
+
+**EN:** This update fully fixes the problem where improvised hard facts in the prose could not stay consistent across chapters, adds a chapter-reset tool for repeated testing, and backfills earlier novel-generation quality guards.
+
+- **Improvised-fact bridging (cross-chapter drift fix):** the fact ledger previously extracted facts only from planning-layer fields and could not remember hard settings the prose LLM improvised on the fly (e.g. whether a deal was private, exact amounts, counts, ticket numbers, weights) — so later chapters rewrote them into contradictory versions. Chapter summaries now emit `concreteFacts[]`: one LLM call at chapter finalization both summarizes and extracts prose hard facts, bridged into the fact ledger. Auto-execution now runs this per finalized chapter, so the next chapter's JIT task sheet reads the real prior facts, eliminating cross-chapter contradictions at the source.
+- **One-click chapter-text reset (dev/test tool):** the project tool can now clear all chapter text and derived state for fast re-generation testing, without rebuilding the novel from scratch.
+- **JIT structured-outline false-positive fix:** in full-book auto-execution (lazy planning) the `chapter_detail_bundle` step is deliberately skipped, but `validateOutput` still checked `chapterDetailReady`, falsely reporting "no structured outline produced"; it now judges `effectiveDetailReady` per JIT mode, so deliberately skipped steps no longer false-report.
+- **Novel-generation quality guards (backfill):** `storyWorldSlice` prompt gained worldbuilding-pollution-word protection plus a `rebuild_story_world_slice` tool; per-volume windows gained key-milestone guards and a scene-mode blacklist to ease milestone repetition and pacing imbalance; a new `audit_chapter_continuity` diagnostic tool was added.
+
+**中文原文：**
 
 ### 2026-06-09（跨章设定漂移修复 + 测试重置工具 + 质量守卫补录）
 

@@ -1,8 +1,9 @@
-﻿# AI 小说创作工作台 / AI Novel Production Engine
-一个面向长篇小说创作的 AI Native 开源项目。
+# AI Novel Production Engine / AI 小说创作工作台
 
-当前开发主线：
-`Creative Hub + 自动导演开书 + 本书世界上下文 + 整本生产主链 + 写法引擎`
+An open-source, AI-native system for producing full-length novels.
+
+Current development focus:
+`Creative Hub + AI Director book-opening + per-book world context + full-book production pipeline + Style Engine`
 
 ![Monorepo](https://img.shields.io/badge/Monorepo-pnpm%20workspace-3C873A)
 ![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB)
@@ -14,117 +15,121 @@
 ![Vector DB](https://img.shields.io/badge/RAG-Qdrant-E63946)
 
 
-## ✨ 项目简介
+## ✨ Overview
 
-这是一个**面向长篇小说的 AI 生产系统**。
+This is an **AI production system for full-length novels**.
 
-它不再是“你写一句，AI补一句”的聊天模式，而是：
+It is not the usual "you write a sentence, the AI appends a sentence" chat mode. Instead it lets you:
 
-- 👉 从一个想法出发
-- 👉 自动构建世界观、人物、剧情结构
-- 👉 管理知识与设定（RAG）
-- 👉 控制写作风格与叙事一致性
-- 👉 最终生成完整章节甚至整本小说
+- 👉 Start from a single idea
+- 👉 Automatically build the world, characters, and plot structure
+- 👉 Manage knowledge and settings (RAG)
+- 👉 Control writing style and narrative consistency
+- 👉 Finally generate complete chapters — even an entire book
 
-## Windows 桌面版
+> 本项目同时面向中文用户。如需中文说明，参见下方“中文简介”。
 
-如果你只是想直接下载安装并开始使用，优先从桌面版入口进入：
+### 中文简介
 
-- 下载入口：[GitHub Releases](https://github.com/ExplosiveCoderflome/AI-Novel-Writing-Assistant/releases)
-- 最新版本页：[Latest Release](https://github.com/ExplosiveCoderflome/AI-Novel-Writing-Assistant/releases/latest)
-- 建议优先下载 `Setup.exe` 安装版；如果你不想安装，或者想放在 U 盘 / 临时目录里直接运行，再选择 `portable` 版本
+这是一个面向长篇小说的 AI 生产系统。从一个想法出发，自动构建世界观、人物与剧情结构，管理知识与设定（RAG），控制写作风格与叙事一致性，最终生成完整章节甚至整本小说。面向完全不懂写作的新手优先设计，核心目标是“把整本书写完”。
 
+## Windows Desktop Edition
 
+If you just want to download, install, and start writing, use the desktop build:
 
-## 项目定位
-
-很多 AI 写作工具的使用方式其实差不多：
-- 你输入一句 Prompt
-- 它回你一段正文
-- 不满意就重试
-- 写短篇还行，写长篇容易越写越散
-
-这个仓库是“AI 导演式长篇小说生产系统”，而不是传统的写作聊天壳子。
-
-它最核心的产品判断是：
-
-- 目标用户优先是完全不懂写作的新手，而不是熟悉结构设计的资深作者。
-- 优先解决“如何把整本书写完”，再逐步优化“写得多精巧”。
-- AI 不只是一个补全文本的模型，而是参与规划、判断、调度、执行和追踪的系统角色。
-
-如果你正在找的是下面这种项目，这个仓库会更值得关注：
-
-- 想验证 AI 是否真的能参与整本小说生产，而不是只写单段文案。
-- 想研究 AI Native Product、Agent Workflow、LangGraph 编排怎样落到真实创作业务。
-- 想把世界观、角色、拆书、知识库、写法控制和章节生成串成一套稳定工作流。
+- Downloads: [GitHub Releases](https://github.com/ExplosiveCoderflome/AI-Novel-Writing-Assistant/releases)
+- Latest version: [Latest Release](https://github.com/ExplosiveCoderflome/AI-Novel-Writing-Assistant/releases/latest)
+- Prefer the `Setup.exe` installer. If you do not want to install, or want to run it from a USB stick / temporary folder, choose the `portable` build instead.
 
 
+## Project Positioning
 
-## 现在已经能做什么
+Most AI writing tools work the same way:
+- You type a prompt
+- It returns a passage
+- If you are not satisfied, you retry
+- Fine for short pieces — but for a full novel, the writing drifts apart over time
 
-### 1. AI 自动导演开书
+This repository is an **"AI-director long-form novel production system"**, not another writing-chat shell.
 
-- 可以从一句模糊灵感直接进入自动导演，不必先自己把世界观、主线、角色和卷纲全想完；系统会先整理项目设定、对齐书级 framing，再生成多套整本方向和对应标题组。
-- 方案选择不再只是“满意就确认、不满意就整批重来”。如果第一轮方向不够准，可以继续生成下一轮；如果已经偏向某一套，也可以只让 AI 修这套方案，或者只重做这套的标题组。
-- 自动导演创建时已经支持三种推进方式：`按重要阶段审核`、`自动推进到可开写`、`继续自动执行前 10 章`。对应链路会把书级方向、故事宏观规划、本书世界准备、角色准备、卷战略、节奏拆章和章节执行接成一条连续流程。
-- 这条链路已经支持检查点恢复、现有项目接管、页内继续推进和换模型重试。到 `chapter_batch_ready` 之后，不仅能直接进入章节执行，也可以继续让 AI 自动执行前 10 章的写作、审校和修复。
-- 自动导演里的角色阶段也不再无条件把第一套阵容直接落库。现在会优先生成可直接进入正文的人物资产；如果角色名仍像功能位、缺少身份锚点或质量不够稳定，系统会停在角色审核点，而不是继续把坏阵容带进后续卷规划和拆章。
+Its core product decisions:
 
-### 2. Creative Hub 与 Agent Runtime
+- The target users are first and foremost complete beginners who do not know how to write — not experienced authors fluent in structural design.
+- It prioritizes "how to finish an entire book" first, then iteratively improves "how refined the writing is."
+- The AI is not just a text-completion model; it participates as a system role across planning, judgment, scheduling, execution, and tracking.
 
-- `Creative Hub` 现在已经不只是一个聊天页，而是在往统一创作中枢收：对话、追问、规划、工具调用、执行状态和回合总结都在往这里并。
-- 系统里已经有了比较明确的 Planner、Tool Registry、Runtime、审批节点、状态卡片和中断恢复链路，说明这个项目现在关注的已经不是“AI 会不会写字”，而是“AI 能不能组织一条真实的创作工作流”。
-- 如果你关心的是 AI Native Product 怎么落地，这一块已经不是零散按钮拼盘了，而是开始长出一套值得继续往下做的骨架。
+This repository is worth your attention if you are looking for:
 
-### 3. 整本生产主链
-
-- 单章运行时、章节执行和整本批量 pipeline 现在都在往同一条主链上收，不再是“这里一个试写入口，那里一个批量按钮”的割裂状态。
-- 已经可以从结构化规划、章节目录和资产准备状态出发，启动整本写作任务，并持续查看当前阶段、失败原因和下一步建议。
-- 它当然还不是那种完全不用管的一键出书机，但也已经不是“只能演示几张截图”的阶段了，至少主链是真的能往前推。
-
-### 4. 写法引擎
-
-- 写法现在不再只是提示词里的一段长说明，而是可以保存、编辑、绑定、试写和复用的长期资产。
-- 可以从现有文本里提取写法特征，并把原文样本一起保存下来，后面不是只能靠记忆去猜“当时那个味道到底怎么来的”。
-- 提取出来的特征会沉淀成可见特征池，进入编辑页以后可以逐项启用、停用和组合，写法规则也会跟着同步重编译，便于后续试写、修正和整本绑定。
-- 这意味着写法引擎现在已经开始真的参与生成、检测和修正链路，而不是一个摆在侧边栏里的概念功能。
-
-### 5. 本书世界、角色、拆书、知识库联动
-
-- 世界观已经不只是大段设定文本，而是可以从世界意图生成世界骨架，再沉淀成世界手册、规则、势力、地点、关系和冲突入口。
-- 每本小说可以拥有自己的本书世界：从世界库导入、按本书主题生成、手动同步差异，或保存回世界库复用。
-- 世界地图和势力图谱会进入章节上下文，角色准备也能结合势力倾向、世界规则和身份边界生成更贴合舞台的人物。
-- 拆书结果和知识库文档可以继续回灌到规划、续写和正文生成；系统会按当前章节任务、角色和冲突检索相关上下文，而不是只靠一次性提示词。
-
-### 6. 模型路由与本地运行
-
-- 已经支持 OpenAI、DeepSeek、SiliconFlow、xAI 等多提供商配置，规划、正文、审阅这些链路可以按路由拆开配。
-- 前后端已经完成 Monorepo 拆分，适合本地持续开发，也比较适合继续往 Prompt Registry、Workflow Registry 和 Runtime 这条路上扩。
-- 默认使用 SQLite 就能把主链先跑起来；如果你要完整体验知识库 / RAG，再按需接 Qdrant 就行，不需要一上来就把所有基础设施堆满。
+- Evidence that AI can participate in full-book novel production, not just single passages.
+- How AI-native products, agent workflows, and LangGraph orchestration land on a real creative business.
+- A stable workflow that chains worldbuilding, characters, book analysis, a knowledge base, style control, and chapter generation.
 
 
-## 典型使用路径
+## Available Capabilities
 
-1. 在小说创建页输入一句灵感，先让 AI 自动导演给出整本方向候选。
-2. 进入 `项目设定`，先把题材、卖点、目标读者感受和前 30 章承诺定下来。
-3. 用 `故事宏观规划`、`本书世界` 和 `角色准备`，把整本主线、舞台边界和角色网补到能写。
-4. 进入 `卷战略 / 卷骨架` 决定怎么分卷，再到 `节奏 / 拆章` 把当前卷落到章节列表和单章细化。
-5. 按需绑定拆书结果、知识库文档和写法资产，让后续正文不只是靠一次性提示词。
-6. 进入 `章节执行` 逐章写作、审计、修复，必要时回到卷工作台做再平衡和重规划。
-7. 想加速推进时，再启动整本生产任务，持续查看状态、失败原因和回灌结果。
+### 1. AI Director book-opening
 
-## 当前长篇生成能力支撑图
+- Start from a single fuzzy inspiration and go straight into the AI director — no need to figure out the world, main plot, characters, and volume outlines yourself first. The system first consolidates project settings, aligns the book-level framing, then generates multiple full-book directions with matching title sets.
+- Direction selection is no longer just "accept or regenerate the whole batch." If the first round misses, generate the next round; if one direction feels right, let the AI refine just that plan, or redo only its title set.
+- Director creation supports three advance modes: `Review by key milestones`, `Advance until ready to write`, and `Auto-execute the first 10 chapters`. The pipeline chains book-level direction, macro story planning, per-book world preparation, character preparation, volume strategy, pacing/chapter splitting, and chapter execution into one continuous flow.
+- The pipeline supports checkpoint recovery, taking over existing projects, in-page continuation, and model-switch retries. After `chapter_batch_ready` you can either enter chapter execution directly, or let the AI auto-run the first 10 chapters through writing, review, and repair.
+- The character stage no longer unconditionally commits the first roster. It now prioritizes generating character assets that can enter the prose directly; if character names still look like role-slots, lack identity anchors, or are unstable in quality, the system stops at the character review point rather than carrying a bad roster into later volume planning and chapter splitting.
 
-![当前长篇生成能力支撑图](./images/flow-diagram.svg?v=1)
+### 2. Creative Hub and Agent Runtime
 
-- 开书定盘负责先把这本书“要写成什么样”说清楚，避免后面越写越散。
-- 整本控制层和卷级规划层负责把长篇拆成可推进、可回看、可调整的结构，而不是一次性写死。
-- 角色、世界观、写法、知识库和质量控制一起托住单章生成，让每一章都尽量还在同一本书里。
-- 每写完一章，系统都会把新状态回灌回去，继续影响后续章节、卷级节奏和必要时的重规划。
+- `Creative Hub` is no longer just a chat page — it is converging into a unified creative hub: conversation, follow-ups, planning, tool calls, execution status, and turn summaries are all merging here.
+- The system has clear Planner, Tool Registry, Runtime, approval nodes, status cards, and interrupt-recovery links — showing the focus is no longer "can the AI write" but "can the AI organize a real creative workflow."
+- If you care about how AI-native products land, this is no longer a scattered pile of buttons; it is growing a skeleton worth building on.
+
+### 3. Full-book production pipeline
+
+- Single-chapter runtime, chapter execution, and full-book batch pipeline are converging onto one main chain — no longer the fragmented "a trial entry here, a batch button there."
+- You can launch a full-book writing task from structured planning, a chapter outline, and asset readiness, and keep watching the current stage, failure reasons, and next-step suggestions.
+- It is not yet a one-click book machine you never have to manage — but it is also past the "only good for screenshots" stage. The main chain really does advance.
+
+### 4. Style Engine
+
+- Writing style is no longer just a long paragraph inside a prompt; it is a long-term asset you can save, edit, bind, trial-write, and reuse.
+- You can extract style features from existing text and save the original sample alongside, so you no longer rely on memory to guess "where that flavor came from."
+- Extracted features settle into a visible feature pool; once in the editor you can enable, disable, and combine them per item, and the style rules recompile in sync — convenient for trial writing, correction, and full-book binding.
+- This means the Style Engine is genuinely participating in generation, detection, and correction — not a sidebar concept feature.
+
+### 5. Per-book world, characters, book analysis, and knowledge base
+
+- The world is no longer just a wall of setting text — you can generate a world skeleton from world intent, then settle it into a world manual, rules, factions, locations, relationships, and conflict entry points.
+- Each novel can have its own per-book world: import from the world library, generate by book theme, manually sync differences, or save back to the world library for reuse.
+- World maps and faction graphs enter the chapter context, and character preparation can leverage faction tendencies, world rules, and identity boundaries to produce characters that fit the stage.
+- Book analysis results and knowledge-base documents can feed back into planning, continuation, and prose generation; the system retrieves relevant context by the current chapter task, characters, and conflicts — not just a one-shot prompt.
+
+### 6. Model routing and local running
+
+- Supports multiple providers (OpenAI, DeepSeek, SiliconFlow, xAI, …); planning, prose, and review pipelines can be routed to different models.
+- The frontend and backend are split into a monorepo, suitable for sustained local development and for extending toward a Prompt Registry, Workflow Registry, and Runtime.
+- SQLite is enough by default to run the main pipeline; wire up Qdrant only when you want the full knowledge-base / RAG experience — you do not have to stand up all the infrastructure up front.
+
+
+## Typical Workflow
+
+1. On the novel-creation page, type one spark of inspiration and let the AI director propose full-book direction candidates.
+2. Go to `Project Settings` and settle the genre, selling points, target reader feel, and the first-30-chapter promise.
+3. Use `Macro Story Planning`, `Per-book World`, and `Character Preparation` to bring the main plot, stage boundaries, and character network up to "ready to write."
+4. Enter `Volume Strategy / Volume Skeleton` to decide the volumes, then `Pacing / Chapter Splitting` to land the current volume on a chapter list and per-chapter detail.
+5. Bind book-analysis results, knowledge-base documents, and style assets as needed, so later prose does not rely on a one-shot prompt.
+6. Enter `Chapter Execution` to write, audit, and repair chapter by chapter; return to the volume workspace to rebalance and re-plan when needed.
+7. When you want to move faster, launch a full-book production task and keep watching status, failure reasons, and fed-back results.
+
+## Full-length Generation Support Map
+
+![Full-length generation support map](./images/flow-diagram.svg?v=1)
+
+- The book-opening framing first clarifies "what kind of book this will be," preventing drift later.
+- The full-book control layer and volume-planning layer break a long form into a structure that is advanceable, reviewable, and adjustable — not written once and frozen.
+- Characters, world, style, knowledge base, and quality control together support single-chapter generation, keeping every chapter inside the same book.
+- After each chapter, the system feeds the new state back in, continuing to affect later chapters, volume pacing, and re-planning when needed.
 
 ## 最新更新
 
-完整历史更新见 [docs/releases/release-notes.md](./docs/releases/release-notes.md)。
+For the full update history, see [docs/releases/release-notes.md](./docs/releases/release-notes.md).
 
 ### 2026-06-09
 
@@ -135,183 +140,183 @@
 - 新增"重置所有章节正文"开发工具，便于反复重新生成测试。
 - 修复懒规划（JIT）模式下结构化大纲步骤被误报"未产出"的问题；补充小说生成质量守卫（世界观污染词防护、关键节点守卫、章节连续性诊断）。
 
-## 功能预览
-### 功能概览中的95%以上编写都是AI完成
+## Feature Preview
+### Over 95% of the feature overview was written by AI
 
-下面这组截图优先展示当前版本正在使用的单书工作流：从自动导演开书，到项目设定、故事宏观规划、角色准备、卷战略、节奏拆章、章节执行，再到质量修复，已经开始收成一条连续推进链，而不是一组彼此割裂的演示页。
+These screenshots prioritize the single-book workflow used by the current version: from AI-director book opening, through project settings, macro story planning, character preparation, volume strategy, pacing/chapter splitting, and chapter execution, to quality repair — converging into one continuous advance chain rather than a set of disconnected demo pages.
 
 ### Creative Hub
 
-统一承载对话、规划、工具执行和创作推进的创作中枢。
+A creative hub carrying conversation, planning, tool execution, and creative advancement.
 
-![创作中枢](./images/creative-hub.png)
+![Creative Hub](./images/creative-hub.png)
 
-### 自动导演模式
+### AI Director Mode
 
-自动导演创建页现在会把一句灵感、导演起始参数、书级 framing、模型设置和运行方式收进同一面板；进入方向选择后，不只是给你两套整本方案，还会配套书名组选项、推荐理由和定向重做入口，适合先把这本书“该怎么开”定下来。
+The director-creation page brings one inspiration, the director's starting parameters, book-level framing, model settings, and run mode into one panel; after entering direction selection it does not just give you two full-book plans — it adds title-set options, recommendation reasons, and a targeted redo entry, suited to settling "how to open this book."
 
-![自动导演创建](./images/director-mode-create.png)
+![AI Director create](./images/director-mode-create.png)
 
-![自动导演选择方向](./images/director-mode-select-direction.png)
+![AI Director select direction](./images/director-mode-select-direction.png)
 
-![自动导演执行中](./images/director-mode-running.png)
+![AI Director running](./images/director-mode-running.png)
 
-![自动导演交接与继续执行](./images/director-mode-edit.png)
+![AI Director handoff and continue](./images/director-mode-edit.png)
 
-### 项目设定
+### Project Settings
 
-项目设定已经挂到单书工作台的连续流程里：左侧能直接看到当前步骤与整体进度，上方能看到 AI 接管状态，正文区则集中处理标题、简介、书级 framing、写法确认和本书真正会用到的世界边界。
+Project settings are attached to the single-book workflow's continuous flow: the left shows the current step and overall progress, the top shows the AI takeover status, and the body area handles the title, summary, book-level framing, style confirmation, and the world boundaries this book will actually use.
 
-![项目设定](./images/write/project-settings.png)
+![Project settings](./images/write/project-settings.png)
 
-### 故事宏观规划
+### Macro Story Planning
 
-故事宏观规划不再只是大段摘要，而是先把故事引擎、推进与兑现摘要、长期对立和前 30 章承诺压成后续可继承的书级引导层，先保证整本主线能推，再把卷级和章节级规划建在这套底盘上。
+Macro story planning is no longer just a long summary — it first compresses the story engine, advancement-and-payoff summary, long-term opposition, and first-30-chapter promise into a reusable book-level guidance layer, ensuring the whole-book main plot is pushable, then builds volume- and chapter-level planning on that base.
 
-![故事宏观规划](./images/write/story-macro-planning.png)
+![Macro story planning](./images/write/story-macro-planning.png)
 
-### 角色准备
+### Character Preparation
 
-角色准备页现在更像角色工作台而不是角色表单：会先盘点目标区段的核心角色，再给出 AI 阵容方案、结构关系网和动态角色系统，减少开书后角色断档、功能位缺失和关系推进失速。
+The character-preparation page is now more of a character workspace than a character form: it inventories the core characters of the target section, then gives an AI roster, a structural relationship network, and a dynamic character system — reducing post-opening gaps, missing role-slots, and stalled relationship advancement.
 
-![角色准备](./images/write/character-preparation.png)
+![Character preparation](./images/write/character-preparation.png)
 
-### 卷战略 / 卷骨架
+### Volume Strategy / Volume Skeleton
 
-卷战略阶段已经开始显式区分“卷战略、卷骨架、节奏板、拆章节”四个阶段完成度。系统会先判断当前是不是已经具备继续推进条件，再生成卷战略建议、审查卷骨架，并把版本控制与影响分析收进同一页。
+The volume-strategy stage now explicitly distinguishes four phase completions: volume strategy, volume skeleton, pacing board, and chapter splitting. The system first checks whether you are ready to advance, then generates volume-strategy suggestions, reviews the volume skeleton, and brings version control and impact analysis onto one page.
 
-![卷战略 / 卷骨架](./images/write/volume-strategy.png)
+![Volume strategy / skeleton](./images/write/volume-strategy.png)
 
-### 节奏 / 拆章
+### Pacing / Chapter Splitting
 
-节奏 / 拆章现在把节奏段列表、批量细化、单章标题、摘要、章节目标和任务单放进同一工作区；可以按当前可见章节或指定范围连续细化，也可以对摘要和目标做局部 AI 修正，更适合连载网文式的持续推进。
+Pacing / chapter splitting now puts the pacing-segment list, batch refinement, per-chapter title, summary, chapter goals, and task sheet into one workspace; you can refine continuously over visible chapters or a specified range, and make local AI edits to summaries and goals — better suited to serialized-web-novel-style steady advancement.
 
-![节奏 / 拆章](./images/write/pacing-chapter-split.png)
+![Pacing / chapter splitting](./images/write/pacing-chapter-split.png)
 
-### 章节执行
+### Chapter Execution
 
-章节执行页现在更像主写作工作台：左侧是章节卡片与下一步状态，中间是已保存正文和版本区，右侧则把执行计划、正文写作、审核、修复、状态同步和伏笔回填收在同一套动作面板里，适合逐章推进。
+The chapter-execution page is now more of a main writing workspace: the left has chapter cards and next-step status, the center has saved prose and version history, and the right brings the execution plan, prose writing, review, repair, status sync, and foreshadow backfill into one action panel — suited to advancing chapter by chapter.
 
-![章节执行](./images/write/chapter-execution.png)
+![Chapter execution](./images/write/chapter-execution.png)
 
-### 质量修复
+### Quality Repair
 
-质量修复已经从零散按钮收成独立工作台：可以围绕当前章节执行审核、执行修复、生成钩子，并结合当前批次、质量阈值和 AI 输出继续往后处理，适合把“写完之后怎么稳住质量”也纳入主流程。
+Quality repair has converged from scattered buttons into an independent workspace: you can run the current chapter's review, run repair, generate hooks, and keep going against the current batch, quality thresholds, and AI output — bringing "how to stabilize quality after writing" into the main flow.
 
-![质量修复](./images/write/quality-fix.png)
+![Quality repair](./images/write/quality-fix.png)
 
-### 正文修改
+### Text Editing
 
-当一章已经写出正文后，还可以进入独立正文编辑器继续局部改写。正文修改页会把任务单、审计结果和修复链路继续挂在这章身上，避免用户在“主写作区”和“精修区”之间断掉上下文。
+Once a chapter has prose, you can enter an independent text editor for local rewrites. The text-editing page keeps the task sheet, audit results, and repair links attached to that chapter, so you do not lose context between the "main writing area" and the "fine-tuning area."
 
-![正文修改](./images/text-edit.jpeg)
+![Text editing](./images/text-edit.jpeg)
 
-### 小说列表
+### Novel List
 
-从这里进入开书、管理、编辑和整本生产。
+Enter book opening, management, editing, and full-book production from here.
 
-![小说列表](./images/novel-list.png)
+![Novel list](./images/novel-list.png)
 
-### 拆书分析
+### Book Analysis
 
-把参考作品拆成结构化知识，再回灌给后续创作链路。
+Break a reference work into structured knowledge, then feed it back into the creative pipeline.
 
-![拆书分析](./images/book-analysis.png)
+![Book analysis](./images/book-analysis.png)
 
-### 知识库
+### Knowledge Base
 
-统一管理文档、索引、重建任务和检索能力。
+Unified management of documents, indexes, rebuild tasks, and retrieval.
 
-![知识库](./images/knowledge-base.png)
+![Knowledge base](./images/knowledge-base.png)
 
-### 世界观
+### World
 
-世界观不再只是描述文本，而是能生成世界骨架、维护世界手册，并绑定为每本小说自己的本书世界上下文。
+The world is no longer just descriptive text — it can generate a world skeleton, maintain a world manual, and bind as each novel's own per-book world context.
 
-![世界观](./images/worldview.png)
+![World](./images/worldview.png)
 
-### 角色库
+### Character Library
 
-统一维护角色基础档案与小说内角色信息。
+Unified maintenance of base character profiles and in-novel character information.
 
-![角色库](./images/character-library.png)
+![Character library](./images/character-library.png)
 
-### 类型管理
+### Category Management
 
-集中维护题材与类型资产，让故事规划、角色准备和正文生成共享同一套题材语言。
+Centrally maintain genre and category assets so story planning, character preparation, and prose generation share one genre vocabulary.
 
-![类型管理](./images/category-management.jpeg)
+![Category management](./images/category-management.jpeg)
 
-### 流派管理
+### Story Mode Management
 
-把推进模式、兑现方式和冲突边界收成可复用的流派模式资产，让整本书更容易保持读者预期。
+Collect advancement mode, payoff style, and conflict boundaries into reusable story-mode assets, making it easier for the whole book to hold reader expectations.
 
-![流派管理](./images/genre-management.jpeg)
+![Story mode management](./images/genre-management.jpeg)
 
-### 标题工坊
+### Title Workshop
 
-批量生成、筛选和微调书名与标题方向，降低新手在开书命名阶段的试错成本。
+Batch-generate, filter, and fine-tune book titles and title directions, lowering the trial-and-error cost for beginners at the naming stage.
 
-![标题工坊](./images/title-workshop.jpeg)
+![Title workshop](./images/title-workshop.jpeg)
 
-### 写法引擎与反 AI 规则
+### Style Engine and Anti-AI Rules
 
-统一管理写法资产、风格约束和反 AI 规则，让正文更像作品本身，而不是模板式补全文本。
+Unified management of style assets, style constraints, and anti-AI rules, so the prose reads more like the work itself and less like template completion text.
 
-![写法引擎与反 AI 规则](./images/writing-engine-and-anti-ai-rules.jpeg)
-![配置写法引擎的效果](./images/ScreenShot_2026-04-22_154855_026.png)
+![Style engine and anti-AI rules](./images/writing-engine-and-anti-ai-rules.jpeg)
+![Style engine effect](./images/ScreenShot_2026-04-22_154855_026.png)
 
-### 任务中心
+### Task Center
 
-查看拆书、知识库重建和其他后台任务的排队、执行与失败状态。
+View the queue, execution, and failure status of book analysis, knowledge-base rebuilds, and other background tasks.
 
-![任务中心](./images/task-center.png)
+![Task center](./images/task-center.png)
 
-### 模型配置
+### Model Configuration
 
-为不同能力配置不同模型，减少一套模型硬吃所有任务的成本。
+Assign different models to different capabilities, reducing the cost of one model handling every task.
 
-![模型配置](./images/model-config.png)
+![Model configuration](./images/model-config.png)
 
-## 快速开始
+## Quick Start
 
-### 环境要求
+### Requirements
 
 - Node.js `^20.19.0 || ^22.12.0 || >=24.0.0`
-  推荐直接使用 `20.19.x LTS`
+  `20.19.x LTS` recommended
 - pnpm `>= 10.6`
-  推荐直接使用仓库声明的 `pnpm@10.6.0`
-- 至少一组可用的 LLM API Key
-  也可以先把项目跑起来，再在页面里配置
-- 如果你要完整体验知识库 / RAG，再额外准备可用的 Qdrant
+  The repo's pinned `pnpm@10.6.0` recommended
+- At least one usable LLM API key
+  You can also get the project running first and configure keys in the UI
+- For the full knowledge-base / RAG experience, also prepare a usable Qdrant instance
 
-### 1. 安装依赖
+### 1. Install dependencies
 
 ```bash
 pnpm install
 ```
 
-默认的 `pnpm install` 现在只准备 Web / Server 开发所需依赖，不会在首次安装时强制下载 Electron 桌面运行时。
+The default `pnpm install` only prepares Web / Server dev dependencies; it does not force-download the Electron desktop runtime on first install.
 
-- 如果你只是运行现有 Web / Server 开发流，到这里就够了
-- 如果你要启动桌面端开发壳，首次运行 `pnpm dev:desktop` 时会自动补拉 Electron 运行时
-- 如果你想提前完成这一步，也可以手动执行：
+- If you only run the existing Web / Server dev flow, this is enough
+- To launch the desktop dev shell, the first `pnpm dev:desktop` auto-pulls the Electron runtime
+- To do this ahead of time, run:
 
 ```bash
 pnpm run prepare:desktop-runtime
 ```
 
-桌面端运行时首次下载需要可访问 Electron 分发源的网络环境；如果你所在网络无法访问 GitHub Releases，建议先配置代理或镜像后再执行桌面端命令。
+The desktop runtime first-download needs network access to an Electron distribution source; if your network cannot reach GitHub Releases, configure a proxy or mirror before running desktop commands.
 
-如果你在 Windows 上执行 `pnpm install` 时卡在 `prisma preinstall`，通常先检查这两类问题：
+If `pnpm install` hangs on `prisma preinstall` on Windows, check these two things first:
 
-1. Node 版本过低
-   Prisma 7 目前要求 Node `^20.19.0 || ^22.12.0 || >=24.0.0`。如果你还在 `20.0 ~ 20.18`，建议先升级到 `20.19.x LTS` 再安装。
-2. `script-shell` 被配置成了交互式 shell
-   如果全局 `npm/pnpm script-shell` 被设成了 `cmd.exe /k` 之类会保留提示符的形式，Prisma 的 lifecycle script 可能不会自动退出，看起来就像安装“卡死”在：
+1. Node version too low
+   Prisma 7 requires Node `^20.19.0 || ^22.12.0 || >=24.0.0`. If you are still on `20.0 ~ 20.18`, upgrade to `20.19.x LTS` before installing.
+2. `script-shell` set to an interactive shell
+   If the global `npm/pnpm script-shell` is set to something like `cmd.exe /k` that keeps a prompt, the Prisma lifecycle script may not exit on its own and the install looks "stuck" at:
    `node_modules/.../prisma>`
 
-可以先运行下面几条命令自查：
+Self-check with:
 
 ```bash
 node -v
@@ -319,30 +324,30 @@ pnpm config get script-shell
 npm config get script-shell
 ```
 
-如果 `script-shell` 返回的是带 `/k` 的 `cmd.exe`，建议删除这项配置后重新打开终端：
+If `script-shell` returns a `cmd.exe` with `/k`, delete that setting and reopen the terminal:
 
 ```bash
 npm config delete script-shell
 pnpm config delete script-shell
 ```
 
-然后重新执行：
+Then re-run:
 
 ```bash
 pnpm install
 ```
 
-### 2. 配置环境变量
+### 2. Configure environment variables
 
-这个仓库通过 pnpm workspace 分别启动前后端，所以环境变量也是按子包读取的：
+This repo starts the frontend and backend through a pnpm workspace, so environment variables are read per sub-package:
 
-- 服务端运行在 `server/` 工作目录，默认读取 `server/.env`
-- 前端运行在 `client/` 工作目录，默认读取 `client/.env` / `client/.env.local`
-- 根目录 `.env.example` 目前更适合当“总览参考”，不是 `pnpm dev` 默认读取的主入口
+- The server runs in the `server/` working directory and reads `server/.env`
+- The client runs in the `client/` working directory and reads `client/.env` / `client/.env.local`
+- The root `.env.example` is best treated as an "overview reference," not the main entry `pnpm dev` reads
 
-#### 2.1 服务端环境变量
+#### 2.1 Server environment variables
 
-先复制服务端示例文件：
+Copy the server example file first:
 
 ```bash
 # macOS / Linux
@@ -352,46 +357,46 @@ cp server/.env.example server/.env
 Copy-Item server/.env.example server/.env
 ```
 
-最少建议先确认这些项目：
+At minimum, confirm these:
 
 - `DATABASE_URL`
-  默认就是本地 SQLite，可直接使用
+  Defaults to local SQLite; usable as-is
 - `RAG_ENABLED`
-  如果你暂时不接知识库，建议先设为 `false`
-- `QDRANT_URL`、`QDRANT_API_KEY`
-  只有要启用 Qdrant / RAG 时才需要
+  If you are not wiring up the knowledge base yet, set this to `false`
+- `QDRANT_URL`, `QDRANT_API_KEY`
+  Only needed when enabling Qdrant / RAG
 
-注意：
+Notes:
 
-- `OPENAI_API_KEY`、`DEEPSEEK_API_KEY`、`SILICONFLOW_API_KEY` 这类变量可以先留空
-- 项目启动后，也可以在页面中配置模型供应商和默认模型
+- `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `SILICONFLOW_API_KEY` and the like can be left empty for now
+- After the project starts, you can also configure model providers and default models in the UI
 
-#### 2.2 前端环境变量
+#### 2.2 Client environment variables
 
-大多数本地开发场景，其实不需要单独创建前端 env。
+For most local-dev scenarios you do not need a separate client env.
 
-因为前端开发模式下默认会把 API 指到：
+In dev mode the frontend points the API to:
 
 ```text
-http(s)://当前页面 hostname:3000/api
+http(s)://<current-page-hostname>:3000/api
 ```
 
-这也包括“同一台机器启动服务，然后用局域网 IP 在别的设备上访问”的场景。
-例如页面开在 `http://192.168.0.37:5173`，前端默认会自动把 API 指到：
+This also covers "start the server on this machine, then access it from another device over LAN IP."
+For example, with the page open at `http://192.168.0.37:5173`, the frontend auto-points the API to:
 
 ```text
 http://192.168.0.37:3000/api
 ```
 
-只有在这些场景下，才建议创建 `client/.env`：
+Only create `client/.env` in these cases:
 
-- 前端和后端不在同一台机器
-- 你想把前端显式指向别的 API 地址
-- 你需要固定 `VITE_API_BASE_URL`
+- Frontend and backend are not on the same machine
+- You want to point the frontend at a different API address
+- You need to pin `VITE_API_BASE_URL`
 
-如果你已经复制了 `client/.env.example`，又发现浏览器请求都跑到了 `http://localhost:3000/api`，通常就是因为你把 API 显式固定死了。对同机 / 局域网访问，建议直接删除或注释掉 `VITE_API_BASE_URL`。
+If you copied `client/.env.example` and find browser requests going to `http://localhost:3000/api`, you most likely pinned the API explicitly. For same-machine / LAN access, delete or comment out `VITE_API_BASE_URL`.
 
-示例：
+Example:
 
 ```bash
 # macOS / Linux
@@ -401,112 +406,112 @@ cp client/.env.example client/.env
 Copy-Item client/.env.example client/.env
 ```
 
-内容通常只需要：
+The content usually only needs:
 
 ```env
-# 同机 / 局域网访问时，通常不需要这一行
+# For same-machine / LAN access, this line is usually not needed
 # VITE_API_BASE_URL=http://localhost:3000/api
 ```
 
-#### 2.3 模型供应商并不一定要写死在 env
+#### 2.3 Model providers do not have to be hardcoded in env
 
-当前项目已经支持在页面里配置模型相关设置：
+The project supports configuring model-related settings in the UI:
 
 - `/settings`
-  配置供应商 API Key、默认模型、连通性测试
+  Configure provider API keys, default models, connectivity tests
 - `/settings/model-routes`
-  给不同任务分配不同 provider / model
+  Assign different provider / model per task
 - `/knowledge?tab=settings`
-  配置 Embedding provider、Embedding model、集合命名和自动重建策略
+  Configure Embedding provider, Embedding model, collection naming, and auto-rebuild strategy
 
-所以环境变量里的 `OPENAI_MODEL`、`DEEPSEEK_MODEL`、`EMBEDDING_MODEL` 等，更适合当作：
+So `OPENAI_MODEL`, `DEEPSEEK_MODEL`, `EMBEDDING_MODEL` and similar env vars are best treated as:
 
-- 启动默认值
-- 数据库里还没保存设置时的回退值
+- Startup defaults
+- Fallbacks when nothing is saved in the database yet
 
-### 3. 启动开发环境
+### 3. Start the dev environment
 
 ```bash
 pnpm dev
 ```
 
-如果你已经复制好了 `server/.env` 和 `client/.env`，默认就是直接运行这一条。
-不需要在首次启动前手动再执行 `prisma generate`、`prisma db push` 或 `pnpm db:migrate`。
+If you have copied `server/.env` and `client/.env`, this single command runs by default.
+You do not need to manually run `prisma generate`, `prisma db push`, or `pnpm db:migrate` before the first start.
 
-默认情况下：
+By default:
 
-- 前端：`http://localhost:5173`
-- 后端：`http://localhost:3000`
-- API：`http://localhost:3000/api`
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3000`
+- API: `http://localhost:3000/api`
 
-首次启动服务端时，会自动执行 Prisma generate 和 `db push`。
-只有在你自己修改了 Prisma schema，或者要处理正式迁移流程时，才需要手动使用 Prisma / 数据库相关命令。
+On first server start, Prisma generate and `db push` run automatically.
+Only when you have modified the Prisma schema, or are handling a formal migration flow, do you need Prisma / database commands manually.
 
-建议第一次启动后先做这几步：
+Recommended first steps after first launch:
 
-1. 打开 `http://localhost:5173/settings`，至少配置一组可用的模型供应商 API Key
-2. 打开 `http://localhost:5173/settings/model-routes`，检查各任务实际使用的模型路由
-3. 如果要启用知识库，打开 `http://localhost:5173/knowledge?tab=settings`，保存 Embedding / Collection 设置
+1. Open `http://localhost:5173/settings` and configure at least one usable model-provider API key
+2. Open `http://localhost:5173/settings/model-routes` and review the model routing actually used by each task
+3. To enable the knowledge base, open `http://localhost:5173/knowledge?tab=settings` and save the Embedding / Collection settings
 
-### 4. 如果你使用 Qdrant Cloud
+### 4. If you use Qdrant Cloud
 
-如果你只是先体验主流程，其实可以先跳过 Qdrant，直接在 `server/.env` 里设：
+If you just want to try the main flow, you can skip Qdrant and set in `server/.env`:
 
 ```env
 RAG_ENABLED=false
 ```
 
-如果你要启用 Qdrant Cloud，可以按下面的最小流程来：
+To enable Qdrant Cloud, follow this minimal flow:
 
-1. 到 [Qdrant Cloud](https://cloud.qdrant.io/) 注册账号。
-2. 在 `Clusters` 页面创建一个集群。
-   测试阶段用 Free cluster 就够了。
-3. 集群创建完成后，到集群详情页复制 Cluster URL。
-4. 在集群详情页的 `API Keys` 中创建并复制一个 Database API Key。
-   这个 key 创建后通常只展示一次，建议立即保存。
-5. 把它们写入 `server/.env`：
+1. Register an account at [Qdrant Cloud](https://cloud.qdrant.io/).
+2. Create a cluster on the `Clusters` page.
+   A Free cluster is enough for testing.
+3. After the cluster is created, copy the Cluster URL from the cluster detail page.
+4. In the cluster detail page's `API Keys`, create and copy a Database API Key.
+   This key is usually shown only once; save it immediately.
+5. Write them into `server/.env`:
 
 ```env
 QDRANT_URL=https://your-cluster.region.cloud.qdrant.io:6333
 QDRANT_API_KEY=your_database_api_key
 ```
 
-6. 启动项目后，再去 `知识库 -> 向量设置` 页面选择 Embedding provider / model，并保存集合设置。
+6. After starting the project, go to the `Knowledge Base -> Vector Settings` page, select the Embedding provider / model, and save the collection settings.
 
-对这个项目来说，`QDRANT_URL` 建议直接填 REST 地址，也就是带 `:6333` 的地址。
+For this project, `QDRANT_URL` should be the REST address — the one with `:6333`.
 
-如果你想手动验证连通性，可以用：
+To verify connectivity manually:
 
 ```bash
 curl -X GET "https://your-cluster.region.cloud.qdrant.io:6333" \
   --header "api-key: your_database_api_key"
 ```
 
-你也可以把集群地址后面拼上 `:6333/dashboard` 打开 Qdrant Web UI。
+You can also append `:6333/dashboard` to the cluster address to open the Qdrant Web UI.
 
-Qdrant 官方文档：
+Qdrant docs:
 
 - [Create a Cluster](https://qdrant.tech/documentation/cloud/create-cluster/)
 - [Database Authentication in Qdrant Managed Cloud](https://qdrant.tech/documentation/cloud/authentication/)
 - [Cloud Quickstart](https://qdrant.tech/documentation/cloud/quickstart-cloud/)
 
-### 5. 可选初始化
+### 5. Optional initialization
 
-下面这些都不是首次启动 `pnpm dev` 的前置步骤：
+None of these are prerequisites for the first `pnpm dev`:
 
 ```bash
 pnpm db:seed
 pnpm db:studio
 ```
 
-## 常用命令
+## Common Commands
 
 ```bash
 pnpm dev
 pnpm build
 pnpm typecheck
 pnpm lint
-# 仅在你开发/调整 Prisma schema 时再手动使用
+# Only use manually when developing / adjusting the Prisma schema
 pnpm db:migrate
 pnpm db:seed
 pnpm db:studio
@@ -515,97 +520,96 @@ pnpm --filter @ai-novel/server test:routes
 pnpm --filter @ai-novel/server test:book-analysis
 ```
 
-## 技术栈与架构
+## Tech Stack and Architecture
 
-### 技术栈
+### Tech Stack
 
-| 层级 | 技术 |
+| Layer | Technology |
 | --- | --- |
-| 前端 | React 19、Vite、React Router、TanStack Query、Plate |
-| 后端 | Express 5、Prisma、Zod |
-| AI 编排 | LangChain、LangGraph |
-| 数据库 | SQLite |
+| Frontend | React 19, Vite, React Router, TanStack Query, Plate |
+| Backend | Express 5, Prisma, Zod |
+| AI orchestration | LangChain, LangGraph |
+| Database | SQLite |
 | RAG | Qdrant |
-| 工程形态 | pnpm workspace Monorepo |
+| Engineering form | pnpm workspace monorepo |
 
-### Monorepo 结构
+### Monorepo Structure
 
 ```text
-client/   React + Vite 前端
+client/   React + Vite frontend
 server/   Express + Prisma + Agent Runtime + Creative Hub
-shared/   前后端共享类型与协议
-images/   README 与产品预览截图
-scripts/  启动和辅助脚本
-docs/     设计文档、阶段检查点、模块计划与历史归档
+shared/   Types and protocols shared by frontend and backend
+images/   README and product-preview screenshots
+scripts/  Startup and helper scripts
+docs/     Design docs, phase checkpoints, module plans, and history archive
 ```
 
-更细的文档分区说明可以看 [docs/README.md](./docs/README.md)。
+See [docs/README.md](./docs/README.md) for finer documentation分区 notes.
 
-### 当前系统关注点
+### Current System Focus
 
-- `Creative Hub` 负责统一创作中枢与 Agent 运行时体验
-- `Novel Setup / Director` 负责从一句灵感走到整本可写
-- `Novel Production` 负责整本生成主链
-- `Style Engine` 负责写法资产、特征提取、绑定和反 AI 协同
-- `Knowledge / Book Analysis / World` 负责长期上下文沉淀与回灌
+- `Creative Hub` — unified creative hub and agent runtime experience
+- `Novel Setup / Director` — from one inspiration to a full-book "ready to write"
+- `Novel Production` — the full-book generation main chain
+- `Style Engine` — style assets, feature extraction, binding, and anti-AI cooperation
+- `Knowledge / Book Analysis / World` — long-term context settling and feedback
 
-## 当前路线图
+## Roadmap
 
-当前最重要的不是继续堆零散功能，而是提高“小白把整本书写完”的成功率。
+The priority is not to keep stacking scattered features, but to raise the success rate of "a beginner finishes a whole book."
 
 ### P0
 
-- 稳定自动导演连续执行，减少误停链、重复审校和异常 Token 消耗
-- 让本书世界、角色、伏笔、时间线和章节任务稳定进入后续写作上下文
-- 降低新手从一句灵感到可连续写章之间的判断成本和修复成本
+- Stabilize continuous AI-director execution, reducing false stops, repeated reviews, and abnormal token consumption
+- Let per-book world, characters, foreshadowing, timeline, and chapter tasks reliably enter later writing context
+- Lower the judgment and repair cost for a beginner to go from one inspiration to continuously writing chapters
 
 ### P1
 
-- 提高整本一致性、节奏稳定性、人物成长质量和世界状态继承质量
-- 让写法资产、世界约束、章节重规划、审阅反馈和质量债形成闭环
-- 让系统更擅长“持续掌控整本书”，而不只是“生成某一章”
+- Improve whole-book consistency, pacing stability, character-growth quality, and world-state inheritance quality
+- Close the loop among style assets, world constraints, chapter re-planning, review feedback, and quality debt
+- Make the system better at "continuously steering the whole book," not just "generating one chapter"
 
 ### P2
 
-- 继续强化多阶段 Agent 协同和运行时可观察性
-- 完善更自动化的生产调度、恢复策略、回合记忆和整本质量控制
+- Strengthen multi-stage agent cooperation and runtime observability
+- Improve more automated production scheduling, recovery strategies, turn memory, and whole-book quality control
 
-## 交流反馈
+## Feedback
 
-如果你想反馈问题、交流使用体验，或者讨论自动导演、整本生产主链、写法引擎等方向，可以扫码加入 QQ 群。
+To report issues, share your experience, or discuss the AI director, the full-book production chain, the style engine, and other directions, scan the QR code to join the QQ group.
 
-![QQ 群二维码](./images/qq-group-qr.png)
+![QQ group QR code](./images/qq-group-qr.png)
 
-## 贡献方式
+## Contributing
 
-如果你想参与这个项目，最有价值的贡献方向包括：
+If you want to participate, the most valuable contribution directions include:
 
-- 提升整本生产稳定性
-- 改善新手开书体验和自动导演成功率
-- 强化写法引擎、知识库回灌和世界观一致性链路
-- 补充测试、错误回放和运行时可观察性
+- Improving full-book production stability
+- Improving the beginner book-opening experience and AI-director success rate
+- Strengthening the style engine, knowledge-base feedback, and world-consistency links
+- Adding tests, error replay, and runtime observability
 
-欢迎直接提 Issue 或 Pull Request。
-提交 Pull Request 即表示你确认自己有权提交该内容，并已阅读且同意 [CLA.md](./CLA.md)；如果包含第三方代码、素材、AI 生成内容或其他受许可证约束的内容，请在 PR 中明确说明来源和许可证。详见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+Issues and Pull Requests are welcome.
+Submitting a Pull Request confirms you have the right to submit that content and have read and agreed to [CLA.md](./CLA.md); if it includes third-party code, assets, AI-generated content, or other license-bound content, state the source and license clearly in the PR. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-## 致谢
+## Acknowledgements
 
-感谢提交修复 Pull Request 的贡献者 [@ystyleb](https://github.com/ystyleb)。
+Thanks to [@ystyleb](https://github.com/ystyleb) for fix Pull Requests.
 
 
-## 说明
+## Notes
 
-- 这是一个持续快速迭代中的 AI Native 创作系统，功能边界仍在演化。
-- README 优先描述当前最值得体验、最能代表方向的能力，而不是列出全部历史实现细节。
-- 如果你更关心阶段目标、优先级和后续优化计划，请直接查看 [TASK.md](./TASK.md)。
+- This is a fast-iterating AI-native creative system; its feature boundaries are still evolving.
+- The README prioritizes the capabilities most worth experiencing and most representative of the direction, rather than listing all historical implementation details.
+- For phase goals, priorities, and follow-up optimization plans, see [TASK.md](./TASK.md).
 
 ## License
 
-本项目采用双许可证授权模式：
+This project uses a dual-license model:
 
-- 默认情况下，本项目基于 GNU Affero General Public License v3.0 (AGPLv3) 授权，详见 [LICENSE](./LICENSE)；归属与附加说明见 [NOTICE](./NOTICE)。
-- 服务型商用：将本项目（或其修改版本）作为后端以 SaaS、托管或其他形式向第三方提供服务，须通过作者获取商业授权许可。
-- 请遵守开源协议条款，并在适用场景下取得相应授权。
+- By default, this project is licensed under the GNU Affero General Public License v3.0 (AGPLv3); see [LICENSE](./LICENSE). Attribution and additional notices are in [NOTICE](./NOTICE).
+- Service-style commercial use: offering this project (or a modified version) to third parties as a backend via SaaS, hosting, or other forms requires obtaining a commercial license from the author.
+- Follow the open-source license terms and obtain the corresponding authorization where applicable.
 
-贡献说明：新贡献默认按 [CLA.md](./CLA.md) 提交，可随项目按 AGPL-3.0-only 分发，并可纳入项目维护者另行提供的商业授权；详见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
-
+Contribution note: new contributions are submitted under [CLA.md](./CLA.md) by default, may be redistributed with the project under AGPL-3.0-only, and may be included in a separate commercial license provided by the project maintainer; see [CONTRIBUTING.md](./CONTRIBUTING.md).
