@@ -1,4 +1,5 @@
 import type { LLMProvider } from "@ai-novel/shared/types/llm";
+import { serverT } from "../i18n/serverMessages";
 import {
   isBuiltInProvider,
   providerRequiresApiKey,
@@ -100,7 +101,10 @@ async function fetchJson(url: string, init: RequestInit): Promise<unknown> {
 
     if (!response.ok) {
       const detail = await response.text();
-      throw new Error(`拉取模型列表失败（${response.status}）：${detail || "未知错误"}`);
+      throw new Error(serverT("llm.modelCatalog.fetchFailed", undefined, {
+        status: response.status,
+        detail: detail || serverT("llm.modelCatalog.unknownError"),
+      }));
     }
 
     return response.json();
@@ -154,7 +158,7 @@ async function fetchOllamaModels(baseURL: string): Promise<string[]> {
   });
   const models = parseModelIds(payload);
   if (models.length === 0) {
-    throw new Error("模型列表为空。");
+    throw new Error(serverT("llm.modelCatalog.listEmpty"));
   }
   return models;
 }
@@ -166,7 +170,7 @@ async function fetchProviderModels(
 ): Promise<string[]> {
   const baseURL = resolveProviderBaseUrl(provider, customBaseURL, customBaseURL);
   if (!baseURL) {
-    throw new Error("未配置可用的 API URL。");
+    throw new Error(serverT("llm.modelCatalog.apiUrlMissing"));
   }
   if (provider === "ollama") {
     return fetchOllamaModels(baseURL);
@@ -179,7 +183,7 @@ async function fetchProviderModels(
 
   const models = parseModelIds(payload);
   if (models.length === 0) {
-    throw new Error("模型列表为空。");
+    throw new Error(serverT("llm.modelCatalog.listEmpty"));
   }
   return models;
 }

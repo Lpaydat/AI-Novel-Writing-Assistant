@@ -1,6 +1,7 @@
 import type { NovelExportFormat, NovelExportScope } from "@ai-novel/shared/types/novelExport";
 import { prisma } from "../../db/prisma";
 import { AppError } from "../../middleware/errorHandler";
+import { serverT } from "../../i18n/serverMessages";
 import { getSharedNovelServices } from "../../services/novel/application/sharedNovelServices";
 import { StoryMacroPlanService } from "../../services/novel/storyMacro/StoryMacroPlanService";
 import {
@@ -51,7 +52,7 @@ export class NovelExportService {
     });
 
     if (!novel) {
-      throw new AppError("小说不存在。", 404);
+      throw new AppError(serverT("export.novelNotFound"), 404);
     }
 
     return novel;
@@ -60,7 +61,7 @@ export class NovelExportService {
   private async buildExportBundle(novelId: string): Promise<NovelExportBundle> {
     const rawNovel = await this.novelService.getNovelById(novelId);
     if (!rawNovel) {
-      throw new AppError("小说不存在。", 404);
+      throw new AppError(serverT("export.novelNotFound"), 404);
     }
     const novel = mapExportNovelDetail(rawNovel);
 
@@ -197,7 +198,7 @@ export class NovelExportService {
   ): Promise<NovelExportResult> {
     if (format === "txt") {
       if (scope !== "full") {
-        throw new AppError("TXT 导出仅支持整本书正文导出。", 400);
+        throw new AppError(serverT("export.txtFullOnly"), 400);
       }
       const novel = await this.getTxtNovelRecord(novelId);
       return {

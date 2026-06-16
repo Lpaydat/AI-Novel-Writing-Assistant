@@ -18,6 +18,7 @@ import { authMiddleware } from "../middleware/auth";
 import { validate } from "../middleware/validate";
 import { ragServices } from "../services/rag";
 import type { RagOwnerType } from "../services/rag/types";
+import { serverT, type Locale } from "../i18n/serverMessages";
 
 const router = Router();
 
@@ -80,6 +81,11 @@ function chunkToText(content: BaseMessageChunk["content"]): string {
 router.post("/", validate({ body: chatSchema }), async (req, res, next) => {
   try {
     const body = req.body as z.infer<typeof chatSchema>;
+    // Creative Hub chat bypasses the prompt registry (it is the one approved
+    // Prompt-Governance exception). Localize it via the server message catalog
+    // (serverT), driven by req.locale (F2 Accept-Language middleware). zh
+    // branch byte-identical to pre-i18n (Risk A); en is a domain-aware rewrite.
+    const locale: Locale = req.locale ?? "zh";
     const shouldUseAgentMode = body.chatMode === "agent" || body.agentMode === true;
     if (shouldUseAgentMode) {
       const disposeHeartbeat = initSSE(res);
@@ -114,10 +120,10 @@ router.post("/", validate({ body: chatSchema }), async (req, res, next) => {
         const latestUserMessage = [...body.messages].reverse().find((item) => item.role === "user")?.content?.trim();
         const contextMode = body.contextMode ?? (body.novelId ? "novel" : "global");
         if (contextMode === "novel" && !body.novelId) {
-          throw new Error("novel 模式必须提供 novelId。");
+          throw new Error(serverT("chat.error.novelModeRequiresNovelId", locale));
         }
         if (body.approvalResponse && !body.runId) {
-          throw new Error("处理审批时必须提供 runId。");
+          throw new Error(serverT("chat.error.approvalRequiresRunId", locale));
         }
         const result = body.approvalResponse && body.runId
           ? await agentRuntime.resolveApproval({
@@ -129,7 +135,7 @@ router.post("/", validate({ body: chatSchema }), async (req, res, next) => {
           : await agentRuntime.start({
             runId: body.runId,
             sessionId: body.sessionId?.trim() || `chat_session_${Date.now()}`,
-            goal: latestUserMessage ?? "请根据当前上下文给出写作建议。",
+            goal: latestUserMessage ?? serverT("chat.fallback.goal", locale),
             messages: body.messages.slice(-20),
             contextMode,
             novelId: contextMode === "novel" ? body.novelId : undefined,
@@ -165,46 +171,16 @@ router.post("/", validate({ body: chatSchema }), async (req, res, next) => {
     const llm = createLLMFromResolvedOptions(resolvedLLM);
 
     const recentMessages = body.messages.slice(-20);
-    // Creative Hub chat bypasses the prompt registry (it is the one approved
-    // Prompt-Governance exception). Localize it IN-PLACE by branching on
-    // req.locale (F2 Accept-Language middleware). zh branch byte-identical to
-    // pre-i18n (Risk A); en branch is a domain-aware rewrite.
-    const isEn = req.locale === "en";
     const systemPrompt =
-      body.systemPrompt ??
-      (isEn
-        ? `You are a professional fiction-writing assistant, skilled at helping authors with novel creation, worldbuilding, character design, and related work.
-- Organize your answers in Markdown
-- Provide concrete, actionable writing advice
-- Combine literary craft with commercial writing practice
-- Areas of expertise: writing technique / plot ideation / character design / worldbuilding / style guidance / breaking through creative blocks`
-        : `你是一位专业的小说创作助手，擅长帮助作者进行小说创作、世界设定、角色设计等工作。
-- 使用 Markdown 格式组织回答
-- 提供具体、可操作的创作建议
-- 结合文学理论与商业写作实践
-- 擅长领域：写作技巧/情节构思/角色设计/世界观构建/文风建议/创作瓶颈突破`);
+      body.systemPrompt ?? serverT("chat.systemPrompt.base", locale);
 
     const finalSystemPrompt =
       body.agentMode
-        ? `${systemPrompt}
-
-${isEn
-          ? `As an intelligent creative agent, you should:
-- Proactively analyze the deeper needs behind the user's request
-- Offer multiple solutions and weigh each one's pros and cons
-- Give concrete recommended next actions
-- Ask follow-up questions when you need more information`
-          : `作为智能创作代理，你需要：
-- 主动分析用户需求背后的深层问题
-- 提供多个解决方案并分析各自优劣
-- 给出具体的下一步行动建议
-- 在必要时主动提问以获取更多信息`}`
+        ? `${systemPrompt}\n\n${serverT("chat.systemPrompt.agentMode", locale)}`
         : systemPrompt;
 
     const searchHint = body.enableSearch
-      ? isEn
-        ? "\nNote: web search is currently a reserved capability; please state in your answer that you are reasoning from the available context."
-        : "\n提示：联网检索能力当前为预留状态，请在回答中说明基于已有上下文推断。"
+      ? serverT("chat.systemPrompt.searchHint", locale)
       : "";
 
     const latestUserMessage = [...recentMessages]
@@ -234,9 +210,7 @@ ${isEn
       }
     }
     const ragHint = ragContext
-      ? isEn
-        ? `\nThe following retrieved project-knowledge fragments (possibly incomplete) are provided; answer based on them first, and note any uncertainty when they conflict:\n${ragContext}\n`
-        : `\n以下是检索到的项目知识片段（可能不完整），请优先依据这些内容回答，并在冲突时说明不确定性：\n${ragContext}\n`
+      ? serverT("chat.systemPrompt.ragHint", locale, { context: ragContext })
       : "";
 
     const messages = [
@@ -323,7 +297,7 @@ ${isEn
     } catch (error) {
       writeSSEFrame(res, {
         type: "error",
-        error: error instanceof Error ? error.message : "对话流式生成失败。",
+        error: error instanceof Error ? error.message : serverT("chat.error.streamFailed", locale),
       });
     } finally {
       disposeHeartbeat();
@@ -336,11 +310,12 @@ ${isEn
   }
 });
 
-router.get("/history", (_req, res) => {
+router.get("/history", (req, res) => {
+  const locale: Locale = req.locale ?? "zh";
   res.status(200).json({
     success: true,
     data: [],
-    message: "当前由前端 IndexedDB 保存历史记录，此接口暂返回空数组。",
+    message: serverT("chat.history.emptyLegacyResponse", locale),
   } satisfies ApiResponse<unknown[]>);
 });
 

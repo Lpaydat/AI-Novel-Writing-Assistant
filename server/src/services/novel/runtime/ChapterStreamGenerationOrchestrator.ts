@@ -3,6 +3,7 @@ import type { StreamDoneHelpers, StreamDonePayload, WritableSSEFrame } from "../
 import type { ChapterRuntimePackage, GenerationContextPackage } from "@ai-novel/shared/types/chapterRuntime";
 import { prisma } from "../../../db/prisma";
 import { ChapterWritingGraph } from "../chapterWritingGraph";
+import { serverT, type Locale } from "../../../i18n/serverMessages";
 import { toText } from "../novelP0Utils";
 import { GenerationContextAssembler } from "./GenerationContextAssembler";
 import { ChapterRuntimeReadinessService } from "./ChapterRuntimeReadinessService";
@@ -54,6 +55,13 @@ export class ChapterStreamGenerationOrchestrator {
     onDone: (fullContent: string, helpers: StreamDoneHelpers) => Promise<void | StreamDonePayload>;
   }> {
     const { request, assembled } = await this.prepareRuntimeChapter(novelId, chapterId, options);
+    // Novel-scoped SSE progress: locale from novel.language (chapter production
+    // runs in the director-worker / orchestrator context, not an HTTP request).
+    const novelLanguageRow = await prisma.novel.findUnique({
+      where: { id: novelId },
+      select: { language: true },
+    });
+    const locale = (novelLanguageRow?.language ?? "zh") as Locale;
     await this.markChapterStatus(chapterId, "generating");
 
     let traceRunId: string | null = null;
@@ -81,7 +89,7 @@ export class ChapterStreamGenerationOrchestrator {
           runId: runStatusId,
           status: "running",
           phase: "finalizing",
-          message: "正文已生成，正在整理章节文本并保存草稿。",
+          message: serverT("chapter.sse.bodyFinalizing", locale),
         });
         const normalized = await this.resolveWriterResultWithEmptyRetry({
           novelId,
@@ -97,7 +105,7 @@ export class ChapterStreamGenerationOrchestrator {
           runId: runStatusId,
           status: "running",
           phase: "finalizing",
-          message: "正在完成正文接收检查并同步章节状态。",
+          message: serverT("chapter.sse.intakeCheck", locale),
         });
         const finalized = await this.finalizeChapterContent({
           novelId,
@@ -116,8 +124,8 @@ export class ChapterStreamGenerationOrchestrator {
           status: "succeeded",
           phase: "completed",
           message: finalized.runtimePackage.audit.hasBlockingIssues
-            ? "章节已保存，但检测到待修复问题。"
-            : "章节已保存，可继续审校。",
+            ? serverT("chapter.sse.savedWithIssues", locale)
+            : serverT("chapter.sse.savedReadyReview", locale),
         });
 
         return {

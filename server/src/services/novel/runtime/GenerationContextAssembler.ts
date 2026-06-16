@@ -1,5 +1,6 @@
 import type { GenerationContextPackage } from "@ai-novel/shared/types/chapterRuntime";
 import { prisma } from "../../../db/prisma";
+import { serverT, type Locale } from "../../../i18n/serverMessages";
 import { ragServices } from "../../rag";
 import { plannerService } from "../../planner/PlannerService";
 import { buildChapterRagQuery } from "../NovelReferenceService";
@@ -87,8 +88,10 @@ function buildSyntheticCharacterResourceIssues(
   input: {
     novelId: string;
     chapterId: string;
+    locale?: Locale;
   },
 ): GenerationContextPackage["openAuditIssues"] {
+  const locale: Locale = input.locale ?? "zh";
   if (!context) {
     return [];
   }
@@ -99,9 +102,9 @@ function buildSyntheticCharacterResourceIssues(
     auditType: "continuity" as const,
     severity: item.status === "destroyed" || item.status === "lost" ? "high" as const : "medium" as const,
     code: "character_resource_unavailable",
-    description: `${item.name} 当前为 ${item.status}，本章不能直接当作可用资源使用。`,
+    description: serverT("chapter.guidance.resourceBlocked", locale, { name: item.name, status: item.status }),
     evidence: item.evidence[0]?.summary ?? item.summary,
-    fixSuggestion: `优先做局部修复：补出重新获得、替代资源或不能使用的行动限制，避免无铺垫复用 ${item.name}。`,
+    fixSuggestion: serverT("chapter.guidance.resourceBlockedFix", locale, { name: item.name }),
     status: "open" as const,
     createdAt: now,
     updatedAt: now,
@@ -112,9 +115,9 @@ function buildSyntheticCharacterResourceIssues(
     auditType: "continuity" as const,
     severity: "medium" as const,
     code: "character_resource_pending_review",
-    description: `${item.name} 的持有、可见性或消耗状态需要确认，确认前不要写成不可逆事实。`,
+    description: serverT("chapter.guidance.resourcePendingReview", locale, { name: item.name }),
     evidence: item.evidence[0]?.summary ?? item.summary,
-    fixSuggestion: `将 ${item.name} 的使用写成可回收的小修补，或先在任务中心确认资源变更。`,
+    fixSuggestion: serverT("chapter.guidance.resourcePendingReviewFix", locale, { name: item.name }),
     status: "open" as const,
     createdAt: now,
     updatedAt: now,
@@ -130,7 +133,7 @@ function buildSyntheticCharacterResourceIssues(
       code: signal.code || "character_resource_risk",
       description: signal.summary,
       evidence: signal.summary,
-      fixSuggestion: "优先采用 patch_first：只修补当前章节的资源归属、消耗或知情关系，不重写整段剧情。",
+      fixSuggestion: serverT("chapter.guidance.signalFix", locale),
       status: "open" as const,
       createdAt: now,
       updatedAt: now,
@@ -268,6 +271,15 @@ export class GenerationContextAssembler {
     if (!novel || !chapter) {
       throw new Error("Novel or chapter not found.");
     }
+
+    // Novel-scoped guidance strings (synthetic character-resource issues
+    // emitted to the writer): locale from novel.language (chapter production
+    // runs without an HTTP request context).
+    const novelLanguageRow = await prisma.novel.findUnique({
+      where: { id: novelId },
+      select: { language: true },
+    });
+    const guidanceLocale: Locale = (novelLanguageRow?.language ?? "zh") as Locale;
 
     // 懒规划 JIT：全书 autopilot 路径在 ensureChapterPlan 之前确保 task sheet 就绪。
     // JIT 生成时会注入已发生事实（factLedger），解决 task sheet 与实际前文脱节问题。
@@ -491,7 +503,7 @@ export class GenerationContextAssembler {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       })),
-      buildSyntheticCharacterResourceIssues(characterResourceContext, { novelId, chapterId }),
+      buildSyntheticCharacterResourceIssues(characterResourceContext, { novelId, chapterId, locale: guidanceLocale }),
     );
     const runtimeContinuation = {
       enabled: continuationPack.enabled,

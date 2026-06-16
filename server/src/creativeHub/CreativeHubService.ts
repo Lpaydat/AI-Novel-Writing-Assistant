@@ -11,6 +11,7 @@ import type {
 import type { FailureDiagnostic } from "@ai-novel/shared/types/agent";
 import { prisma } from "../db/prisma";
 import { novelSetupStatusService } from "../services/novel/NovelSetupStatusService";
+import { serverT, type Locale } from "../i18n/serverMessages";
 
 interface CreateThreadInput {
   title?: string;
@@ -76,8 +77,16 @@ function serializePreview(messages: CreativeHubMessage[]): string | null {
 function deriveThreadTitle(messages: CreativeHubMessage[]): string {
   const firstHuman = messages.find((item) => item.type === "human");
   const content = typeof firstHuman?.content === "string" ? firstHuman.content.trim() : "";
-  return content ? content.slice(0, 24) : "新对话";
+  return content ? content.slice(0, 24) : serverT("creativeHub.thread.defaultTitle");
 }
+
+/** The set of default thread titles across locales — used to detect "still the
+ *  default" regardless of which locale created the thread (an en-created thread's
+ *  default must still be recognized as a default when later compared). */
+const DEFAULT_THREAD_TITLES = new Set<string>([
+  serverT("creativeHub.thread.defaultTitle", "zh"),
+  serverT("creativeHub.thread.defaultTitle", "en"),
+]);
 
 function mapThread(record: {
   id: string;
@@ -143,7 +152,7 @@ async function loadFailureDiagnostic(runId: string | null | undefined): Promise<
     failureSummary: run.error ?? latestStep?.error ?? null,
     failureDetails: latestStep?.error ?? null,
     recoveryHint: run.status === "failed"
-      ? "请查看最近一次失败步骤，必要时从创作中枢重新发起或重放。"
+      ? serverT("creativeHub.thread.latestFailureHint")
       : null,
   };
 }
@@ -160,7 +169,7 @@ export class CreativeHubService {
   async createThread(input?: CreateThreadInput): Promise<CreativeHubThread> {
     const record = await prisma.creativeHubThread.create({
       data: {
-        title: input?.title?.trim() || "新对话",
+        title: input?.title?.trim() || serverT("creativeHub.thread.defaultTitle"),
         resourceBindingsJson: JSON.stringify(normalizeBindings(input?.resourceBindings)),
       },
     });
@@ -170,7 +179,7 @@ export class CreativeHubService {
   async updateThread(threadId: string, input: UpdateThreadInput): Promise<CreativeHubThread> {
     const existing = await prisma.creativeHubThread.findUnique({ where: { id: threadId } });
     if (!existing) {
-      throw new Error("线程不存在。");
+      throw new Error(serverT("creativeHub.thread.notFound"));
     }
     const nextBindings = input.resourceBindings
       ? JSON.stringify(normalizeBindings(input.resourceBindings))
@@ -206,7 +215,7 @@ export class CreativeHubService {
       },
     });
     if (!record) {
-      throw new Error("线程不存在。");
+      throw new Error(serverT("creativeHub.thread.notFound"));
     }
     const latestCheckpoint = record.checkpoints[0];
     const diagnostics = await loadFailureDiagnostic(record.latestRunId);
@@ -263,7 +272,7 @@ export class CreativeHubService {
   async saveCheckpoint(threadId: string, input: SaveCheckpointInput): Promise<CreativeHubCheckpointRef> {
     const existing = await prisma.creativeHubThread.findUnique({ where: { id: threadId } });
     if (!existing) {
-      throw new Error("线程不存在。");
+      throw new Error(serverT("creativeHub.thread.notFound"));
     }
     const checkpoint = await prisma.creativeHubCheckpoint.create({
       data: {
@@ -281,7 +290,7 @@ export class CreativeHubService {
     await prisma.creativeHubThread.update({
       where: { id: threadId },
       data: {
-        title: existing.title === "新对话" ? deriveThreadTitle(input.messages) : existing.title,
+        title: DEFAULT_THREAD_TITLES.has(existing.title) ? deriveThreadTitle(input.messages) : existing.title,
         latestRunId: input.runId ?? existing.latestRunId,
         latestError: input.latestError ?? null,
         status: input.status ?? existing.status,

@@ -8,6 +8,7 @@ import { createAnthropicLLM } from "./anthropicClient";
 import { attachLLMDebugLogging } from "./debugLogging";
 import { attachLLMRequestLimiter } from "./requestLimiter";
 import { attachLLMRequestGuard } from "./requestGuard";
+import { serverT } from "../i18n/serverMessages";
 import { resolveProviderReasoningBehavior } from "./reasoning";
 import {
   resolveStructuredOutputProfile,
@@ -250,7 +251,7 @@ export async function resolveLLMClientOptions(
     ?? getProviderEnvApiKey(resolvedProvider);
 
   if (!apiKey && providerRequiresApiKey(resolvedProvider)) {
-    throw new Error(`未配置 ${providerName} 的 API Key。`);
+    throw new Error(serverT("llm.factory.apiKeyMissing", undefined, { providerName }));
   }
 
   const model = resolvedModel
@@ -258,7 +259,7 @@ export async function resolveLLMClientOptions(
     ?? getProviderEnvModel(resolvedProvider)
     ?? (isBuiltInProvider(resolvedProvider) ? PROVIDERS[resolvedProvider].defaultModel : undefined);
   if (!model) {
-    throw new Error(`未配置 ${providerName} 的默认模型。`);
+    throw new Error(serverT("llm.factory.defaultModelMissing", undefined, { providerName }));
   }
 
   const baseURL = resolveProviderBaseUrl(
@@ -267,7 +268,7 @@ export async function resolveLLMClientOptions(
     dbSecret?.baseURL,
   );
   if (!baseURL) {
-    throw new Error(`未配置 ${providerName} 的 API URL。`);
+    throw new Error(serverT("llm.factory.apiUrlMissing", undefined, { providerName }));
   }
 
   const temperature = resolveModelTemperature(resolvedProvider, model, resolvedTemperature);
