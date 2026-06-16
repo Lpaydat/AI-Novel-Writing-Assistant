@@ -1048,6 +1048,7 @@ model NovelStoryMode {
   children          NovelStoryMode[] @relation("StoryModeChildren")
   primaryNovels     Novel[]          @relation("NovelPrimaryStoryMode")
   secondaryNovels   Novel[]          @relation("NovelSecondaryStoryMode")
+  language          String          @default("zh")
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
