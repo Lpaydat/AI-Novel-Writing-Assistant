@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, CheckCircle2, ListChecks } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,12 +11,13 @@ export function HomeAttentionQueue(props: {
   items: HomeAttentionItem[];
   hasNovels: boolean;
 }) {
+  const { t } = useTranslation("homeDashboard");
   return (
     <Card className="home-attention-queue">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg tracking-normal">
           <ListChecks className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-          待处理事项
+          {t("attentionQueue.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -25,12 +27,14 @@ export function HomeAttentionQueue(props: {
               <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-700" aria-hidden="true" />
               <div>
                 <div className="text-sm font-medium text-emerald-800">
-                  {props.hasNovels ? "没有阻塞首页推荐的事项" : "还没有需要处理的创作事项"}
+                  {props.hasNovels
+                    ? t("attentionQueue.emptyHasNovels.title")
+                    : t("attentionQueue.emptyNoNovels.title")}
                 </div>
                 <p className="mt-1 text-sm leading-6 text-emerald-700/90">
                   {props.hasNovels
-                    ? "可以按照推荐动作继续推进项目。"
-                    : "创建小说后，这里会显示确认、失败、恢复和质量提醒。"}
+                    ? t("attentionQueue.emptyHasNovels.description")
+                    : t("attentionQueue.emptyNoNovels.description")}
                 </p>
               </div>
             </div>

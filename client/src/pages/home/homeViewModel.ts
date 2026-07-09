@@ -1,4 +1,6 @@
+import type { TFunction } from "i18next";
 import type { TaskOverviewSummary } from "@ai-novel/shared/types/task";
+import i18n from "@/i18n";
 import type { NovelListResponse } from "@/api/novel/shared";
 import {
   canContinueChapterBatchAutoExecution,
@@ -54,11 +56,11 @@ export interface HomeNextAction {
 
 export function formatHomeDate(value: string | undefined): string {
   if (!value) {
-    return "暂无";
+    return i18n.t("format.dateFallback", { ns: "homeDashboard" });
   }
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return "暂无";
+    return i18n.t("format.dateFallback", { ns: "homeDashboard" });
   }
   return date.toLocaleString();
 }
@@ -95,9 +97,9 @@ export function getNovelLeadSummary(novel: HomeNovelItem): string {
     return novel.description.trim();
   }
   if (novel.world?.name) {
-    return `当前项目绑定世界观「${novel.world.name}」，可以继续创作。`;
+    return i18n.t("lead.boundWorld", { ns: "homeDashboard", worldName: novel.world.name });
   }
-  return "当前项目暂无简介，可以进入编辑页继续推进。";
+  return i18n.t("lead.empty", { ns: "homeDashboard" });
 }
 
 export function selectPrimaryNovel(novels: HomeNovelItem[]): HomeNovelItem | null {
@@ -114,14 +116,14 @@ export function selectPrimaryNovel(novels: HomeNovelItem[]): HomeNovelItem | nul
   }, null);
 }
 
-export function buildHomeNextAction(primaryNovel: HomeNovelItem | null): HomeNextAction {
+export function buildHomeNextAction(t: TFunction, primaryNovel: HomeNovelItem | null): HomeNextAction {
   if (!primaryNovel) {
     return {
       kind: "starter",
-      eyebrow: "开始第一本小说",
-      title: "用一句灵感启动自动导演",
-      description: "先给 AI 一个模糊想法，系统会帮你整理方向、角色、世界观和章节准备。",
-      reason: "适合还没想清楚题材、卖点和前期承诺的新手。",
+      eyebrow: t("nextAction.starter.eyebrow", { ns: "homeDashboard" }),
+      title: t("nextAction.starter.title", { ns: "homeDashboard" }),
+      description: t("nextAction.starter.description", { ns: "homeDashboard" }),
+      reason: t("nextAction.starter.reason", { ns: "homeDashboard" }),
       tone: "info",
     };
   }
@@ -130,74 +132,74 @@ export function buildHomeNextAction(primaryNovel: HomeNovelItem | null): HomeNex
   if (canContinueChapterBatchAutoExecution(task)) {
     return {
       kind: "novel",
-      eyebrow: "推荐下一步",
-      title: `恢复《${primaryNovel.title}》的章节执行`,
+      eyebrow: t("nextAction.eyebrow.recommended", { ns: "homeDashboard" }),
+      title: t("nextAction.resumeChapter.title", { ns: "homeDashboard", title: primaryNovel.title }),
       description: getNovelLeadSummary(primaryNovel),
-      reason: "章节批次停在可恢复节点，先恢复执行能最快回到正文生产。",
+      reason: t("nextAction.resumeChapter.reason", { ns: "homeDashboard" }),
       tone: "danger",
     };
   }
   if (requiresCandidateSelection(task)) {
     return {
       kind: "novel",
-      eyebrow: "推荐下一步",
-      title: `确认《${primaryNovel.title}》的书级方向`,
+      eyebrow: t("nextAction.eyebrow.recommended", { ns: "homeDashboard" }),
+      title: t("nextAction.confirmDirection.title", { ns: "homeDashboard", title: primaryNovel.title }),
       description: getNovelLeadSummary(primaryNovel),
-      reason: "确认方向后，系统才能继续准备世界观、角色和章节执行计划。",
+      reason: t("nextAction.confirmDirection.reason", { ns: "homeDashboard" }),
       tone: "warning",
     };
   }
   if (canContinueDirector(task)) {
     return {
       kind: "novel",
-      eyebrow: "推荐下一步",
-      title: `继续《${primaryNovel.title}》的自动导演`,
+      eyebrow: t("nextAction.eyebrow.recommended", { ns: "homeDashboard" }),
+      title: t("nextAction.continueDirector.title", { ns: "homeDashboard", title: primaryNovel.title }),
       description: getNovelLeadSummary(primaryNovel),
-      reason: "当前阶段等待确认，继续后会推进到下一段可执行准备。",
+      reason: t("nextAction.continueDirector.reason", { ns: "homeDashboard" }),
       tone: "warning",
     };
   }
   if (task?.status === "running" || task?.status === "queued") {
     return {
       kind: "novel",
-      eyebrow: "系统推进中",
-      title: `关注《${primaryNovel.title}》的后台进度`,
+      eyebrow: t("nextAction.eyebrow.systemRunning", { ns: "homeDashboard" }),
+      title: t("nextAction.watchProgress.title", { ns: "homeDashboard", title: primaryNovel.title }),
       description: getNovelLeadSummary(primaryNovel),
-      reason: "自动导演或章节执行仍在后台处理，可以查看进度和最近阶段。",
+      reason: t("nextAction.watchProgress.reason", { ns: "homeDashboard" }),
       tone: "info",
     };
   }
   if (canEnterChapterExecution(task)) {
     return {
       kind: "novel",
-      eyebrow: "推荐下一步",
-      title: `进入《${primaryNovel.title}》的章节执行`,
+      eyebrow: t("nextAction.eyebrow.recommended", { ns: "homeDashboard" }),
+      title: t("nextAction.enterChapter.title", { ns: "homeDashboard", title: primaryNovel.title }),
       description: getNovelLeadSummary(primaryNovel),
-      reason: "规划资产已经能支撑章节生产，可以进入正文生成和审阅。",
+      reason: t("nextAction.enterChapter.reason", { ns: "homeDashboard" }),
       tone: "success",
     };
   }
   if (task?.status === "failed" || task?.status === "cancelled") {
     return {
       kind: "novel",
-      eyebrow: "需要处理",
-      title: `查看《${primaryNovel.title}》的推进状态`,
+      eyebrow: t("nextAction.eyebrow.needsAttention", { ns: "homeDashboard" }),
+      title: t("nextAction.reviewStatus.title", { ns: "homeDashboard", title: primaryNovel.title }),
       description: getNovelLeadSummary(primaryNovel),
-      reason: "任务存在暂停或失败记录，先查看详情再决定恢复、重试或调整。",
+      reason: t("nextAction.reviewStatus.reason", { ns: "homeDashboard" }),
       tone: "danger",
     };
   }
   return {
     kind: "novel",
-    eyebrow: "推荐下一步",
-    title: `继续编辑《${primaryNovel.title}》`,
+    eyebrow: t("nextAction.eyebrow.recommended", { ns: "homeDashboard" }),
+    title: t("nextAction.continueEdit.title", { ns: "homeDashboard", title: primaryNovel.title }),
     description: getNovelLeadSummary(primaryNovel),
-    reason: "没有更高优先级的阻塞项，可以回到项目主页继续完善资料或章节。",
+    reason: t("nextAction.continueEdit.reason", { ns: "homeDashboard" }),
     tone: "neutral",
   };
 }
 
-export function buildHomeMetrics(input: {
+export function buildHomeMetrics(t: TFunction, input: {
   novels: HomeNovelItem[];
   taskOverview?: TaskOverviewSummary | null;
 }): HomeMetric[] {
@@ -215,36 +217,36 @@ export function buildHomeMetrics(input: {
   return [
     {
       id: "running",
-      title: "推进中",
+      title: t("metric.running.title", { ns: "homeDashboard" }),
       value: liveWorkflowCount,
-      hint: "最近项目中后台处理的自动导演或章节执行。",
+      hint: t("metric.running.hint", { ns: "homeDashboard" }),
       tone: "info",
     },
     {
       id: "attention",
-      title: "待处理",
+      title: t("metric.attention.title", { ns: "homeDashboard" }),
       value: actionRequiredCount,
-      hint: "等待确认、暂停或失败后需要决策的项目。",
+      hint: t("metric.attention.hint", { ns: "homeDashboard" }),
       tone: actionRequiredCount > 0 ? "warning" : "success",
     },
     {
       id: "chapter-ready",
-      title: "可写章节",
+      title: t("metric.chapterReady.title", { ns: "homeDashboard" }),
       value: readyForExecutionCount,
-      hint: "规划准备完成，可以进入章节执行的项目。",
+      hint: t("metric.chapterReady.hint", { ns: "homeDashboard" }),
       tone: readyForExecutionCount > 0 ? "success" : "neutral",
     },
     {
       id: "failed",
-      title: "失败任务",
+      title: t("metric.failed.title", { ns: "homeDashboard" }),
       value: failedTaskCount,
-      hint: "来自任务中心的失败任务，需要集中处理。",
+      hint: t("metric.failed.hint", { ns: "homeDashboard" }),
       tone: failedTaskCount > 0 ? "danger" : "success",
     },
   ];
 }
 
-export function buildHomeAttentionItems(input: {
+export function buildHomeAttentionItems(t: TFunction, input: {
   novels: HomeNovelItem[];
   taskOverview?: TaskOverviewSummary | null;
 }): HomeAttentionItem[] {
@@ -263,46 +265,48 @@ export function buildHomeAttentionItems(input: {
   if (failedTaskCount > 0 || recoveryCandidateCount > 0) {
     items.push({
       id: "task-recovery",
-      title: failedTaskCount > 0 ? `${failedTaskCount} 个后台任务失败` : `${recoveryCandidateCount} 个任务可恢复`,
-      description: "先处理失败或可恢复任务，可以避免后续生成继续卡在同一位置。",
+      title: failedTaskCount > 0
+        ? t("attention.taskRecovery.titleFailed", { ns: "homeDashboard", count: failedTaskCount })
+        : t("attention.taskRecovery.titleRecoverable", { ns: "homeDashboard", count: recoveryCandidateCount }),
+      description: t("attention.taskRecovery.description", { ns: "homeDashboard" }),
       tone: failedTaskCount > 0 ? "danger" : "warning",
       to: "/tasks",
-      actionLabel: "查看任务中心",
+      actionLabel: t("attention.taskRecovery.action", { ns: "homeDashboard" }),
     });
   }
   if (actionRequiredCount > 0 || waitingApprovalCount > 0) {
     items.push({
       id: "workflow-action-required",
-      title: `${Math.max(actionRequiredCount, waitingApprovalCount)} 个创作流程等待处理`,
-      description: "这些项目可能在等待方向确认、阶段继续或失败后的恢复决策。",
+      title: t("attention.workflowActionRequired.title", { ns: "homeDashboard", count: Math.max(actionRequiredCount, waitingApprovalCount) }),
+      description: t("attention.workflowActionRequired.description", { ns: "homeDashboard" }),
       tone: "warning",
       to: "/auto-director/follow-ups",
-      actionLabel: "查看跟进事项",
+      actionLabel: t("attention.workflowActionRequired.action", { ns: "homeDashboard" }),
     });
   }
   if (readyForExecutionCount > 0) {
     items.push({
       id: "chapter-ready",
-      title: `${readyForExecutionCount} 个项目可进入章节执行`,
-      description: "这些项目的规划资产已经能支撑正文生产，可以继续推进章节。",
+      title: t("attention.chapterReady.title", { ns: "homeDashboard", count: readyForExecutionCount }),
+      description: t("attention.chapterReady.description", { ns: "homeDashboard" }),
       tone: "success",
     });
   }
   if (runningCount > 0) {
     items.push({
       id: "running-tasks",
-      title: `${runningCount} 个任务处理中`,
-      description: "后台任务仍在推进，可以稍后回到首页查看结果。",
+      title: t("attention.runningTasks.title", { ns: "homeDashboard", count: runningCount }),
+      description: t("attention.runningTasks.description", { ns: "homeDashboard" }),
       tone: "info",
       to: "/tasks",
-      actionLabel: "查看进度",
+      actionLabel: t("attention.runningTasks.action", { ns: "homeDashboard" }),
     });
   }
 
   return items.slice(0, 4);
 }
 
-export function buildHomeAssetHealthItems(novels: HomeNovelItem[]): HomeAssetHealthItem[] {
+export function buildHomeAssetHealthItems(t: TFunction, novels: HomeNovelItem[]): HomeAssetHealthItem[] {
   const totalNovels = novels.length;
   const worldBoundCount = novels.filter((novel) => Boolean(novel.world?.id || novel.worldId)).length;
   const totalCharacters = novels.reduce((sum, novel) => sum + novel._count.characters, 0);
@@ -317,32 +321,32 @@ export function buildHomeAssetHealthItems(novels: HomeNovelItem[]): HomeAssetHea
   return [
     {
       id: "world",
-      title: "世界观覆盖",
+      title: t("asset.world.title", { ns: "homeDashboard" }),
       value: totalNovels > 0 ? `${worldBoundCount}/${totalNovels}` : "0",
       description: totalNovels > 0
-        ? "绑定世界观的项目更容易在后续章节中保持规则一致。"
-        : "创建小说后，这里会显示世界观资产状态。",
+        ? t("asset.world.description", { ns: "homeDashboard" })
+        : t("asset.world.descriptionEmpty", { ns: "homeDashboard" }),
       tone: totalNovels === 0 ? "neutral" : worldBoundCount === totalNovels ? "success" : "warning",
     },
     {
       id: "characters",
-      title: "角色资产",
+      title: t("asset.characters.title", { ns: "homeDashboard" }),
       value: String(totalCharacters),
-      description: "角色数量用于判断项目是否具备连续生成的基本资产。",
+      description: t("asset.characters.description", { ns: "homeDashboard" }),
       tone: totalCharacters > 0 ? "success" : "warning",
     },
     {
       id: "chapters",
-      title: "章节沉淀",
+      title: t("asset.chapters.title", { ns: "homeDashboard" }),
       value: String(totalChapters),
-      description: "章节越多，摘要、事实和角色时间线越需要稳定回灌。",
+      description: t("asset.chapters.description", { ns: "homeDashboard" }),
       tone: totalChapters > 0 ? "info" : "neutral",
     },
     {
       id: "readiness",
-      title: "资源准备度",
+      title: t("asset.readiness.title", { ns: "homeDashboard" }),
       value: averageResourceScore == null ? "--" : `${averageResourceScore}`,
-      description: "来自项目资料准备度的平均信号，用于辅助判断开写基础。",
+      description: t("asset.readiness.description", { ns: "homeDashboard" }),
       tone: averageResourceScore == null
         ? "neutral"
         : averageResourceScore >= 80

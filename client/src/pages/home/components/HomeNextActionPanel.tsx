@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowRight, BookOpenText, Loader2, PlusCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -31,13 +32,14 @@ export function HomeNextActionPanel(props: {
   onRetry?: () => void;
   renderNovelPrimaryAction: RenderNovelPrimaryAction;
 }) {
+  const { t } = useTranslation("homeDashboard");
   if (props.loading) {
     return (
       <Card className="home-next-action-panel overflow-hidden">
         <CardContent className="p-6">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-            正在整理首页推荐动作...
+            {t("nextActionPanel.loading")}
           </div>
           <div className="mt-6 space-y-3">
             <div className="h-8 w-2/3 animate-pulse rounded bg-muted" />
@@ -53,14 +55,14 @@ export function HomeNextActionPanel(props: {
     return (
       <Card className="home-next-action-panel border-destructive/35">
         <CardContent className="space-y-4 p-6">
-          <Badge variant="destructive">首页无法读取项目</Badge>
+          <Badge variant="destructive">{t("nextActionPanel.errorBadge")}</Badge>
           <div>
-            <h1 className="text-2xl font-semibold tracking-normal">无法判断下一步</h1>
+            <h1 className="text-2xl font-semibold tracking-normal">{t("nextActionPanel.errorTitle")}</h1>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              当前无法读取小说项目，首页不能为你推荐继续入口。重新加载后可以恢复推荐动作。
+              {t("nextActionPanel.errorDescription")}
             </p>
           </div>
-          <Button onClick={props.onRetry}>重新加载项目</Button>
+          <Button onClick={props.onRetry}>{t("nextActionPanel.reload")}</Button>
         </CardContent>
       </Card>
     );
@@ -86,14 +88,14 @@ export function HomeNextActionPanel(props: {
             <Button asChild size="lg">
               <Link to={DIRECTOR_CREATE_LINK}>
                 <PlusCircle className="mr-2 h-4 w-4" aria-hidden="true" />
-                AI 自动导演开书
+                {t("cta.openWithDirector")}
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to={MANUAL_CREATE_LINK}>手动创建小说</Link>
+              <Link to={MANUAL_CREATE_LINK}>{t("cta.createManually")}</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/help">新手上路</Link>
+              <Link to="/help">{t("cta.onboarding")}</Link>
             </Button>
           </div>
         </CardContent>
@@ -117,9 +119,9 @@ export function HomeNextActionPanel(props: {
               <Badge variant={workflowBadge.variant}>{workflowBadge.label}</Badge>
             ) : null}
             <Badge variant={novel.status === "published" ? "default" : "secondary"}>
-              {novel.status === "published" ? "发布态" : "草稿"}
+              {novel.status === "published" ? t("badge.published") : t("badge.draft")}
             </Badge>
-            <Badge variant="outline">{novel.writingMode === "continuation" ? "续写" : "原创"}</Badge>
+            <Badge variant="outline">{novel.writingMode === "continuation" ? t("badge.continuation") : t("badge.original")}</Badge>
           </div>
 
           <div>
@@ -133,25 +135,25 @@ export function HomeNextActionPanel(props: {
             <div className="rounded-lg border bg-background/80 p-3">
               <div className="mb-1 flex items-center gap-2 text-sm font-medium">
                 <ArrowRight className={cn("h-4 w-4", toneTextClass(props.action.tone))} aria-hidden="true" />
-                推荐原因
+                {t("nextActionPanel.reasonLabel")}
               </div>
               <p className="text-sm leading-6 text-muted-foreground">{props.action.reason}</p>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground sm:grid-cols-4 lg:grid-cols-2">
               <div className="rounded-lg border bg-background/70 p-3">
-                <div>章节</div>
+                <div>{t("fact.chapters")}</div>
                 <div className="mt-1 text-base font-semibold text-foreground">{novel._count.chapters}</div>
               </div>
               <div className="rounded-lg border bg-background/70 p-3">
-                <div>角色</div>
+                <div>{t("fact.characters")}</div>
                 <div className="mt-1 text-base font-semibold text-foreground">{novel._count.characters}</div>
               </div>
               <div className="rounded-lg border bg-background/70 p-3">
-                <div>世界观</div>
-                <div className="mt-1 truncate text-base font-semibold text-foreground">{novel.world?.name ?? "未绑定"}</div>
+                <div>{t("fact.world")}</div>
+                <div className="mt-1 truncate text-base font-semibold text-foreground">{novel.world?.name ?? t("fact.worldUnbound")}</div>
               </div>
               <div className="rounded-lg border bg-background/70 p-3">
-                <div>更新</div>
+                <div>{t("fact.updated")}</div>
                 <div className="mt-1 truncate text-base font-semibold text-foreground">{formatHomeDate(novel.updatedAt)}</div>
               </div>
             </div>
@@ -161,15 +163,15 @@ export function HomeNextActionPanel(props: {
         <aside className="space-y-3 rounded-lg border bg-background/85 p-4">
           <div className="flex items-center gap-2 text-sm font-medium">
             <BookOpenText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-            当前项目
+            {t("nextActionPanel.currentProject")}
           </div>
           <div>
             <div className="line-clamp-2 text-lg font-semibold">{novel.title}</div>
             {task?.currentStage ? (
-              <p className="mt-2 text-xs text-muted-foreground">阶段：{task.currentStage}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{t("nextActionPanel.stage", { stage: task.currentStage })}</p>
             ) : null}
             {task?.lastHealthyStage ? (
-              <p className="mt-1 text-xs text-muted-foreground">最近健康阶段：{task.lastHealthyStage}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("nextActionPanel.lastHealthyStage", { stage: task.lastHealthyStage })}</p>
             ) : null}
           </div>
           <div className="grid gap-2">
@@ -177,12 +179,12 @@ export function HomeNextActionPanel(props: {
             {task ? (
               <Button asChild size="lg" variant="outline">
                 <Link to={`/novels/${novel.id}/edit?directorTaskId=${task.id}&taskPanel=1`}>
-                  执行详情
+                  {t("card.executionDetail")}
                 </Link>
               </Button>
             ) : (
               <Button asChild size="lg" variant="outline">
-                <Link to={`/novels/${novel.id}/edit`}>打开项目</Link>
+                <Link to={`/novels/${novel.id}/edit`}>{t("card.openProject")}</Link>
               </Button>
             )}
           </div>

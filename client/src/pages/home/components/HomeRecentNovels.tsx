@@ -1,4 +1,5 @@
 import type { KeyboardEvent, MouseEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowRight, BookOpenText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -22,16 +23,17 @@ export function HomeRecentNovels(props: {
   onStopCardClick: (event: MouseEvent<HTMLElement>) => void;
   renderNovelPrimaryAction: RenderNovelPrimaryAction;
 }) {
+  const { t } = useTranslation("homeDashboard");
   return (
     <Card className="home-recent-novels">
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2 text-lg tracking-normal">
             <BookOpenText className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-            最近小说
+            {t("recentNovels.title")}
           </CardTitle>
           <Button asChild size="sm" variant="outline">
-            <Link to="/novels">查看全部</Link>
+            <Link to="/novels">{t("recentNovels.viewAll")}</Link>
           </Button>
         </div>
       </CardHeader>
@@ -48,12 +50,12 @@ export function HomeRecentNovels(props: {
           </div>
         ) : props.error ? (
           <div className="space-y-3">
-            <div className="text-sm text-muted-foreground">当前无法加载最近项目。</div>
-            <Button variant="outline" onClick={props.onRetry}>重新加载</Button>
+            <div className="text-sm text-muted-foreground">{t("recentNovels.error")}</div>
+            <Button variant="outline" onClick={props.onRetry}>{t("recentNovels.reload")}</Button>
           </div>
         ) : props.novels.length === 0 ? (
           <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-            创建小说后，这里会显示最近项目和直接继续入口。
+            {t("recentNovels.empty")}
           </div>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
@@ -79,6 +81,7 @@ function RecentNovelCard(props: {
   onStopCardClick: (event: MouseEvent<HTMLElement>) => void;
   renderNovelPrimaryAction: RenderNovelPrimaryAction;
 }) {
+  const { t } = useTranslation("homeDashboard");
   const workflowTask = props.novel.latestAutoDirectorTask ?? null;
   const workflowBadge = getWorkflowBadge(workflowTask);
 
@@ -105,10 +108,10 @@ function RecentNovelCard(props: {
               {workflowBadge ? (
                 <Badge variant={workflowBadge.variant}>{workflowBadge.label}</Badge>
               ) : (
-                <Badge variant="outline">项目资料</Badge>
+                <Badge variant="outline">{t("recentNovels.projectInfoBadge")}</Badge>
               )}
               {workflowTask ? (
-                <Badge variant="outline">进度 {Math.round(workflowTask.progress * 100)}%</Badge>
+                <Badge variant="outline">{t("badge.progress", { percent: Math.round(workflowTask.progress * 100) })}</Badge>
               ) : null}
             </div>
           </div>
@@ -120,10 +123,10 @@ function RecentNovelCard(props: {
         </p>
 
         <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground sm:grid-cols-4">
-          <Fact label="章节" value={String(props.novel._count.chapters)} />
-          <Fact label="角色" value={String(props.novel._count.characters)} />
-          <Fact label="世界观" value={props.novel.world?.name ?? "未绑定"} />
-          <Fact label="更新" value={formatHomeDate(props.novel.updatedAt)} />
+          <Fact label={t("fact.chapters")} value={String(props.novel._count.chapters)} />
+          <Fact label={t("fact.characters")} value={String(props.novel._count.characters)} />
+          <Fact label={t("fact.world")} value={props.novel.world?.name ?? t("fact.worldUnbound")} />
+          <Fact label={t("fact.updated")} value={formatHomeDate(props.novel.updatedAt)} />
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -134,13 +137,13 @@ function RecentNovelCard(props: {
                 to={`/novels/${props.novel.id}/edit?directorTaskId=${workflowTask.id}&taskPanel=1`}
                 onClick={props.onStopCardClick}
               >
-                执行详情
+                {t("card.executionDetail")}
               </Link>
             </Button>
           ) : (
             <Button asChild size="sm" variant="outline">
               <Link to={`/novels/${props.novel.id}/edit`} onClick={props.onStopCardClick}>
-                打开项目
+                {t("card.openProject")}
               </Link>
             </Button>
           )}
@@ -154,10 +157,11 @@ function Fact(props: {
   label: string;
   value: string;
 }) {
+  const { t } = useTranslation("homeDashboard");
   return (
     <div className="min-w-0 rounded-md border bg-muted/20 px-2 py-1.5">
       <div>{props.label}</div>
-      <div className={cn("mt-0.5 truncate font-medium text-foreground", props.value === "未绑定" ? "text-amber-700" : "")}>
+      <div className={cn("mt-0.5 truncate font-medium text-foreground", props.value === t("fact.worldUnbound") ? "text-amber-700" : "")}>
         {props.value}
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Activity, AlertTriangle, CheckCircle2, Clock3 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -16,8 +17,9 @@ export function HomeStatusStrip(props: {
   metrics: HomeMetric[];
   pending?: boolean;
 }) {
+  const { t } = useTranslation("homeDashboard");
   return (
-    <section className="home-status-summary-grid grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="创作状态摘要">
+    <section className="home-status-summary-grid grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label={t("statusStrip.aria")}>
       {props.metrics.map((metric) => {
         const Icon = metricIcons[metric.tone];
         return (

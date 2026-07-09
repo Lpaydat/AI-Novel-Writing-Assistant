@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Boxes, Globe2, PlusCircle, ScrollText, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21,10 +22,11 @@ export function HomeAssetHealth(props: {
   items: HomeAssetHealthItem[];
   showStarterActions?: boolean;
 }) {
+  const { t } = useTranslation("homeDashboard");
   return (
     <Card className="home-asset-health">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg tracking-normal">角色与世界观资产</CardTitle>
+        <CardTitle className="text-lg tracking-normal">{t("assetHealth.title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
@@ -51,17 +53,17 @@ export function HomeAssetHealth(props: {
               <PlusCircle className="mt-0.5 h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <div className="min-w-0 flex-1 space-y-3">
                 <div>
-                  <div className="text-sm font-medium">开始新项目</div>
+                  <div className="text-sm font-medium">{t("assetHealth.starter.title")}</div>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    有新灵感时，可以直接交给自动导演整理方向、角色、世界观和章节准备。
+                    {t("assetHealth.starter.description")}
                   </p>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
                   <Button asChild size="sm">
-                    <Link to={DIRECTOR_CREATE_LINK}>AI 自动导演开书</Link>
+                    <Link to={DIRECTOR_CREATE_LINK}>{t("cta.openWithDirector")}</Link>
                   </Button>
                   <Button asChild size="sm" variant="outline">
-                    <Link to={MANUAL_CREATE_LINK}>手动创建小说</Link>
+                    <Link to={MANUAL_CREATE_LINK}>{t("cta.createManually")}</Link>
                   </Button>
                 </div>
               </div>

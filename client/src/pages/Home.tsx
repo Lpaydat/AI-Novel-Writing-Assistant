@@ -36,7 +36,7 @@ import { HomeStatusStrip } from "./home/components/HomeStatusStrip";
 export default function Home() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const taskQuery = useQuery({
     queryKey: queryKeys.tasks.overview,
@@ -89,18 +89,21 @@ export default function Home() {
   const taskOverview = taskQuery.data?.data ?? null;
   const primaryNovel = useMemo(() => selectPrimaryNovel(allNovels), [allNovels]);
   const recentNovels = useMemo(() => allNovels.slice(0, HOME_RECENT_LIMIT), [allNovels]);
-  const nextAction = useMemo(() => buildHomeNextAction(primaryNovel), [primaryNovel]);
+  const nextAction = useMemo(
+    () => buildHomeNextAction(t, primaryNovel),
+    [t, i18n.language, primaryNovel],
+  );
   const metrics = useMemo(
-    () => buildHomeMetrics({ novels: allNovels, taskOverview }),
-    [allNovels, taskOverview],
+    () => buildHomeMetrics(t, { novels: allNovels, taskOverview }),
+    [t, i18n.language, allNovels, taskOverview],
   );
   const attentionItems = useMemo(
-    () => buildHomeAttentionItems({ novels: allNovels, taskOverview }),
-    [allNovels, taskOverview],
+    () => buildHomeAttentionItems(t, { novels: allNovels, taskOverview }),
+    [t, i18n.language, allNovels, taskOverview],
   );
   const assetHealthItems = useMemo(
-    () => buildHomeAssetHealthItems(allNovels),
-    [allNovels],
+    () => buildHomeAssetHealthItems(t, allNovels),
+    [t, i18n.language, allNovels],
   );
 
   const stopCardClick = (event: MouseEvent<HTMLElement>) => {

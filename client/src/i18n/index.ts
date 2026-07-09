@@ -95,6 +95,10 @@ import zhComponentsCommon from "@/locales/zh/componentsCommon.json";
 import enComponentsCommon from "@/locales/en/componentsCommon.json";
 import zhComponentsMisc from "@/locales/zh/componentsMisc.json";
 import enComponentsMisc from "@/locales/en/componentsMisc.json";
+import zhHomeDashboard from "@/locales/zh/homeDashboard.json";
+import enHomeDashboard from "@/locales/en/homeDashboard.json";
+import zhMisc from "@/locales/zh/misc.json";
+import enMisc from "@/locales/en/misc.json";
 import { getActiveLocale, type AppLocale } from "./localeHeaders";
 
 export const SUPPORTED_LOCALES = ["zh", "en"] as const;
@@ -147,6 +151,8 @@ export const localeResources = {
     componentsTension: zhComponentsTension,
     componentsCommon: zhComponentsCommon,
     componentsMisc: zhComponentsMisc,
+    homeDashboard: zhHomeDashboard,
+    misc: zhMisc,
   },
   en: {
     home: enHome,
@@ -190,6 +196,8 @@ export const localeResources = {
     componentsTension: enComponentsTension,
     componentsCommon: enComponentsCommon,
     componentsMisc: enComponentsMisc,
+    homeDashboard: enHomeDashboard,
+    misc: enMisc,
   },
 } as const;
 
@@ -243,6 +251,8 @@ void i18n.use(initReactI18next).init({
     "componentsTension",
     "componentsCommon",
     "componentsMisc",
+    "homeDashboard",
+    "misc",
   ],
   // Keys are flat strings that intentionally contain dots (e.g.
   // "metric.liveWorkflow.title"). Disable both separators so i18next treats
