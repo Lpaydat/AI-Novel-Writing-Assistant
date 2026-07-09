@@ -94,6 +94,34 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     load: () => require("./prompts/bookAnalysis/bookAnalysis.prompts.en").bookAnalysisSectionOptimizePromptEn as UnknownPromptAsset,
   },
   {
+    key: "bookAnalysis.chapter.split@v1",
+    load: () => require("./prompts/bookAnalysis/bookAnalysisChapter.prompts").bookAnalysisChapterSplitPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "bookAnalysis.character.identify@v1",
+    load: () => require("./prompts/bookAnalysis/bookAnalysisCharacter.prompts").bookAnalysisCharacterIdentifyPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "bookAnalysis.character.profile@v1",
+    load: () => require("./prompts/bookAnalysis/bookAnalysisCharacter.prompts").bookAnalysisCharacterProfilePrompt as UnknownPromptAsset,
+  },
+  {
+    key: "bookAnalysis.character.generate@v1",
+    load: () => require("./prompts/bookAnalysis/bookAnalysisCharacter.prompts").bookAnalysisCharacterGeneratePrompt as UnknownPromptAsset,
+  },
+  {
+    key: "bookAnalysis.character.appearance.snapshot@v1",
+    load: () => require("./prompts/bookAnalysis/bookAnalysisCharacter.prompts").bookAnalysisCharacterAppearanceSnapshotPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "bookAnalysis.character.appearance.consolidate@v1",
+    load: () => require("./prompts/bookAnalysis/bookAnalysisCharacter.prompts").bookAnalysisCharacterAppearanceConsolidatePrompt as UnknownPromptAsset,
+  },
+  {
+    key: "bookAnalysis.character.appearance.merge@v1",
+    load: () => require("./prompts/bookAnalysis/bookAnalysisCharacter.prompts").bookAnalysisCharacterAppearanceMergePrompt as UnknownPromptAsset,
+  },
+  {
     key: "character.base.skeleton@v1",
     load: () => require("./prompts/character/character.prompts").baseCharacterSkeletonPrompt as UnknownPromptAsset,
   },
@@ -126,6 +154,10 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     load: () => require("./prompts/image/image.prompts.en").imageCharacterPromptOptimizePromptEn as UnknownPromptAsset,
   },
   {
+    key: "image.generation_prompt.assist@v1",
+    load: () => require("./prompts/image/image.prompts").imageGenerationPromptAssistPrompt as UnknownPromptAsset,
+  },
+  {
     key: "image.novel_cover.brief@v1",
     load: () => require("./prompts/image/image.prompts").imageNovelCoverBriefPrompt as UnknownPromptAsset,
   },
@@ -150,6 +182,62 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
     load: () => require("./prompts/genre/genre.prompts.en").genreTreePromptEn as UnknownPromptAsset,
   },
   {
+    key: "drama.source.original_bundle@v1",
+    load: () => require("./prompts/drama/drama.prompts").dramaOriginalSourcePrompt as UnknownPromptAsset,
+  },
+  {
+    key: "drama.source.text_bundle@v1",
+    load: () => require("./prompts/drama/drama.prompts").dramaTextImportSourcePrompt as UnknownPromptAsset,
+  },
+  {
+    key: "drama.track.recommendation@v1",
+    load: () => require("./prompts/drama/drama.prompts").dramaTrackRecommendationPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "drama.source.supplement@v1",
+    load: () => require("./prompts/drama/drama.prompts").dramaSourceSupplementPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "drama.strategy@v1",
+    load: () => require("./prompts/drama/drama.prompts").dramaStrategyPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "drama.episodeOutline@v1",
+    load: () => require("./prompts/drama/drama.prompts").dramaEpisodeOutlinePrompt as UnknownPromptAsset,
+  },
+  {
+    key: "drama.episode.script@v1",
+    load: () => require("./prompts/drama/drama.prompts").dramaScriptPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "drama.episode.quality@v1",
+    load: () => require("./prompts/drama/drama.prompts").dramaQualityPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "drama.episode.compliance@v1",
+    load: () => require("./prompts/drama/drama.prompts").dramaCompliancePrompt as UnknownPromptAsset,
+  },
+  {
+    key: "drama.episode.repair@v1",
+    load: () => require("./prompts/drama/drama.prompts").dramaRepairPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "drama.storyboard@v1",
+    load: () => require("./prompts/drama/drama.prompts").dramaStoryboardPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "drama.video.prompt@v1",
+    load: () => require("./prompts/drama/drama.prompts").dramaVideoPromptPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "comic.episodeOutline@v1",
+    load: () => require("./prompts/comic/comic.prompts").comicEpisodeOutlinePrompt as UnknownPromptAsset,
+  },
+  {
+    key: "comic.panelScript@v1",
+    load: () => require("./prompts/comic/comic.prompts").comicPanelScriptPrompt as UnknownPromptAsset,
+  },
+  {
     key: "planner.book.plan@v1",
     load: () => require("./prompts/planner/plannerPlan.prompts").plannerBookPlanPrompt as UnknownPromptAsset,
   },
@@ -164,6 +252,10 @@ const promptAssetLoaderEntries: PromptAssetLoaderEntry[] = [
   {
     key: "planner.replan.window_decision@v1",
     load: () => require("./prompts/planner/replanWindowDecision.prompts").replanWindowDecisionPrompt as UnknownPromptAsset,
+  },
+  {
+    key: "rag.contextual_chunk.prefix@v1",
+    load: () => require("./prompts/rag/contextualChunk.prompts").ragContextualChunkPrompt as UnknownPromptAsset,
   },
   {
     key: "novel.director.candidates@v1",
@@ -908,4 +1000,21 @@ export function resolvePromptVariant(id: string, version: string, locale: Prompt
       `Register an en variant (language: "en") to enable English output for this prompt.`,
   );
   return { asset: zhAnchor, resolvedLocale: "zh", resolvedVariant: buildPromptAssetKey(zhAnchor), localeFallback: true };
+}
+
+export function findRegisteredPromptAssetById(id: string): UnknownPromptAsset | null {
+  hydrateAllPromptAssets();
+  // Under the multilingual registry an id maps to both a zh anchor and en
+  // variant(s). Callers (slots/template resolution, PromptWorkbench) want the
+  // canonical zh anchor; only fall back to a non-zh variant if no zh exists.
+  let fallback: UnknownPromptAsset | null = null;
+  for (const asset of promptAssetByKey.values()) {
+    if (asset.id === id) {
+      if (asset.language === "zh") {
+        return asset;
+      }
+      fallback ??= asset;
+    }
+  }
+  return fallback;
 }

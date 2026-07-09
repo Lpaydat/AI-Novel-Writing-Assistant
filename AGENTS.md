@@ -171,6 +171,7 @@ These areas have the highest priority for wiki accumulation:
 ## Verification Reuse Rules
 
 - Prefer targeted verification that matches the actual change scope.
+- For UI-facing project modifications, do not run browser, screenshot, Playwright, visual, or manual interaction verification by default; the user will perform UI acceptance testing. Use code-level checks such as typecheck or focused tests when they fit the change, and clearly state that UI verification is left to the user.
 - If a recent build, typecheck, packaging check, or test run already covers the same code paths after the relevant files last changed, do not repeat the same expensive verification by default.
 - Before reusing recent verification, confirm the evidence is recent, tied to the same branch or commit range, and not invalidated by subsequent changes.
 - Build commands can take significant time. Avoid repeated `pnpm build`, `pnpm typecheck`, desktop packaging, or full test-suite runs when the current diff is documentation-only or already covered by a recent successful run.
@@ -259,6 +260,7 @@ These areas have the highest priority for wiki accumulation:
 - If multiple user-visible updates are recorded on the same date, merge them under the same date heading in `docs/releases/release-notes.md`; `README.md` should keep only that date's latest merged summary.
 - If the current diff is purely internal and has no clear user-facing impact, state that explicitly and skip both release-note updates instead of forcing a noisy entry.
 - Write both release-note surfaces from the user's perspective: describe capabilities, workflow improvements, and visible product behavior instead of file names, route names, service names, tests, or refactor details.
+- Release notes and README latest updates must read like normal user-facing product notes, not developer acceptance notes. Avoid raw implementation vocabulary such as internal prompt ids, schema names, JSON repair terms, enum aliases, database/API details, test names, or "we changed this" process narration unless the user must see that exact UI label to use the product. Translate technical work into the user outcome, for example "章节规划失败后会给 AI 更明确的重试方向" instead of "补齐 JSON skeleton 和 schema preprocess".
 
 ## Release Identification Rules
 

@@ -640,6 +640,8 @@ export interface DirectorTakeoverReadinessResponse {
     generatedChapterCount?: number;
     approvedChapterCount?: number;
     pendingRepairChapterCount?: number;
+    hasUnpreparedChaptersInRange?: boolean;
+    missingExecutionContractOrders?: number[];
   };
   stages: DirectorTakeoverStageReadiness[];
   entrySteps: DirectorTakeoverEntryReadiness[];

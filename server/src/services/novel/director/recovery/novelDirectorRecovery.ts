@@ -13,6 +13,25 @@ export type DirectorPipelinePhase =
   | "volume_strategy"
   | "structured_outline";
 
+export const DIRECTOR_PIPELINE_PHASE_ORDER = [
+  "story_macro",
+  "book_contract",
+  "world_setup",
+  "character_setup",
+  "volume_strategy",
+  "structured_outline",
+] as const satisfies readonly DirectorPipelinePhase[];
+
+const DIRECTOR_PIPELINE_PHASE_ORDER_EXHAUSTIVE_CHECK: Record<
+  Exclude<DirectorPipelinePhase, typeof DIRECTOR_PIPELINE_PHASE_ORDER[number]>,
+  never
+> = {};
+void DIRECTOR_PIPELINE_PHASE_ORDER_EXHAUSTIVE_CHECK;
+
+function assertNever(value: never): never {
+  throw new Error(`Unhandled director pipeline phase: ${String(value)}`);
+}
+
 export function resolveObservedResumePhaseFromWorkspace(input: {
   hasVolumeWorkspace: boolean;
   hasVolumeStrategyPlan: boolean;
@@ -83,7 +102,17 @@ export function resolveSafeDirectorPipelineStartPhase(input: {
   ) {
     safePhase = "volume_strategy";
   }
-  return safePhase;
+  switch (safePhase) {
+    case "story_macro":
+    case "book_contract":
+    case "world_setup":
+    case "character_setup":
+    case "volume_strategy":
+    case "structured_outline":
+      return safePhase;
+    default:
+      return assertNever(safePhase);
+  }
 }
 
 export function resolveAssetFirstRecoveryFromSnapshot(input: {
@@ -94,6 +123,7 @@ export function resolveAssetFirstRecoveryFromSnapshot(input: {
   hasActivePipelineJob: boolean;
   hasExecutableRange: boolean;
   hasAutoExecutionState: boolean;
+  hasMissingExecutionContractInRange?: boolean;
   latestCheckpointType?: "chapter_batch_ready" | "replan_required" | null;
 }):
   | {
@@ -105,6 +135,21 @@ export function resolveAssetFirstRecoveryFromSnapshot(input: {
     phase: "structured_outline";
   }
   | null {
+  // 执行区持久化章节在目标范围内仍缺少完整细化时，优先回到节奏 / 拆章补齐，
+  // 而不是进入章节执行——否则 runFromReady 会抛「缺少完整章节细化」并卡死。
+  // 该信号基于执行区真实契约，弥补了卷工作区 cursor 与执行区可能不一致的缺口。
+  if (
+    isDirectorAutoExecutionRunMode(normalizeDirectorRunMode(input.runMode))
+    && input.hasVolumeStrategyPlan
+    && input.hasMissingExecutionContractInRange
+    && !input.hasActivePipelineJob
+  ) {
+    return {
+      type: "phase",
+      phase: "structured_outline",
+    };
+  }
+
   if (
     isDirectorAutoExecutionRunMode(normalizeDirectorRunMode(input.runMode))
     && input.hasVolumeStrategyPlan

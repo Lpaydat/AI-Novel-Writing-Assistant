@@ -18,6 +18,7 @@ import CharacterFocusSummary from "./CharacterFocusSummary";
 import { isProtagonistCharacter } from "./characterAssetWorkspace.helpers";
 import { getLastAppearanceChapter } from "./characterPanel.utils";
 import { formatLocaleDateTime } from "@/i18n/format";
+import SelectControl from "@/components/common/SelectControl";
 
 interface CharacterFormState {
   name: string;
@@ -506,7 +507,7 @@ export default function CharacterAssetWorkspace(props: CharacterAssetWorkspacePr
                   />
                 </div>
                 <div className="grid gap-2 md:grid-cols-2">
-                  <select
+                  <SelectControl
                     className="w-full rounded-md border bg-background p-2 text-sm"
                     value={characterForm.gender}
                     onChange={(event) => onCharacterFormChange("gender", event.target.value)}
@@ -515,7 +516,7 @@ export default function CharacterAssetWorkspace(props: CharacterAssetWorkspacePr
                     <option value="male">性别：男</option>
                     <option value="female">性别：女</option>
                     <option value="other">性别：其他</option>
-                  </select>
+                  </SelectControl>
                 </div>
                 <div className="grid gap-2 md:grid-cols-2">
                   <Input

@@ -25,6 +25,8 @@ import imagesRouter from "./routes/images";
 import knowledgeRouter from "./routes/knowledge";
 import llmRouter from "./routes/llm";
 import novelRouter from "./modules/novel/http/novel";
+import dramaRouter from "./modules/drama/http/dramaRoutes";
+import comicRouter from "./modules/comic/http/comicRoutes";
 import novelDirectorRouter from "./services/novel/director/http/novelDirector";
 import novelExportRouter from "./modules/export/http/novelExport";
 import novelWorkflowsRouter from "./services/novel/director/http/novelWorkflows";
@@ -51,6 +53,7 @@ import {
   hasSystemResourceBootstrapChanges,
 } from "./services/bootstrap/SystemResourceBootstrapService";
 import { initializeRagSettingsCompatibility } from "./services/settings/RagCompatibilityBootstrapService";
+import { qualityDebtSettingsService } from "./services/settings/QualityDebtSettingsService";
 import { DirectorWorker } from "./workers/directorWorker";
 import { cleanupLogDirectory, resolveLogRetentionConfig } from "./platform/logging/logRetention";
 import { resolveLogsRoot } from "./runtime/appPaths";
@@ -134,6 +137,8 @@ export function createApp() {
   app.use("/api/novels/director", novelDirectorRouter);
   app.use("/api/novel-workflows", novelWorkflowsRouter);
   app.use("/api/novels", novelExportRouter);
+  app.use("/api/drama", dramaRouter);
+  app.use("/api/comic", comicRouter);
   app.use("/api/worlds", worldRouter);
   app.use("/api/rag", ragRouter);
   app.use("/api/base-characters", characterRouter);
@@ -247,6 +252,7 @@ function scheduleLogRetentionCleanup(): void {
 
 function initializeBackgroundServices(): BackgroundServicesHandle {
   ragServices.ragWorker.start();
+  ragServices.ragRetrievalTraceRetention.start();
   novelSideEffectWorker.start();
   const directorWorker = new DirectorWorker();
   void directorWorker.start().catch((error) => {
@@ -284,6 +290,7 @@ function initializeBackgroundServices(): BackgroundServicesHandle {
       directorWorker.stop();
       novelSideEffectWorker.stop();
       ragServices.ragWorker.stop();
+      ragServices.ragRetrievalTraceRetention.stop();
       bookAnalysisService.stopWatchdog();
       novelPipelineRuntimeService.stopWatchdog();
     },
@@ -301,6 +308,9 @@ export async function startServer(options?: ServerStartOptions): Promise<Started
   ) {
     console.log("[server] imported legacy RAG env settings.", ragCompatibilityReport);
   }
+  await qualityDebtSettingsService.warnIfAutoPromotionEnabled().catch((error) => {
+    console.warn("[server] failed to inspect pending review auto-promotion settings.", error);
+  });
 
   const app = createApp();
   const { host, port, allowLan } = resolveServerStartOptions(options);

@@ -1,6 +1,6 @@
 import type { GenerationContextPackage } from "@ai-novel/shared/types/chapterRuntime";
+import { buildCompressionLog } from "../../../prompting/core/contextBudget";
 import { prisma } from "../../../db/prisma";
-import { serverT, type Locale } from "../../../i18n/serverMessages";
 import { ragServices } from "../../rag";
 import { plannerService } from "../../planner/PlannerService";
 import { buildChapterRagQuery } from "../NovelReferenceService";
@@ -26,11 +26,13 @@ import {
 import { mapRowToPlan } from "../storyMacro/storyMacroPlanPersistence";
 import {
   buildBookContractContext,
+  buildNarrativeProgressHint,
   buildChapterRepairContextFromPackage,
   buildChapterReviewContext,
   buildChapterWriteContext,
   buildMacroConstraintContext,
   buildVolumeWindowContext,
+  getAllContextBlocks,
   getRuntimePromptBudgetProfiles,
 } from "../../../prompting/prompts/novel/chapterLayeredContext";
 import { novelFactService } from "../fact/NovelFactService";
@@ -41,6 +43,13 @@ import {
 } from "../characters/characterHardFacts";
 import { NovelVolumeService } from "../volume/NovelVolumeService";
 import { ChapterPlanJITService } from "../planning/ChapterPlanJITService";
+import {
+  buildBlockingPendingReviewProposalWhere,
+  loadPendingCharacterHardFactReviews,
+} from "./context/pendingReviewContext";
+import { buildSyntheticCharacterResourceIssues } from "./context/syntheticCharacterResourceIssues";
+
+export { buildBlockingPendingReviewProposalWhere } from "./context/pendingReviewContext";
 
 const OPENING_COMPARE_LIMIT = 3;
 const OPENING_SLICE_LENGTH = 220;
@@ -60,17 +69,6 @@ const runtimeChapterSelect = {
   hook: true,
 } as const;
 
-export function buildBlockingPendingReviewProposalWhere(novelId: string, chapterId: string) {
-  return {
-    novelId,
-    status: "pending_review" as const,
-    OR: [
-      { chapterId },
-      { chapterId: null },
-    ],
-  };
-}
-
 function extractOpening(content: string, maxLength = OPENING_SLICE_LENGTH): string {
   return content.replace(/\s+/g, " ").trim().slice(0, maxLength);
 }
@@ -83,62 +81,8 @@ function extractChapterTail(content: string | null | undefined, maxLength = 520)
   return normalized.slice(Math.max(0, normalized.length - maxLength));
 }
 
-function buildSyntheticCharacterResourceIssues(
-  context: GenerationContextPackage["characterResourceContext"],
-  input: {
-    novelId: string;
-    chapterId: string;
-    locale?: Locale;
-  },
-): GenerationContextPackage["openAuditIssues"] {
-  const locale: Locale = input.locale ?? "zh";
-  if (!context) {
-    return [];
-  }
-  const now = new Date().toISOString();
-  const blockedIssues = context.blockedItems.slice(0, 4).map((item) => ({
-    id: `character-resource:${item.id}:blocked`,
-    reportId: `character-resource:${input.novelId}:${input.chapterId}`,
-    auditType: "continuity" as const,
-    severity: item.status === "destroyed" || item.status === "lost" ? "high" as const : "medium" as const,
-    code: "character_resource_unavailable",
-    description: serverT("chapter.guidance.resourceBlocked", locale, { name: item.name, status: item.status }),
-    evidence: item.evidence[0]?.summary ?? item.summary,
-    fixSuggestion: serverT("chapter.guidance.resourceBlockedFix", locale, { name: item.name }),
-    status: "open" as const,
-    createdAt: now,
-    updatedAt: now,
-  }));
-  const reviewIssues = context.pendingReviewItems.slice(0, 3).map((item) => ({
-    id: `character-resource:${item.id}:pending-review`,
-    reportId: `character-resource:${input.novelId}:${input.chapterId}`,
-    auditType: "continuity" as const,
-    severity: "medium" as const,
-    code: "character_resource_pending_review",
-    description: serverT("chapter.guidance.resourcePendingReview", locale, { name: item.name }),
-    evidence: item.evidence[0]?.summary ?? item.summary,
-    fixSuggestion: serverT("chapter.guidance.resourcePendingReviewFix", locale, { name: item.name }),
-    status: "open" as const,
-    createdAt: now,
-    updatedAt: now,
-  }));
-  const signalIssues = context.riskSignals
-    .filter((signal) => signal.severity === "high" || signal.severity === "critical")
-    .slice(0, 3)
-    .map((signal, index) => ({
-      id: `character-resource:signal:${index}:${signal.code}`,
-      reportId: `character-resource:${input.novelId}:${input.chapterId}`,
-      auditType: "continuity" as const,
-      severity: signal.severity,
-      code: signal.code || "character_resource_risk",
-      description: signal.summary,
-      evidence: signal.summary,
-      fixSuggestion: serverT("chapter.guidance.signalFix", locale),
-      status: "open" as const,
-      createdAt: now,
-      updatedAt: now,
-    }));
-  return [...blockedIssues, ...reviewIssues, ...signalIssues];
+function normalizeRuntimeName(value: string | null | undefined): string {
+  return String(value ?? "").replace(/\s+/g, " ").trim();
 }
 
 function mapPlan(plan: Awaited<ReturnType<typeof plannerService.getChapterPlan>>): GenerationContextPackage["plan"] {
@@ -173,6 +117,22 @@ function mapPlan(plan: Awaited<ReturnType<typeof plannerService.getChapterPlan>>
     createdAt: plan.createdAt.toISOString(),
     updatedAt: plan.updatedAt.toISOString(),
   };
+}
+
+export function resolveChapterResourceCharacterIds(input: {
+  plan: Awaited<ReturnType<typeof plannerService.getChapterPlan>>;
+  characters: Array<{ id: string; name: string }>;
+}): string[] {
+  const participantNames = new Set(
+    parseJsonStringArray(input.plan?.participantsJson ?? null).map(normalizeRuntimeName).filter(Boolean),
+  );
+  if (participantNames.size === 0) {
+    return [];
+  }
+  return input.characters
+    .filter((character) => participantNames.has(normalizeRuntimeName(character.name)))
+    .map((character) => character.id)
+    .filter(Boolean);
 }
 
 function findVolumeWindowSeed(
@@ -272,15 +232,6 @@ export class GenerationContextAssembler {
       throw new Error("Novel or chapter not found.");
     }
 
-    // Novel-scoped guidance strings (synthetic character-resource issues
-    // emitted to the writer): locale from novel.language (chapter production
-    // runs without an HTTP request context).
-    const novelLanguageRow = await prisma.novel.findUnique({
-      where: { id: novelId },
-      select: { language: true },
-    });
-    const guidanceLocale: Locale = (novelLanguageRow?.language ?? "zh") as Locale;
-
     // 懒规划 JIT：全书 autopilot 路径在 ensureChapterPlan 之前确保 task sheet 就绪。
     // JIT 生成时会注入已发生事实（factLedger），解决 task sheet 与实际前文脱节问题。
     if (request.controlPolicy?.advanceMode === "full_book_autopilot") {
@@ -295,12 +246,18 @@ export class GenerationContextAssembler {
       throw new Error("Novel or chapter not found.");
     }
     chapter = refreshedChapter;
+    const resourceCharacterIds = resolveChapterResourceCharacterIds({
+      plan: ensuredPlan,
+      characters: novel.characters,
+    });
     const pendingReviewProposalCountPromise = prisma.stateChangeProposal.count({
       where: buildBlockingPendingReviewProposalWhere(novelId, chapterId),
     });
+    const pendingCharacterHardFactReviewsPromise = loadPendingCharacterHardFactReviews(novelId, chapterId);
     const [
       worldContextBlock,
       pendingReviewProposalCount,
+      pendingCharacterHardFactReviews,
       openAuditIssues,
       summaries,
       recentChapters,
@@ -313,6 +270,7 @@ export class GenerationContextAssembler {
     ] = await Promise.all([
       this.worldContextGateway.getWorldContextBlock(novelId, { purpose: "chapter" }),
       pendingReviewProposalCountPromise,
+      pendingCharacterHardFactReviewsPromise,
       prisma.auditIssue.findMany({
         where: {
           status: "open",
@@ -365,7 +323,9 @@ export class GenerationContextAssembler {
         chapterOrder: chapter.order,
       }),
       characterResourceLedgerService.buildContext(novelId, {
+        chapterId,
         chapterOrder: chapter.order,
+        ...(resourceCharacterIds.length > 0 ? { characterIds: resourceCharacterIds } : {}),
       }).catch(() => null),
     ]);
 
@@ -464,7 +424,10 @@ export class GenerationContextAssembler {
         presenceImpression: item.presenceImpression ?? null,
       };
     });
-    const mappedCharacterHardFacts = buildRuntimeCharacterHardFactsList(mappedCharacterRoster);
+    const mappedCharacterHardFacts = buildRuntimeCharacterHardFactsList(
+      mappedCharacterRoster,
+      pendingCharacterHardFactReviews,
+    );
     const mappedCreativeDecisions = decisions.map((item) => ({
       id: item.id,
       chapterId: item.chapterId ?? null,
@@ -503,7 +466,7 @@ export class GenerationContextAssembler {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       })),
-      buildSyntheticCharacterResourceIssues(characterResourceContext, { novelId, chapterId, locale: guidanceLocale }),
+      buildSyntheticCharacterResourceIssues(characterResourceContext, { novelId, chapterId }),
     );
     const runtimeContinuation = {
       enabled: continuationPack.enabled,
@@ -539,6 +502,10 @@ export class GenerationContextAssembler {
         supportingContextText: "",
       },
       plan: mappedPlan,
+      narrativeProgressHint: buildNarrativeProgressHint(
+        chapter.order,
+        novel.estimatedChapterCount,
+      ),
       canonicalState,
       nextAction: resolvedStateDrivenContext.nextAction,
       chapterStateGoal: resolvedStateDrivenContext.chapterStateGoal,
@@ -671,6 +638,11 @@ export class GenerationContextAssembler {
       chapterReviewContext,
       chapterRepairContext,
     };
+    const compressionLog = buildCompressionLog(
+      contextPackage.chapterWriteContext ? getAllContextBlocks(contextPackage) : [],
+      2600,
+    );
+    console.debug("[ctx-budget]", compressionLog);
 
     return {
       novel: { id: novel.id, title: novel.title },

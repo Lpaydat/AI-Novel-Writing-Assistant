@@ -19,6 +19,7 @@ import {
   PROJECTION_SOURCE_TYPES,
 } from "./characterDynamicsShared";
 import { buildVolumeWindows, dedupeStrings, mergeProjectionAssignments, resolveCurrentVolume, toCharacterRelationStage } from "./characterDynamicsUtils";
+import { buildContentHash } from "../runtime/ChapterArtifactDeltaService";
 
 type NovelContextCharacterPort = Pick<NovelContextService, "createCharacter">;
 type NovelContextServiceFactory = () => NovelContextCharacterPort;
@@ -590,6 +591,19 @@ export class CharacterDynamicsMutationService {
     if (!chapter?.content?.trim() || !novel) {
       return;
     }
+    const artifactDeltaCheckpoint = await prisma.chapterArtifactSyncCheckpoint.findFirst({
+      where: {
+        novelId,
+        chapterId,
+        contentHash: buildContentHash(chapter.content),
+        artifactType: "artifact_delta",
+        status: "succeeded",
+      },
+      select: { id: true },
+    }).catch(() => null);
+    if (artifactDeltaCheckpoint) {
+      return;
+    }
 
     const currentVolume = resolveCurrentVolume(buildVolumeWindows(novel.volumePlans), chapterOrder);
     const extracted = await extractChapterDynamics({
@@ -718,5 +732,44 @@ export class CharacterDynamicsMutationService {
         });
       }
     });
+  }
+
+  async autoConfirmPendingCandidates(novelId: string): Promise<void> {
+    const candidates = await prisma.characterCandidate.findMany({
+      where: { novelId, status: "pending" },
+      include: {
+        sourceChapter: { select: { id: true, order: true } },
+      },
+    });
+    if (candidates.length === 0) {
+      return;
+    }
+    const novelContextService = this.novelContextServiceFactory();
+    for (const candidate of candidates) {
+      const createdCharacter = await novelContextService.createCharacter(novelId, {
+        name: candidate.proposedName,
+        role: candidate.proposedRole?.trim() || "新角色",
+        background: candidate.summary?.trim() || undefined,
+      });
+      await prisma.$transaction(async (tx) => {
+        await tx.characterCandidate.update({
+          where: { id: candidate.id },
+          data: { matchedCharacterId: createdCharacter.id, status: "confirmed" },
+        });
+        await tx.creativeDecision.create({
+          data: {
+            novelId,
+            chapterId: candidate.sourceChapter?.id ?? null,
+            category: "character_dynamic_confirm",
+            content: `自动导演确认新角色：${createdCharacter.name}。来源候选：${candidate.proposedName}。${candidate.summary ?? ""}`.trim(),
+            importance: "high",
+            sourceType: "character_candidate",
+            sourceRefId: candidate.id,
+            expiresAt: candidate.sourceChapter?.order ? candidate.sourceChapter.order + 6 : null,
+          },
+        });
+      });
+    }
+    await this.rebuildDynamics(novelId, { sourceType: "rebuild_projection" });
   }
 }

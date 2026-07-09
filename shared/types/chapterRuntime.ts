@@ -661,6 +661,8 @@ export const chapterCandidateGuardSchema = z.object({
   sourceChapterOrder: z.number().int().nullable().optional(),
 });
 
+export const chapterCharacterPendingReviewFieldSchema = z.enum(["currentState", "currentGoal"]);
+
 export const chapterCharacterHardFactSchema = z.object({
   characterId: z.string(),
   name: z.string(),
@@ -675,12 +677,14 @@ export const chapterCharacterHardFactSchema = z.object({
   currentState: z.string().nullable().optional(),
   currentGoal: z.string().nullable().optional(),
   prohibitions: z.array(z.string()).default([]),
+  pendingReviewFields: z.array(chapterCharacterPendingReviewFieldSchema).default([]),
 });
 
 export const chapterWriteContextSchema = z.object({
   bookContract: bookContractContextSchema,
   macroConstraints: macroConstraintContextSchema.nullable(),
   volumeWindow: volumeWindowContextSchema.nullable(),
+  narrativeProgressHint: z.string().nullable().optional(),
   chapterMission: chapterMissionContextSchema,
   nextAction: generationNextActionSchema.default("write_chapter"),
   chapterStateGoal: chapterStateGoalSchema.nullable().optional(),
@@ -768,6 +772,7 @@ export const generationContextPackageSchema = z.object({
   bookContract: bookContractContextSchema.nullable().optional(),
   macroConstraints: macroConstraintContextSchema.nullable().optional(),
   volumeWindow: volumeWindowContextSchema.nullable().optional(),
+  narrativeProgressHint: z.string().nullable().optional(),
   ledgerPendingItems: z.array(runtimePayoffLedgerItemSchema).default([]),
   ledgerUrgentItems: z.array(runtimePayoffLedgerItemSchema).default([]),
   ledgerOverdueItems: z.array(runtimePayoffLedgerItemSchema).default([]),
@@ -974,6 +979,7 @@ export type RuntimePlanScene = z.infer<typeof runtimePlanSceneSchema>;
 export type RuntimePlan = z.infer<typeof runtimePlanSchema>;
 export type RuntimeCharacter = z.infer<typeof runtimeCharacterSchema>;
 export type ChapterCharacterHardFact = z.infer<typeof chapterCharacterHardFactSchema>;
+export type ChapterCharacterPendingReviewField = z.infer<typeof chapterCharacterPendingReviewFieldSchema>;
 export type RuntimeCreativeDecision = z.infer<typeof runtimeCreativeDecisionSchema>;
 export type RuntimeAuditIssue = z.infer<typeof runtimeAuditIssueSchema>;
 export type RuntimeStateSnapshot = z.infer<typeof runtimeStateSnapshotSchema>;

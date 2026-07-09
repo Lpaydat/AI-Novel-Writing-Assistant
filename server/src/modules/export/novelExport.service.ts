@@ -2,6 +2,7 @@ import type { NovelExportFormat, NovelExportScope } from "@ai-novel/shared/types
 import { prisma } from "../../db/prisma";
 import { AppError } from "../../middleware/errorHandler";
 import { serverT } from "../../i18n/serverMessages";
+import { KnowledgeService } from "../../services/knowledge/KnowledgeService";
 import { getSharedNovelServices } from "../../services/novel/application/sharedNovelServices";
 import { StoryMacroPlanService } from "../../services/novel/storyMacro/StoryMacroPlanService";
 import {
@@ -25,6 +26,7 @@ import type { NovelExportBundle } from "./novelExport.types";
 export class NovelExportService {
   private readonly novelService = getSharedNovelServices();
   private readonly storyMacroPlanService = new StoryMacroPlanService();
+  private readonly knowledgeService = new KnowledgeService();
 
   private buildFileName(title: string, scope: NovelExportScope, format: Exclude<NovelExportFormat, "txt">): string {
     const extension = format === "markdown" ? "md" : "json";
@@ -222,6 +224,20 @@ export class NovelExportService {
       contentType: "text/markdown; charset=utf-8",
       content: buildMarkdownExportContent(bundle, scope),
     };
+  }
+
+  async exportAsKnowledgeDocument(novelId: string) {
+    const novel = await this.getTxtNovelRecord(novelId);
+    const hasChapterContent = novel.chapters.some((chapter) => (chapter.content ?? "").trim().length > 0);
+    if (!hasChapterContent) {
+      throw new AppError("当前小说还没有可诊断的章节正文。", 400);
+    }
+
+    return this.knowledgeService.createDocument({
+      title: `${novel.title}（诊断稿）`,
+      fileName: `${safeFileNamePart(novel.title)}-diagnosis-${buildExportTimestamp()}.txt`,
+      content: buildTxtContent(novel),
+    });
   }
 }
 

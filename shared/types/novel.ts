@@ -649,6 +649,8 @@ export interface NovelSnapshot {
   createdAt: string;
 }
 
+export type NovelSnapshotListItem = Omit<NovelSnapshot, "snapshotData">;
+
 export interface ChapterPlanScene {
   id: string;
   planId: string;
@@ -723,6 +725,7 @@ export interface VolumeChapterPlan {
   endingState?: string | null;
   nextChapterEntryState?: string | null;
   conflictLevel?: number | null;
+  conflictLevelSource?: "ai" | "user" | null;
   revealLevel?: number | null;
   targetWordCount?: number | null;
   mustAvoid?: string | null;

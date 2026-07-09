@@ -2,11 +2,12 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const {
+  buildCompressionLog,
   createContextBlock,
 } = require("../dist/prompting/core/contextBudget.js");
 const {
-  promptAddendumService,
-} = require("../dist/prompting/addendums/PromptAddendumService.js");
+  promptSlotOverrideService,
+} = require("../dist/prompting/slots/PromptSlotOverrideService.js");
 const {
   NOVEL_PROMPT_BUDGETS,
 } = require("../dist/prompting/prompts/novel/promptBudgetProfiles.js");
@@ -51,6 +52,16 @@ const {
   chapterWriterPrompt,
 } = require("../dist/prompting/prompts/novel/chapterWriter.prompts.js");
 const {
+  compilePromptTemplate,
+} = require("../dist/prompting/templates/templateCompiler.js");
+const {
+  promptTemplateOverrideService,
+} = require("../dist/prompting/templates/PromptTemplateOverrideService.js");
+const {
+  chapterArtifactDeltaPrompt,
+  chapterArtifactDeltaOutputSchema,
+} = require("../dist/prompting/prompts/novel/chapterArtifactDelta.prompts.js");
+const {
   worldDraftGenerationPrompt,
   worldDraftRefineAlternativesPrompt,
 } = require("../dist/prompting/prompts/world/worldDraft.prompts.js");
@@ -69,10 +80,38 @@ const {
   sanitizeWriterContextBlocks,
 } = require("../dist/prompting/prompts/novel/chapterLayeredContext.js");
 const {
+  renderBookContractText,
+  summarizeStateSnapshot,
+} = require("../dist/prompting/prompts/novel/chapterLayeredContextShared.js");
+const {
+  buildWriterStyleContractText,
+} = require("../dist/services/styleEngine/styleContractText.js");
+const {
   directorPlanBlueprintSchema,
 } = require("../dist/services/novel/director/runtime/novelDirectorSchemas.js");
 
 const promptKey = (asset) => `${asset.id}@${asset.version}`;
+
+function buildWriterRequiredContextBlocks() {
+  return [
+    "book_contract",
+    "chapter_mission",
+    "timeline_context",
+    "previous_chapter_hook",
+    "character_hard_facts",
+    "obligation_contract",
+    "volume_window",
+    "participant_subset",
+    "local_state",
+    "style_contract",
+  ].map((group, index) => createContextBlock({
+    id: `${group}-test`,
+    group,
+    priority: 100 - index,
+    required: true,
+    content: `${group} 测试内容`,
+  }));
+}
 
 function getSinglePromptQualityEntry() {
   const snapshot = getPromptQualitySnapshot();
@@ -123,6 +162,7 @@ test("prompt registry exposes versioned planning assets", () => {
     "style.recommendation@v1",
     "novel.review.chapter@v1",
     promptKey(chapterWriterPrompt),
+    promptKey(chapterArtifactDeltaPrompt),
     "world.draft.generate@v1",
     "world.draft.refine@v1",
     "world.draft.refine_alternatives@v1",
@@ -146,6 +186,50 @@ test("prompt registry exposes versioned planning assets", () => {
   const chapterAsset = getRegisteredPromptAsset("planner.chapter.plan", "v1");
   assert.ok(chapterAsset);
   assert.equal(chapterAsset.taskType, "planner");
+});
+
+test("chapter artifact delta prompt captures summary facts and knowledge boundaries", () => {
+  const parsed = chapterArtifactDeltaOutputSchema.parse({
+    summary: "程秩在本章拿到后门铜钥匙，并确认库房后门可以作为下一步潜入路线。读者知道钥匙用途，但程秩仍不知道库房内的守卫布置，相关线索被推进到待兑现状态。",
+    concreteFacts: [{
+      text: "程秩已拿到后门铜钥匙",
+      category: "completed",
+    }],
+    stateDeltas: {},
+    characterKnowledgeStates: [{
+      characterName: "程秩",
+      knownFacts: ["后门铜钥匙可以打开库房后门"],
+      hiddenFacts: ["库房内的守卫布置"],
+    }],
+    syncPlan: {
+      stateSnapshot: "write",
+      characterResources: "skip",
+      payoffLedger: "skip",
+      characterDynamics: "skip",
+      reason: "只同步摘要、事实和信息边界。",
+    },
+    confidence: 0.82,
+    requiresFullReconcile: false,
+  });
+
+  assert.equal(parsed.concreteFacts.length, 1);
+  assert.equal(parsed.characterKnowledgeStates[0].hiddenFacts[0], "库房内的守卫布置");
+
+  const messages = chapterArtifactDeltaPrompt.render({
+    novelTitle: "测试小说",
+    chapterOrder: 3,
+    chapterTitle: "库房后门",
+    chapterGoal: "取得潜入凭据",
+    characterRosterText: "- c1 | 程秩 | 主角",
+    previousStateText: "",
+    existingResourceText: "",
+    existingPayoffText: "",
+    chapterContent: "程秩拿到后门铜钥匙，但还不知道库房内的守卫布置。",
+  });
+  const systemText = String(messages[0].content);
+  assert.match(systemText, /concreteFacts/);
+  assert.match(systemText, /characterKnowledgeStates/);
+  assert.match(systemText, /80-180/);
 });
 
 test("prompt registry resolves style prompts by their declared asset versions", () => {
@@ -619,6 +703,42 @@ test("context selection keeps the freshest structural source while preserving re
   const structuralSource = selection.selectedBlocks.find((block) => block.id === "volume_summary");
   assert.ok(structuralSource);
   assert.equal(structuralSource.required, true);
+});
+
+test("compression log separates summarized blocks from dropped blocks", () => {
+  const requiredBlock = createContextBlock({
+    id: "chapter_target",
+    group: "chapter_target",
+    priority: 100,
+    required: true,
+    content: "keep",
+  });
+  const summarizableBlock = createContextBlock({
+    id: "long_optional",
+    group: "rag_context",
+    priority: 90,
+    content: [
+      "H",
+      "A".repeat(120),
+    ].join("\n"),
+  });
+  const nonSummarizableBlock = createContextBlock({
+    id: "raw_dump",
+    group: "raw_dump",
+    priority: 80,
+    allowSummary: false,
+    content: "B".repeat(120),
+  });
+
+  const log = buildCompressionLog([
+    requiredBlock,
+    summarizableBlock,
+    nonSummarizableBlock,
+  ], requiredBlock.estimatedTokens + 6);
+
+  assert.deepEqual(log.summarized, ["long_optional"]);
+  assert.deepEqual(log.dropped, ["raw_dump"]);
+  assert.equal(log.usedTokens <= log.budgetTokens, true);
 });
 
 test("workflow registry holds execution-first intents when collaboration is still required", () => {
@@ -1272,28 +1392,38 @@ test("prompt runner records failed executions without swallowing the original er
   }
 });
 
-test("prompt runner injects enabled custom addendum blocks for supported prompts", async () => {
-  const originalResolveContextBlocks = promptAddendumService.resolveContextBlocks;
+test("prompt runner injects enabled custom slot blocks for supported prompts", async () => {
+  const originalResolveForRuntime = promptSlotOverrideService.resolveForRuntime;
   let capturedMessages = [];
-  promptAddendumService.resolveContextBlocks = async ({ promptId, novelId }) => {
+  promptSlotOverrideService.resolveForRuntime = async ({ promptId, novelId }) => {
     assert.equal(promptId, "novel.chapter.writer");
     assert.equal(novelId, "novel-1");
-    return [
-      createContextBlock({
-        id: "custom_addendum:global:test",
-        group: "custom_addendum",
-        priority: 999,
-        required: true,
-        content: "【全局补充要求】\n禁止模板化表达。",
-      }),
-      createContextBlock({
-        id: "custom_addendum:novel:test",
-        group: "custom_addendum",
-        priority: 899,
-        required: true,
-        content: "【本书补充要求】\n保留主角冷静克制的表达。",
-      }),
-    ];
+    return {
+      inlineSlots: {
+        text: () => "",
+        choiceCopy: () => "",
+        enabled: () => false,
+        token: () => "",
+        append: () => "",
+      },
+      appendBlocks: [
+        createContextBlock({
+          id: "custom_slot:global:test",
+          group: "custom_slot",
+          priority: 999,
+          required: true,
+          content: "【全局补充要求】\n禁止模板化表达。",
+        }),
+        createContextBlock({
+          id: "custom_slot:novel:test",
+          group: "custom_slot",
+          priority: 899,
+          required: true,
+          content: "【本书补充要求】\n保留主角冷静克制的表达。",
+        }),
+      ],
+      drift: [],
+    };
   };
   setPromptRunnerLLMFactoryForTests(async () => ({
     invoke: async (messages) => {
@@ -1316,32 +1446,42 @@ test("prompt runner injects enabled custom addendum blocks for supported prompts
 
     assert.equal(result.output, "正文");
     assert.deepEqual(result.meta.invocation.customAddendumBlockIds, [
-      "custom_addendum:global:test",
-      "custom_addendum:novel:test",
+      "custom_slot:global:test",
+      "custom_slot:novel:test",
     ]);
     const rendered = capturedMessages.map((message) => String(message.content)).join("\n");
     assert.match(rendered, /禁止模板化表达/);
     assert.match(rendered, /保留主角冷静克制的表达/);
   } finally {
-    promptAddendumService.resolveContextBlocks = originalResolveContextBlocks;
+    promptSlotOverrideService.resolveForRuntime = originalResolveForRuntime;
     setPromptRunnerLLMFactoryForTests();
   }
 });
 
-test("prompt runner skips custom addendums for prompts outside the allowlist", async () => {
-  const originalResolveContextBlocks = promptAddendumService.resolveContextBlocks;
+test("prompt runner skips custom slot overlays for prompts without editable slots", async () => {
+  const originalResolveForRuntime = promptSlotOverrideService.resolveForRuntime;
   let called = false;
-  promptAddendumService.resolveContextBlocks = async () => {
+  promptSlotOverrideService.resolveForRuntime = async () => {
     called = true;
-    return [
-      createContextBlock({
-        id: "custom_addendum:global:unexpected",
-        group: "custom_addendum",
-        priority: 999,
-        required: true,
-        content: "不应注入。",
-      }),
-    ];
+    return {
+      inlineSlots: {
+        text: () => "",
+        choiceCopy: () => "",
+        enabled: () => false,
+        token: () => "",
+        append: () => "",
+      },
+      appendBlocks: [
+        createContextBlock({
+          id: "custom_slot:global:unexpected",
+          group: "custom_slot",
+          priority: 999,
+          required: true,
+          content: "不应注入。",
+        }),
+      ],
+      drift: [],
+    };
   };
   setPromptRunnerLLMFactoryForTests(async () => ({
     stream: async () => ({
@@ -1372,7 +1512,248 @@ test("prompt runner skips custom addendums for prompts outside the allowlist", a
     assert.equal(completed.meta.invocation.customAddendumBlockIds.length, 0);
     assert.equal(called, false);
   } finally {
-    promptAddendumService.resolveContextBlocks = originalResolveContextBlocks;
+    promptSlotOverrideService.resolveForRuntime = originalResolveForRuntime;
+    setPromptRunnerLLMFactoryForTests();
+  }
+});
+
+test("advanced prompt template expands referenced context and appends required fallback groups", () => {
+  const prepared = {
+    context: {
+      blocks: buildWriterRequiredContextBlocks(),
+      selectedBlockIds: [],
+      droppedBlockIds: [],
+      summarizedBlockIds: [],
+      estimatedInputTokens: 100,
+      slots: undefined,
+    },
+  };
+  const compiled = compilePromptTemplate({
+    template: {
+      kind: "chat",
+      messages: [
+        { role: "system", content: "系统：{{slot.writer.tonePreference}}" },
+        { role: "human", content: "章节：{{input.chapterTitle}}\n{{context.chapter_mission}}" },
+      ],
+    },
+    promptInput: { chapterTitle: "异常提交" },
+    context: prepared.context,
+    slotDefs: chapterWriterPrompt.slots,
+    allowedContextGroups: chapterWriterPrompt.contextRequirements.map((item) => item.group),
+    requiredContextGroups: [
+      "book_contract",
+      "chapter_mission",
+      "timeline_context",
+      "previous_chapter_hook",
+      "character_hard_facts",
+      "obligation_contract",
+      "volume_window",
+      "participant_subset",
+      "local_state",
+      "style_contract",
+    ],
+  });
+
+  const rendered = compiled.messages.map((message) => String(message.content)).join("\n");
+  assert.match(rendered, /异常提交/);
+  assert.match(rendered, /chapter_mission 测试内容/);
+  assert.match(rendered, /【必需上下文保底】/);
+  assert.match(rendered, /【书级合约】\nbook_contract 测试内容/);
+  assert.match(rendered, /【时间线】\ntimeline_context 测试内容/);
+  assert.doesNotMatch(rendered, /【timeline_context】/);
+  assert.deepEqual(compiled.diagnostics.missingRequiredGroups, []);
+  assert.ok(compiled.diagnostics.fallbackRequiredGroups.includes("book_contract"));
+  assert.ok(compiled.diagnostics.fallbackRequiredGroups.includes("timeline_context"));
+});
+
+test("chapter writer context text uses reader-facing labels instead of raw machine fields", () => {
+  const bookContract = renderBookContractText({
+    title: "数字猎杀",
+    genre: "末世异能",
+    targetAudience: "喜欢丧尸升级爽感的读者",
+    sellingPoint: "丧尸数字代表异能库",
+    first30ChapterPromise: "建立安全据点并完成首次反杀",
+    narrativePov: "third_person",
+    pacePreference: "balanced",
+    emotionIntensity: "medium",
+    toneGuardrails: [],
+    hardConstraints: ["不能提前解释数字来源"],
+  });
+
+  assert.match(bookContract, /标题：数字猎杀/);
+  assert.match(bookContract, /题材：末世异能/);
+  assert.match(bookContract, /叙事视角：第三人称/);
+  assert.doesNotMatch(bookContract, /Title:/);
+  assert.doesNotMatch(bookContract, /Genre:/);
+
+  const stateSummary = summarizeStateSnapshot({
+    characterRoster: [
+      { id: "cmqyvxq0w0044q8v1xsifezci", name: "陈默" },
+    ],
+    stateSnapshot: {
+      summary: "小说：数字猎杀",
+      characterStates: [
+        {
+          characterId: "cmqyvxq0w0044q8v1xsifezci",
+          currentGoal: "寻找下一个数字",
+          emotion: "震惊",
+          summary: "刚恢复部分意识",
+        },
+      ],
+      informationStates: [],
+    },
+  });
+
+  assert.match(stateSummary, /陈默：目标：寻找下一个数字/);
+  assert.match(stateSummary, /状态：刚恢复部分意识/);
+  assert.doesNotMatch(stateSummary, /cmqyvxq0w0044q8v1xsifezci/);
+  assert.doesNotMatch(stateSummary, /goal=/);
+});
+
+test("writer style contract text omits debug metadata", () => {
+  const rendered = buildWriterStyleContractText({
+    narrative: {
+      key: "narrative",
+      title: "叙事约束",
+      summary: "",
+      lines: ["- 保持正在发生的场景推进。"],
+      text: "叙事约束:\n- 保持正在发生的场景推进。",
+      hasContent: true,
+    },
+    character: {
+      key: "character",
+      title: "角色表达",
+      summary: "",
+      lines: [],
+      text: "",
+      hasContent: false,
+    },
+    language: {
+      key: "language",
+      title: "语言",
+      summary: "",
+      lines: [],
+      text: "",
+      hasContent: false,
+    },
+    rhythm: {
+      key: "rhythm",
+      title: "节奏",
+      summary: "",
+      lines: [],
+      text: "",
+      hasContent: false,
+    },
+    antiAi: {
+      key: "antiAi",
+      title: "反 AI 味",
+      summary: "",
+      lines: [],
+      text: "",
+      hasContent: false,
+    },
+    selfCheck: {
+      key: "selfCheck",
+      title: "自检",
+      summary: "",
+      lines: [],
+      text: "",
+      hasContent: false,
+    },
+    meta: {
+      effectiveStyleProfileId: "profile-1",
+      taskStyleProfileId: "task-profile-1",
+      activeSourceTargets: ["novel"],
+      activeSourceLabels: ["Novel"],
+      writerIncludedSections: ["narrative"],
+      plannerIncludedSections: ["narrative"],
+      droppedSections: [],
+      maturity: "structured",
+      usesGlobalAntiAiBaseline: true,
+      globalAntiAiRuleIds: ["rule-global"],
+      styleAntiAiRuleIds: ["rule-style"],
+    },
+  });
+
+  assert.match(rendered, /叙事约束/);
+  assert.doesNotMatch(rendered, /effective_style_profile_id=/);
+  assert.doesNotMatch(rendered, /global_anti_ai_rule_ids=/);
+});
+
+test("advanced prompt template reports unknown tokens", () => {
+  const compiled = compilePromptTemplate({
+    template: {
+      kind: "chat",
+      messages: [
+        { role: "system", content: "系统 {{unknown.value}}" },
+        { role: "human", content: "正文 {{context.not_registered}}" },
+      ],
+    },
+    promptInput: {},
+    context: {
+      blocks: buildWriterRequiredContextBlocks(),
+      selectedBlockIds: [],
+      droppedBlockIds: [],
+      summarizedBlockIds: [],
+      estimatedInputTokens: 100,
+      slots: undefined,
+    },
+    slotDefs: chapterWriterPrompt.slots,
+    allowedContextGroups: chapterWriterPrompt.contextRequirements.map((item) => item.group),
+    requiredContextGroups: ["book_contract"],
+  });
+
+  assert.ok(compiled.diagnostics.unknownTokens.includes("unknown.value"));
+  assert.ok(compiled.diagnostics.unknownTokens.includes("context.not_registered"));
+});
+
+test("runTextPrompt uses active book-scoped advanced template for chapter writer", async () => {
+  const originalGetActiveCustomTemplate = promptTemplateOverrideService.getActiveCustomTemplate;
+  let capturedMessages = [];
+  promptTemplateOverrideService.getActiveCustomTemplate = async ({ promptId, novelId }) => {
+    assert.equal(promptId, "novel.chapter.writer");
+    assert.equal(novelId, "novel-advanced");
+    return {
+      versionId: "version-1",
+      versionNo: 1,
+      basePromptVersion: "v5",
+      template: {
+        kind: "chat",
+        messages: [
+          { role: "system", content: "CUSTOM SYSTEM {{slot.writer.tonePreference}}" },
+          { role: "human", content: "CUSTOM HUMAN {{input.chapterTitle}}\n{{context.chapter_mission}}" },
+        ],
+      },
+    };
+  };
+  setPromptRunnerLLMFactoryForTests(async () => ({
+    invoke: async (messages) => {
+      capturedMessages = messages;
+      return { content: "正文" };
+    },
+  }));
+
+  try {
+    const result = await runTextPrompt({
+      asset: chapterWriterPrompt,
+      promptInput: {
+        novelTitle: "测试小说",
+        chapterOrder: 1,
+        chapterTitle: "高级模板章节",
+      },
+      contextBlocks: buildWriterRequiredContextBlocks(),
+      options: { novelId: "novel-advanced" },
+    });
+
+    assert.equal(result.output, "正文");
+    const rendered = capturedMessages.map((message) => String(message.content)).join("\n");
+    assert.match(rendered, /CUSTOM SYSTEM/);
+    assert.match(rendered, /CUSTOM HUMAN 高级模板章节/);
+    assert.match(rendered, /chapter_mission 测试内容/);
+    assert.match(rendered, /【必需上下文保底】/);
+    assert.doesNotMatch(rendered, /你是中文长篇网络小说写作助手。/);
+  } finally {
+    promptTemplateOverrideService.getActiveCustomTemplate = originalGetActiveCustomTemplate;
     setPromptRunnerLLMFactoryForTests();
   }
 });

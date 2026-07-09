@@ -10,7 +10,7 @@ import {
   bookAnalysisOptimizeDraftOutputSchema,
   bookAnalysisSectionOutputSchema,
   bookAnalysisSourceNoteOutputSchema,
-} from "../../../services/bookAnalysis/bookAnalysisSchemas";
+} from "../../../services/bookAnalysis/shared/bookAnalysisSchemas";
 import type {
   BookAnalysisOptimizeDraftPromptInput,
   BookAnalysisSectionPromptInput,

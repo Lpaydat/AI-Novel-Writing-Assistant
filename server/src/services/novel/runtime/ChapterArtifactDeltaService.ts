@@ -1,4 +1,7 @@
-import type { StateChangeProposal } from "@ai-novel/shared/types/canonicalState";
+import type {
+  ContentProvenance,
+  StateChangeProposal,
+} from "@ai-novel/shared/types/canonicalState";
 import { createHash } from "node:crypto";
 import { prisma } from "../../../db/prisma";
 import { runStructuredPrompt } from "../../../prompting/core/promptRunner";
@@ -6,6 +9,8 @@ import {
   chapterArtifactDeltaPrompt,
   type ChapterArtifactDeltaOutput,
 } from "../../../prompting/prompts/novel/chapterArtifactDelta.prompts";
+import { ragServices } from "../../rag";
+import type { RagOwnerType } from "../../rag/types";
 import type { SnapshotExtractionOutput } from "../../state/stateSnapshotExtraction";
 import {
   resolveSnapshotChapterReference,
@@ -17,11 +22,18 @@ import {
   serializeLedgerJson,
 } from "../../payoff/payoffLedgerShared";
 import { characterResourceLedgerService } from "../characterResource/CharacterResourceLedgerService";
+import { characterResourceStaleScanService } from "../characterResource/CharacterResourceStaleScanService";
 import {
   compactText,
   normalizeResourceKey,
 } from "../characterResource/characterResourceShared";
+import { novelFactService, type NovelFactWriteItem } from "../fact/NovelFactService";
+import { extractFacts } from "../novelP0Utils";
 import { stateCommitService } from "../state/StateCommitService";
+import {
+  attachProposalSourceQuality,
+  normalizeContentProvenance,
+} from "../state/stateProposalSourceQuality";
 
 const ARTIFACT_DELTA_SOURCE_TYPE = "chapter_artifact_delta";
 const ARTIFACT_DELTA_SOURCE_STAGE = "chapter_execution";
@@ -43,6 +55,7 @@ type ChapterReference = {
 
 type ChapterArtifactDeltaResourceUpdate = ChapterArtifactDeltaOutput["characterResourceDeltas"][number];
 type ChapterArtifactPayoffDelta = ChapterArtifactDeltaOutput["payoffDeltas"][number];
+type ChapterArtifactKnowledgeState = ChapterArtifactDeltaOutput["characterKnowledgeStates"][number];
 
 export interface ChapterArtifactDeltaSyncInput {
   novelId: string;
@@ -53,6 +66,7 @@ export interface ChapterArtifactDeltaSyncInput {
   provider?: string;
   model?: string;
   temperature?: number;
+  contentProvenance?: ContentProvenance;
 }
 
 export interface ChapterArtifactDeltaSyncResult {
@@ -61,13 +75,16 @@ export interface ChapterArtifactDeltaSyncResult {
   stateSnapshotId: string | null;
   characterResourceProposalCount: number;
   characterDynamicsCount: number;
+  characterKnowledgeStateCount: number;
   payoffDeltaCount: number;
   canonicalCommittedCount: number;
+  concreteFactCount: number;
+  staleMarkedCount: number;
   requiresFullReconcile: boolean;
 }
 
-function buildContentHash(content: string): string {
-  return createHash("sha256").update(content).digest("hex").slice(0, 24);
+export function buildContentHash(content: string): string {
+  return createHash("sha256").update(compactText(content)).digest("hex").slice(0, 24);
 }
 
 function normalizeName(value: string | null | undefined): string {
@@ -106,6 +123,54 @@ function resolveCharacter(
     return itemName && (normalized.includes(itemName) || itemName.includes(normalized));
   });
   return fuzzy ?? null;
+}
+
+function uniqueTextItems(items: string[] | null | undefined, maxItems: number): string[] {
+  const result: string[] = [];
+  const seen = new Set<string>();
+  for (const item of items ?? []) {
+    const normalized = compactText(item);
+    if (!normalized || seen.has(normalized)) {
+      continue;
+    }
+    seen.add(normalized);
+    result.push(normalized);
+    if (result.length >= maxItems) {
+      break;
+    }
+  }
+  return result;
+}
+
+function joinFactContents(items: string[], maxItems = 3): string | null {
+  const joined = uniqueTextItems(items, maxItems).join("；");
+  return joined || null;
+}
+
+function buildKnowledgeBoundaryLine(state: ChapterArtifactKnowledgeState): string | null {
+  const knownFacts = uniqueTextItems(state.knownFacts, 5);
+  const hiddenFacts = uniqueTextItems(state.hiddenFacts, 5);
+  if (knownFacts.length === 0 && hiddenFacts.length === 0) {
+    return null;
+  }
+  return [
+    "【信息边界】",
+    knownFacts.length > 0 ? `已知：${knownFacts.join("；")}` : "已知：无新增",
+    hiddenFacts.length > 0 ? `未知/不应超前知情：${hiddenFacts.join("；")}` : "未知/不应超前知情：无",
+  ].join("");
+}
+
+export function mergeKnowledgeBoundaryState(
+  currentState: string | null | undefined,
+  boundaryLine: string,
+): string {
+  const base = String(currentState ?? "")
+    .replace(/\n?【信息边界】[^\n]*/g, "")
+    .trim();
+  const cappedBoundary = boundaryLine.slice(0, 1200);
+  const baseBudget = Math.max(0, 1200 - cappedBoundary.length - (base ? 1 : 0));
+  const cappedBase = base.slice(0, baseBudget).trim();
+  return [cappedBase, cappedBoundary].filter(Boolean).join("\n");
 }
 
 function normalizeLedgerKey(title: string, fallback: string): string {
@@ -256,6 +321,14 @@ export class ChapterArtifactDeltaService {
     const output = result.output;
     const sourceType = input.sourceType?.trim() || ARTIFACT_DELTA_SOURCE_TYPE;
     const sourceStage = input.sourceStage ?? ARTIFACT_DELTA_SOURCE_STAGE;
+    const sourceQuality = normalizeContentProvenance(input.contentProvenance);
+    const concreteFactCount = await this.persistChapterSummaryAndFacts({
+      novelId: input.novelId,
+      chapterId: input.chapterId,
+      chapterOrder: chapter.order,
+      content,
+      output,
+    });
     const stateSnapshotId = output.syncPlan.stateSnapshot === "skip"
       ? null
       : await this.persistStateSnapshot({
@@ -273,6 +346,7 @@ export class ChapterArtifactDeltaService {
         sourceType,
         sourceStage,
         contentHash,
+        sourceQuality,
         characters,
         updates: output.characterResourceDeltas,
       });
@@ -283,10 +357,16 @@ export class ChapterArtifactDeltaService {
       chapterOrder: chapter.order,
       sourceType,
       sourceStage,
+      contentProvenance: sourceQuality,
       proposals: resourceProposals,
     });
+    const staleMarkedCount = await characterResourceStaleScanService.scanAfterChapter({
+      novelId: input.novelId,
+      chapterId: input.chapterId,
+      chapterOrder: chapter.order,
+    }).catch(() => 0);
 
-    const [payoffDeltaCount, characterDynamicsCount] = await Promise.all([
+    const [payoffDeltaCount, characterDynamicsCount, characterKnowledgeStateCount] = await Promise.all([
       output.syncPlan.payoffLedger === "skip"
         ? Promise.resolve(0)
         : this.applyPayoffDeltas({
@@ -307,6 +387,12 @@ export class ChapterArtifactDeltaService {
           characters,
           output,
         }),
+      output.characterKnowledgeStates.length === 0
+        ? Promise.resolve(0)
+        : this.applyKnowledgeStates({
+          characters,
+          output,
+        }),
     ]);
 
     return {
@@ -315,8 +401,11 @@ export class ChapterArtifactDeltaService {
       stateSnapshotId,
       characterResourceProposalCount: resourceProposals.length,
       characterDynamicsCount,
+      characterKnowledgeStateCount,
       payoffDeltaCount,
       canonicalCommittedCount: stateCommitResult.committed.length,
+      concreteFactCount,
+      staleMarkedCount,
       requiresFullReconcile: output.requiresFullReconcile || output.syncPlan.payoffLedger === "full_reconcile",
     };
   }
@@ -330,6 +419,62 @@ export class ChapterArtifactDeltaService {
       character.currentGoal ? `goal=${character.currentGoal}` : "",
       character.currentState ? `state=${character.currentState}` : "",
     ].filter(Boolean).join(" | ")).join("\n");
+  }
+
+  private async persistChapterSummaryAndFacts(input: {
+    novelId: string;
+    chapterId: string;
+    chapterOrder: number;
+    content: string;
+    output: ChapterArtifactDeltaOutput;
+  }): Promise<number> {
+    const summary = compactText(input.output.summary) || "暂无可总结正文";
+    const extractedFacts = extractFacts(input.content || summary);
+    const keyEvents = joinFactContents(
+      extractedFacts.filter((item) => item.category === "plot").map((item) => item.content),
+      3,
+    );
+    const characterStates = joinFactContents(
+      extractedFacts.filter((item) => item.category === "character").map((item) => item.content),
+      3,
+    );
+    await prisma.$transaction(async (tx) => {
+      await tx.chapter.update({
+        where: { id: input.chapterId },
+        data: { expectation: summary },
+      });
+      await tx.chapterSummary.upsert({
+        where: { chapterId: input.chapterId },
+        update: {
+          summary,
+          keyEvents,
+          characterStates,
+        },
+        create: {
+          novelId: input.novelId,
+          chapterId: input.chapterId,
+          summary,
+          keyEvents,
+          characterStates,
+        },
+      });
+    });
+
+    const concreteFacts: NovelFactWriteItem[] = input.output.concreteFacts
+      .map((fact) => ({
+        text: compactText(fact.text),
+        category: fact.category,
+        source: "auto" as const,
+      }))
+      .filter((fact) => fact.text.length > 0);
+    if (concreteFacts.length > 0) {
+      await novelFactService.writeFacts(input.novelId, input.chapterOrder, concreteFacts);
+    }
+
+    this.queueRagUpsert("chapter", input.chapterId);
+    this.queueRagUpsert("chapter_summary", input.chapterId);
+
+    return concreteFacts.length;
   }
 
   private async persistStateSnapshot(input: {
@@ -394,6 +539,7 @@ export class ChapterArtifactDeltaService {
     sourceType: string;
     sourceStage: string | null;
     contentHash: string;
+    sourceQuality: ContentProvenance;
     characters: CharacterLookupItem[];
     updates: ChapterArtifactDeltaResourceUpdate[];
   }): StateChangeProposal[] {
@@ -411,7 +557,7 @@ export class ChapterArtifactDeltaService {
         holderCharacterId: holderCharacter?.id,
         ownerName: update.ownerName ?? null,
       });
-      return {
+      const proposal: StateChangeProposal = {
         novelId: input.novelId,
         chapterId: input.chapterId,
         sourceSnapshotId: null,
@@ -452,6 +598,7 @@ export class ChapterArtifactDeltaService {
         evidence: update.evidence,
         validationNotes: [update.riskReason ?? ""].filter(Boolean),
       };
+      return attachProposalSourceQuality(proposal, input.sourceQuality);
     });
   }
 
@@ -730,6 +877,49 @@ export class ChapterArtifactDeltaService {
       }
     });
     return writeCount;
+  }
+
+  private async applyKnowledgeStates(input: {
+    characters: CharacterLookupItem[];
+    output: ChapterArtifactDeltaOutput;
+  }): Promise<number> {
+    const characterByName = new Map(input.characters.map((item) => [normalizeName(item.name), item]));
+    const updates = input.output.characterKnowledgeStates
+      .map((state) => {
+        const character = characterByName.get(normalizeName(state.characterName));
+        const boundaryLine = buildKnowledgeBoundaryLine(state);
+        if (!character || !boundaryLine) {
+          return null;
+        }
+        const nextCurrentState = mergeKnowledgeBoundaryState(character.currentState, boundaryLine);
+        if (nextCurrentState === (character.currentState ?? "")) {
+          return null;
+        }
+        return {
+          characterId: character.id,
+          currentState: nextCurrentState,
+        };
+      })
+      .filter((item): item is { characterId: string; currentState: string } => Boolean(item));
+    if (updates.length === 0) {
+      return 0;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      for (const update of updates) {
+        await tx.character.update({
+          where: { id: update.characterId },
+          data: { currentState: update.currentState },
+        });
+      }
+    });
+    return updates.length;
+  }
+
+  private queueRagUpsert(ownerType: RagOwnerType, ownerId: string): void {
+    void ragServices.ragIndexService.enqueueUpsert(ownerType, ownerId).catch(() => {
+      // Keep artifact extraction resilient when RAG queueing fails.
+    });
   }
 }
 

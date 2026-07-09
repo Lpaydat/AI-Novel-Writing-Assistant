@@ -11,7 +11,9 @@ import {
   House,
   LayoutDashboard,
   ListTodo,
+  MonitorPlay,
   Route,
+  SquareStack,
   ScanSearch,
   Settings2,
   ShieldCheck,
@@ -35,6 +37,7 @@ interface NavItem {
   to: string;
   label: string;
   icon: LucideIcon;
+  disabled?: boolean;
 }
 
 interface NavGroup {
@@ -49,6 +52,8 @@ const navGroups: NavGroup[] = [
       { to: "/", label: "首页", icon: House },
       { to: "/help", label: "新手上路", icon: CircleHelp },
       { to: "/novels", label: "小说列表", icon: BookOpenText },
+      { to: "/drama", label: "短剧工作台", icon: MonitorPlay, disabled: true },
+      { to: "/comic", label: "漫画工作台", icon: SquareStack },
       { to: "/creative-hub", label: "创作中枢", icon: LayoutDashboard },
       { to: "/book-analysis", label: "拆书", icon: ScanSearch },
       { to: "/tasks", label: "任务中心", icon: ListTodo },
@@ -126,6 +131,21 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const failedIndexCount = knowledgeDocuments.filter((item) => item.latestIndexStatus === "failed").length;
 
   const renderBadge = (to: string) => {
+    if (to === "/comic") {
+      if (collapsed) {
+        return null;
+      }
+      return (
+        <Badge
+          variant="outline"
+          className="ml-auto h-5 border-amber-300 bg-amber-50 px-1.5 text-[10px] font-medium text-amber-700"
+          title="漫画工作台仍在 Beta 阶段"
+        >
+          Beta
+        </Badge>
+      );
+    }
+
     if (to === "/tasks") {
       if (runningTaskCount <= 0 && failedTaskCount <= 0) {
         return null;
@@ -218,6 +238,27 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             {group.items.map((item) => {
               const Icon = item.icon;
               const isNovelEntry = item.to === "/novels";
+
+              if (item.disabled) {
+                return (
+                  <div
+                    key={item.to}
+                    title={collapsed ? item.label : "即将推出"}
+                    className={cn(
+                      "relative flex cursor-not-allowed items-center rounded-md text-sm opacity-40",
+                      collapsed ? "justify-center px-2 py-2.5" : "py-2 pl-4 pr-2",
+                    )}
+                  >
+                    <Icon className={cn("h-[18px] w-[18px] shrink-0", collapsed ? "mx-auto" : "mr-3")} />
+                    {!collapsed ? (
+                      <span className="truncate">{item.label}</span>
+                    ) : null}
+                    {!collapsed ? (
+                      <span className="ml-auto text-[10px] text-muted-foreground/60">即将推出</span>
+                    ) : null}
+                  </div>
+                );
+              }
 
               return (
                 <NavLink key={item.to} to={item.to} title={collapsed ? item.label : undefined}>

@@ -19,11 +19,9 @@ import {
 import { logMemoryUsage } from "../../runtime/memoryTelemetry";
 import { toText } from "../../services/novel/novelP0Utils";
 import { hasRegisteredPromptAsset, resolvePromptVariant } from "../registry";
-import {
-  CUSTOM_ADDENDUM_CONTEXT_GROUP,
-  isPromptAddendumSupported,
-  promptAddendumService,
-} from "../addendums/PromptAddendumService";
+import { CUSTOM_SLOT_CONTEXT_GROUP } from "../slots/slotResolution";
+import { promptSlotOverrideService } from "../slots/PromptSlotOverrideService";
+import { resolveAdvancedTextPromptMessages } from "../templates/templateRuntime";
 import { selectContextBlocks } from "./contextSelection";
 import {
   recordPromptQualityEvent,
@@ -47,7 +45,11 @@ type PromptRunnerStructuredInvoker = typeof invokeStructuredLlmDetailed;
 let promptRunnerLLMFactory: PromptRunnerLLMFactory = getLLM;
 let promptRunnerStructuredInvoker: PromptRunnerStructuredInvoker = invokeStructuredLlmDetailed;
 
-function buildRenderContext(asset: PromptAsset<unknown, unknown, unknown>, rawBlocks: Parameters<typeof selectContextBlocks>[0]): PromptRenderContext {
+function buildRenderContext(
+  asset: PromptAsset<unknown, unknown, unknown>,
+  rawBlocks: Parameters<typeof selectContextBlocks>[0],
+  resolvedSlots?: import("../slots/slotTypes").ResolvedSlots,
+): PromptRenderContext {
   const selection = selectContextBlocks(rawBlocks, asset.contextPolicy);
   return {
     blocks: selection.selectedBlocks,
@@ -55,6 +57,7 @@ function buildRenderContext(asset: PromptAsset<unknown, unknown, unknown>, rawBl
     droppedBlockIds: selection.droppedBlockIds,
     summarizedBlockIds: selection.summarizedBlockIds,
     estimatedInputTokens: selection.estimatedTokens,
+    slots: resolvedSlots,
   };
 }
 
@@ -97,7 +100,7 @@ function buildPromptInvocationMeta(
     contextBlockIds: context.selectedBlockIds,
     droppedContextBlockIds: context.droppedBlockIds,
     summarizedContextBlockIds: context.summarizedBlockIds,
-    customAddendumBlockIds: context.selectedBlockIds.filter((id) => id.startsWith(`${CUSTOM_ADDENDUM_CONTEXT_GROUP}:`)),
+    customAddendumBlockIds: context.selectedBlockIds.filter((id) => id.startsWith(`${CUSTOM_SLOT_CONTEXT_GROUP}:`)),
     estimatedInputTokens: context.estimatedInputTokens,
     repairUsed,
     repairAttempts,
@@ -106,20 +109,30 @@ function buildPromptInvocationMeta(
   };
 }
 
-async function resolveContextBlocksWithAddendums(input: {
+async function resolvePromptOverlaysForAsset(input: {
   asset: PromptAsset<unknown, unknown, unknown>;
   contextBlocks?: Parameters<typeof selectContextBlocks>[0];
   options?: PromptExecutionOptions;
-}): Promise<Parameters<typeof selectContextBlocks>[0]> {
-  const blocks = input.contextBlocks ?? [];
-  if (!isPromptAddendumSupported(input.asset.id)) {
-    return blocks;
+}): Promise<{
+  blocks: Parameters<typeof selectContextBlocks>[0];
+  resolvedSlots?: import("../slots/slotTypes").ResolvedSlots;
+}> {
+  const baseBlocks = input.contextBlocks ?? [];
+  const slotDefs = input.asset.slots;
+  if (!slotDefs || slotDefs.length === 0) {
+    return { blocks: baseBlocks };
   }
-  const addendumBlocks = await promptAddendumService.resolveContextBlocks({
+
+  const overlays = await promptSlotOverrideService.resolveForRuntime({
     promptId: input.asset.id,
     novelId: input.options?.novelId,
   });
-  return addendumBlocks.length > 0 ? [...blocks, ...addendumBlocks] : blocks;
+
+  const allBlocks = overlays.appendBlocks.length > 0
+    ? [...baseBlocks, ...overlays.appendBlocks]
+    : baseBlocks;
+
+  return { blocks: allBlocks, resolvedSlots: overlays.inlineSlots };
 }
 
 function resolveStructuredRepairAttempts(asset: PromptAsset<unknown, unknown, unknown>): number {
@@ -260,6 +273,7 @@ export function preparePromptExecution<I, O, R = O>(input: {
   promptInput: I;
   contextBlocks?: Parameters<typeof selectContextBlocks>[0];
   options?: PromptExecutionOptions;
+  resolvedSlots?: import("../slots/slotTypes").ResolvedSlots;
 }): {
   messages: ReturnType<PromptAsset<I, O, R>["render"]>;
   context: PromptRenderContext;
@@ -294,7 +308,14 @@ export function preparePromptExecution<I, O, R = O>(input: {
     resolvedVariant = buildPromptAssetKey(input.asset as PromptAsset<unknown, unknown, unknown>);
   }
 
-  const context = buildRenderContext(resolvedAsset, input.contextBlocks ?? []);
+  // Slot overlays (main) are resolved from the anchor asset's slots; render the
+  // resolved (possibly en) variant with main's 3-arg buildRenderContext so both
+  // the locale swap and the slots overlay apply.
+  const context = buildRenderContext(
+    resolvedAsset,
+    input.contextBlocks ?? [],
+    input.resolvedSlots,
+  );
   const renderedMessages = resolvedAsset.render(input.promptInput, context);
   return {
     messages: appendStructuredOutputHintMessages({
@@ -510,6 +531,7 @@ function buildPromptRunResult<T>(input: {
     model: input.model,
     latencyMs: input.latencyMs,
     invocation: input.invocation,
+    tokenUsage: input.tokenUsage ?? null,
   };
   logPromptCompletion({
     meta: input.invocation,
@@ -735,12 +757,16 @@ export async function runStructuredPrompt<I, O, R = O>(input: {
   }
 
   const outputSchema = input.asset.outputSchema;
-  const contextBlocks = await resolveContextBlocksWithAddendums({
+  const overlays = await resolvePromptOverlaysForAsset({
     asset: input.asset as PromptAsset<unknown, unknown, unknown>,
     contextBlocks: input.contextBlocks,
     options: input.options,
   });
-  const prepared = preparePromptExecution({ ...input, contextBlocks });
+  const prepared = preparePromptExecution({
+    ...input,
+    contextBlocks: overlays.blocks,
+    resolvedSlots: overlays.resolvedSlots,
+  });
   logPromptEvent({
     event: "started",
     asset: input.asset as PromptAsset<unknown, unknown, unknown>,
@@ -817,6 +843,7 @@ export async function runStructuredPrompt<I, O, R = O>(input: {
       latencyMs: Date.now() - startedAt,
       invocation: resolved.invocation,
       renderedPromptChars,
+      tokenUsage: result.tokenUsage,
       postValidateFailureRecovered: resolved.postValidateFailureRecovered,
     });
   } catch (error) {
@@ -844,14 +871,25 @@ export async function runTextPrompt<I>(input: {
     throw new Error(`Prompt asset ${input.asset.id}@${input.asset.version} is not a text prompt.`);
   }
 
-  const contextBlocks = await resolveContextBlocksWithAddendums({
+  const overlays = await resolvePromptOverlaysForAsset({
     asset: input.asset as PromptAsset<unknown, unknown, unknown>,
     contextBlocks: input.contextBlocks,
     options: input.options,
   });
-  const prepared = preparePromptExecution({ ...input, contextBlocks });
+  const prepared = preparePromptExecution({
+    ...input,
+    contextBlocks: overlays.blocks,
+    resolvedSlots: overlays.resolvedSlots,
+  });
   const startedAt = Date.now();
-  const renderedPromptChars = estimateRenderedPromptChars(prepared.messages);
+  const messages = await resolveAdvancedTextPromptMessages({
+    asset: input.asset,
+    promptInput: input.promptInput,
+    context: prepared.context,
+    officialMessages: prepared.messages,
+    novelId: input.options?.novelId,
+  });
+  const renderedPromptChars = estimateRenderedPromptChars(messages);
   try {
     const llm = await promptRunnerLLMFactory(input.options?.provider, {
       fallbackProvider: "deepseek",
@@ -862,7 +900,7 @@ export async function runTextPrompt<I>(input: {
       taskType: input.asset.taskType,
       promptMeta: prepared.invocation,
     });
-    const result = await llm.invoke(prepared.messages, buildPromptCallOptions(input.options));
+    const result = await llm.invoke(messages, buildPromptCallOptions(input.options));
     const output = applyPromptPostValidate({
       asset: input.asset,
       promptInput: input.promptInput,
@@ -913,14 +951,25 @@ export async function streamTextPrompt<I>(input: {
     throw new Error(`Prompt asset ${input.asset.id}@${input.asset.version} is not a text prompt.`);
   }
 
-  const contextBlocks = await resolveContextBlocksWithAddendums({
+  const overlays = await resolvePromptOverlaysForAsset({
     asset: input.asset as PromptAsset<unknown, unknown, unknown>,
     contextBlocks: input.contextBlocks,
     options: input.options,
   });
-  const prepared = preparePromptExecution({ ...input, contextBlocks });
+  const prepared = preparePromptExecution({
+    ...input,
+    contextBlocks: overlays.blocks,
+    resolvedSlots: overlays.resolvedSlots,
+  });
   const startedAt = Date.now();
-  const renderedPromptChars = estimateRenderedPromptChars(prepared.messages);
+  const messages = await resolveAdvancedTextPromptMessages({
+    asset: input.asset,
+    promptInput: input.promptInput,
+    context: prepared.context,
+    officialMessages: prepared.messages,
+    novelId: input.options?.novelId,
+  });
+  const renderedPromptChars = estimateRenderedPromptChars(messages);
   let captured: ReturnType<typeof captureStreamOutput>;
   try {
     const llm = await promptRunnerLLMFactory(input.options?.provider, {
@@ -932,7 +981,7 @@ export async function streamTextPrompt<I>(input: {
       taskType: input.asset.taskType,
       promptMeta: prepared.invocation,
     });
-    const rawStream = await llm.stream(prepared.messages, buildPromptCallOptions(input.options));
+    const rawStream = await llm.stream(messages, buildPromptCallOptions(input.options));
     captured = captureStreamOutput(rawStream as AsyncIterable<BaseMessageChunk>);
   } catch (error) {
     recordPromptFailure({
@@ -1005,12 +1054,16 @@ export async function streamStructuredPrompt<I, O, R = O>(input: {
   }
 
   const outputSchema = input.asset.outputSchema;
-  const contextBlocks = await resolveContextBlocksWithAddendums({
+  const overlays = await resolvePromptOverlaysForAsset({
     asset: input.asset as PromptAsset<unknown, unknown, unknown>,
     contextBlocks: input.contextBlocks,
     options: input.options,
   });
-  const prepared = preparePromptExecution({ ...input, contextBlocks });
+  const prepared = preparePromptExecution({
+    ...input,
+    contextBlocks: overlays.blocks,
+    resolvedSlots: overlays.resolvedSlots,
+  });
   const startedAt = Date.now();
   const renderedPromptChars = estimateRenderedPromptChars(prepared.messages);
   let captured: ReturnType<typeof captureStreamOutput>;
