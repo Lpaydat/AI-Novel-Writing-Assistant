@@ -1,5 +1,6 @@
 import { useRef, type ReactNode } from "react";
 import { Image as ImageIcon, Loader2, Sparkles, Trash2, Upload } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export type GeneratedImageCardStatus = "idle" | "generating" | "done" | "error";
 
@@ -10,11 +11,11 @@ const STATUS_DOT: Record<GeneratedImageCardStatus, string> = {
   error: "bg-rose-500",
 };
 
-const STATUS_TITLE: Record<GeneratedImageCardStatus, string> = {
-  idle: "未生成",
-  generating: "生成中",
-  done: "已就绪",
-  error: "生成失败",
+const STATUS_TITLE_KEY: Record<GeneratedImageCardStatus, string> = {
+  idle: "generatedImage.status.idle",
+  generating: "generatedImage.status.generating",
+  done: "generatedImage.status.done",
+  error: "generatedImage.status.error",
 };
 
 const SIZE_STYLE: Record<NonNullable<GeneratedImageCardProps["size"]>, string> = {
@@ -30,50 +31,52 @@ const ASPECT_STYLE: Record<NonNullable<GeneratedImageCardProps["aspectRatio"]>, 
 };
 
 export interface GeneratedImageCardProps {
-  /** 当前生成状态（驱动占位/loading/error 显示） */
+  /** Current generation status (drives placeholder/loading/error display) */
   status: GeneratedImageCardStatus;
-  /** 已就绪时的图片 URL */
+  /** Image URL when ready */
   imageUrl?: string;
-  /** error 时的可选错误文字（用于 hover 提示） */
+  /** Optional error text shown on error (used for the hover tooltip) */
   errorMessage?: string;
 
-  /** 卡片主标题 */
+  /** Card main title */
   title: string;
-  /** 卡片副标题 / 描述（line-clamp-2） */
+  /** Card subtitle / description (line-clamp-2) */
   subtitle?: string;
-  /** 类型徽章 { label, className(tailwind 类) } */
+  /** Type badge { label, className(tailwind class) } */
   typeBadge?: { label: string; className: string };
 
-  /** 主操作：AI 生图（或重新生成）。不传则不显示。 */
+  /** Primary action: AI generate (or regenerate). Not shown when omitted. */
   onGenerate?: () => void;
-  /** 次操作：上传图片。不传则不显示。 */
+  /** Secondary action: upload image. Not shown when omitted. */
   onUpload?: (file: File) => void;
-  /** 删除操作：hover 时显示。不传则不显示。 */
+  /** Delete action: shown on hover. Not shown when omitted. */
   onDelete?: () => void;
-  /** 外部 busy 状态（mutation pending）+ generating 状态会一起禁用操作 */
+  /** External busy state (mutation pending) + generating status disable actions together */
   busy?: boolean;
 
-  /** 图片区高度 */
+  /** Image area height */
   size?: "compact" | "regular" | "large";
-  /** 图片区比例（与 size 冲突时优先 aspectRatio） */
+  /** Image area ratio (takes precedence over size when both are set) */
   aspectRatio?: "square" | "portrait" | "landscape";
 
-  /** 自定义空态内容 */
+  /** Custom empty-state content */
   emptyHint?: ReactNode;
-  /** 卡片底部自定义内容（如额外操作按钮、提示） */
+  /** Custom card footer content (e.g. extra action buttons, hints) */
   footer?: ReactNode;
 
-  /** 主按钮文案；默认 idle="AI 生图" / done="重新生成" */
+  /** Primary button text; defaults to idle="AI generate" / done="Regenerate" */
   generateLabel?: string;
-  /** 删除前确认文案；不传则不弹确认 */
+  /** Confirmation text before delete; no confirmation prompt when omitted */
   confirmDeleteText?: string;
 }
 
 /**
- * 通用生图卡片
+ * Generic generated-image card.
  *
- * 设计目标：覆盖角色资产、场景设定图、表情稿等"业务表 JSON 状态机生图"场景的展示与基础操作。
- * 不覆盖：三视图主设计稿（有特殊微调流程）、格子图（有重抽/导出/弹窗等复杂交互）—— 这些保留独立实现。
+ * Design goal: cover the display and basic operations for "business-table JSON state-machine generation"
+ * scenarios such as character assets, scene setting images, and expression sheets.
+ * Not covered: the main turnaround design sheet (which has a special fine-tuning flow) and the panel grid
+ * (which has complex interactions like re-roll/export/dialogs) -- those keep their own implementations.
  */
 export function GeneratedImageCard({
   status,
@@ -93,6 +96,7 @@ export function GeneratedImageCard({
   generateLabel,
   confirmDeleteText,
 }: GeneratedImageCardProps) {
+  const { t } = useTranslation("componentsMisc");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isGenerating = busy || status === "generating";
@@ -102,17 +106,17 @@ export function GeneratedImageCard({
 
   return (
     <div className="group relative overflow-hidden rounded-lg border bg-background shadow-sm transition-shadow hover:shadow-md">
-      {/* 状态点 */}
+      {/* Status dot */}
       <span
-        title={STATUS_TITLE[status]}
+        title={t(STATUS_TITLE_KEY[status])}
         className={`absolute top-1.5 right-1.5 z-10 h-2 w-2 rounded-full ring-2 ring-background ${STATUS_DOT[status]}`}
       />
 
-      {/* 删除按钮：hover 才显示 */}
+      {/* Delete button: shown on hover only */}
       {onDelete && (
         <button
           type="button"
-          title="删除"
+          title={t("generatedImage.delete")}
           disabled={busy}
           className="absolute top-1.5 left-1.5 z-10 rounded-md bg-background/85 p-1 text-muted-foreground/70 opacity-0 backdrop-blur-sm transition-opacity hover:bg-destructive hover:text-white group-hover:opacity-100 disabled:opacity-50"
           onClick={() => {
@@ -123,7 +127,7 @@ export function GeneratedImageCard({
         </button>
       )}
 
-      {/* 图片区 */}
+      {/* Image area */}
       <div className={`relative flex items-center justify-center bg-gradient-to-br from-muted/30 to-muted/60 ${imageWrapperClass}`}>
         {hasDoneImage ? (
           <img
@@ -135,24 +139,24 @@ export function GeneratedImageCard({
         ) : isGenerating ? (
           <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="text-[10px]">生成中</span>
+            <span className="text-[10px]">{t("generatedImage.status.generating")}</span>
           </div>
         ) : status === "error" ? (
           <div className="flex flex-col items-center gap-1 px-2 text-center text-rose-600 dark:text-rose-400" title={errorMessage}>
             <ImageIcon className="h-6 w-6 opacity-50" />
-            <span className="text-[10px]">生成失败，可重试</span>
+            <span className="text-[10px]">{t("generatedImage.failedRetry")}</span>
           </div>
         ) : emptyHint ? (
           <>{emptyHint}</>
         ) : (
           <div className="flex flex-col items-center gap-1 text-muted-foreground/50">
             <ImageIcon className="h-7 w-7" />
-            <span className="text-[10px]">待生成</span>
+            <span className="text-[10px]">{t("generatedImage.pending")}</span>
           </div>
         )}
       </div>
 
-      {/* 信息区 */}
+      {/* Info area */}
       <div className="space-y-1.5 px-2.5 pb-2 pt-2">
         <div className="flex items-center gap-1.5">
           {typeBadge && (
@@ -168,7 +172,7 @@ export function GeneratedImageCard({
           </p>
         )}
 
-        {/* 操作 */}
+        {/* Actions */}
         {(onGenerate || onUpload) && (
           <div className="flex items-center gap-1.5 pt-0.5">
             {onGenerate && (
@@ -179,13 +183,13 @@ export function GeneratedImageCard({
                 onClick={onGenerate}
               >
                 {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                {generateLabel ?? (hasDoneImage ? "重新生成" : "AI 生图")}
+                {generateLabel ?? (hasDoneImage ? t("generatedImage.regenerate") : t("generatedImage.generate"))}
               </button>
             )}
             {onUpload && (
               <button
                 type="button"
-                title="上传图片替代 AI 生成"
+                title={t("generatedImage.uploadTitle")}
                 disabled={isGenerating}
                 className="rounded-md border px-1.5 py-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
                 onClick={() => fileInputRef.current?.click()}

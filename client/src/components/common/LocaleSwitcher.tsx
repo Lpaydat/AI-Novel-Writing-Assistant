@@ -25,7 +25,7 @@ const LOCALE_NATIVE_LABEL: Record<AppLocale, string> = {
 };
 
 export default function LocaleSwitcher() {
-  const { i18n, t } = useTranslation();
+  const { i18n, t } = useTranslation("componentsCommon");
   const queryClient = useQueryClient();
   const [active, setActive] = useState<AppLocale>(() => getActiveLocale());
 
@@ -64,7 +64,7 @@ export default function LocaleSwitcher() {
       size="sm"
       variant="outline"
       onClick={() => void handleSwitch()}
-      title={t("common.locale.switch", { defaultValue: "Switch language / 切换语言" })}
+      title={t("localeSwitcher.switchTitle")}
       aria-label={LOCALE_NATIVE_LABEL[target]}
     >
       {LOCALE_NATIVE_LABEL[target]}

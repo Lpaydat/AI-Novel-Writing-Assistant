@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { listKnowledgeDocuments } from "@/api/knowledge";
 import { queryKeys } from "@/api/queryKeys";
 import { getAutoDirectorFollowUpOverview } from "@/api/autoDirectorFollowUps";
@@ -47,38 +48,38 @@ interface NavGroup {
 
 const navGroups: NavGroup[] = [
   {
-    title: "创作",
+    title: "sidebar.group.creation",
     items: [
-      { to: "/", label: "首页", icon: House },
-      { to: "/help", label: "新手上路", icon: CircleHelp },
-      { to: "/novels", label: "小说列表", icon: BookOpenText },
-      { to: "/drama", label: "短剧工作台", icon: MonitorPlay, disabled: true },
-      { to: "/comic", label: "漫画工作台", icon: SquareStack },
-      { to: "/creative-hub", label: "创作中枢", icon: LayoutDashboard },
-      { to: "/book-analysis", label: "拆书", icon: ScanSearch },
-      { to: "/tasks", label: "任务中心", icon: ListTodo },
-      { to: "/auto-director/follow-ups", label: "导演跟进", icon: Workflow },
+      { to: "/", label: "sidebar.nav.home", icon: House },
+      { to: "/help", label: "sidebar.nav.onboarding", icon: CircleHelp },
+      { to: "/novels", label: "sidebar.nav.novels", icon: BookOpenText },
+      { to: "/drama", label: "sidebar.nav.drama", icon: MonitorPlay, disabled: true },
+      { to: "/comic", label: "sidebar.nav.comic", icon: SquareStack },
+      { to: "/creative-hub", label: "sidebar.nav.creativeHub", icon: LayoutDashboard },
+      { to: "/book-analysis", label: "sidebar.nav.bookAnalysis", icon: ScanSearch },
+      { to: "/tasks", label: "sidebar.nav.tasks", icon: ListTodo },
+      { to: "/auto-director/follow-ups", label: "sidebar.nav.autoDirectorFollowUps", icon: Workflow },
     ],
   },
   {
-    title: "资产",
+    title: "sidebar.group.assets",
     items: [
-      { to: "/genres", label: "题材基底库", icon: Tags },
-      { to: "/story-modes", label: "推进模式库", icon: Workflow },
-      { to: "/titles", label: "标题工坊", icon: SquarePen },
-      { to: "/knowledge", label: "知识库", icon: Database },
-      { to: "/worlds", label: "世界样本库", icon: Globe2 },
-      { to: "/style-engine", label: "写法引擎", icon: WandSparkles },
-      { to: "/anti-ai-rules", label: "反 AI 规则", icon: ShieldCheck },
-      { to: "/base-characters", label: "基础角色库", icon: UsersRound },
+      { to: "/genres", label: "sidebar.nav.genres", icon: Tags },
+      { to: "/story-modes", label: "sidebar.nav.storyModes", icon: Workflow },
+      { to: "/titles", label: "sidebar.nav.titles", icon: SquarePen },
+      { to: "/knowledge", label: "sidebar.nav.knowledge", icon: Database },
+      { to: "/worlds", label: "sidebar.nav.worlds", icon: Globe2 },
+      { to: "/style-engine", label: "sidebar.nav.styleEngine", icon: WandSparkles },
+      { to: "/anti-ai-rules", label: "sidebar.nav.antiAiRules", icon: ShieldCheck },
+      { to: "/base-characters", label: "sidebar.nav.baseCharacters", icon: UsersRound },
     ],
   },
   {
-    title: "系统",
+    title: "sidebar.group.system",
     items: [
-      { to: "/prompt-workbench", label: "提示词管理", icon: Braces },
-      { to: "/settings/model-routes", label: "模型路由", icon: Route },
-      { to: "/settings", label: "系统设置", icon: Settings2 },
+      { to: "/prompt-workbench", label: "sidebar.nav.promptWorkbench", icon: Braces },
+      { to: "/settings/model-routes", label: "sidebar.nav.modelRoutes", icon: Route },
+      { to: "/settings", label: "sidebar.nav.settings", icon: Settings2 },
     ],
   },
 ];
@@ -89,6 +90,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
+  const { t } = useTranslation("componentsLayout");
   const [badgeQueriesEnabled, setBadgeQueriesEnabled] = useState(false);
 
   useEffect(() => {
@@ -139,7 +141,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         <Badge
           variant="outline"
           className="ml-auto h-5 border-amber-300 bg-amber-50 px-1.5 text-[10px] font-medium text-amber-700"
-          title="漫画工作台仍在 Beta 阶段"
+          title={t("sidebar.comicBetaTip")}
         >
           Beta
         </Badge>
@@ -217,8 +219,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           size="icon"
           className="h-8 w-8 text-muted-foreground"
           onClick={onToggle}
-          aria-label={collapsed ? "展开导航栏" : "收起导航栏"}
-          title={collapsed ? "展开导航栏" : "收起导航栏"}
+          aria-label={collapsed ? t("sidebar.expandNav") : t("sidebar.collapseNav")}
+          title={collapsed ? t("sidebar.expandNav") : t("sidebar.collapseNav")}
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
@@ -229,7 +231,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           <div key={group.title} className="space-y-1">
             {!collapsed ? (
               <div className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
-                {group.title}
+                {t(group.title)}
               </div>
             ) : (
               <div className="mx-auto h-px w-8 bg-border/70" />
@@ -243,7 +245,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 return (
                   <div
                     key={item.to}
-                    title={collapsed ? item.label : "即将推出"}
+                    title={collapsed ? t(item.label) : t("sidebar.comingSoon")}
                     className={cn(
                       "relative flex cursor-not-allowed items-center rounded-md text-sm opacity-40",
                       collapsed ? "justify-center px-2 py-2.5" : "py-2 pl-4 pr-2",
@@ -251,17 +253,17 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
                   >
                     <Icon className={cn("h-[18px] w-[18px] shrink-0", collapsed ? "mx-auto" : "mr-3")} />
                     {!collapsed ? (
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate">{t(item.label)}</span>
                     ) : null}
                     {!collapsed ? (
-                      <span className="ml-auto text-[10px] text-muted-foreground/60">即将推出</span>
+                      <span className="ml-auto text-[10px] text-muted-foreground/60">{t("sidebar.comingSoon")}</span>
                     ) : null}
                   </div>
                 );
               }
 
               return (
-                <NavLink key={item.to} to={item.to} title={collapsed ? item.label : undefined}>
+                <NavLink key={item.to} to={item.to} title={collapsed ? t(item.label) : undefined}>
                   {({ isActive }) => (
                     <div
                       className={cn(
@@ -291,7 +293,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
                       {!collapsed ? (
                         <span className={cn("truncate", isNovelEntry && "font-semibold")}>
-                          {item.label}
+                          {t(item.label)}
                         </span>
                       ) : null}
 

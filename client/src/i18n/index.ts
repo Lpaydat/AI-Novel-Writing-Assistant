@@ -79,6 +79,22 @@ import zhWorldsComponentsA from "@/locales/zh/worldsComponentsA.json";
 import enWorldsComponentsA from "@/locales/en/worldsComponentsA.json";
 import zhWorldsComponentsB from "@/locales/zh/worldsComponentsB.json";
 import enWorldsComponentsB from "@/locales/en/worldsComponentsB.json";
+import zhNovelsEditA from "@/locales/zh/novelsEditA.json";
+import enNovelsEditA from "@/locales/en/novelsEditA.json";
+import zhNovelsEditB from "@/locales/zh/novelsEditB.json";
+import enNovelsEditB from "@/locales/en/novelsEditB.json";
+import zhNovelsEditC from "@/locales/zh/novelsEditC.json";
+import enNovelsEditC from "@/locales/en/novelsEditC.json";
+import zhNovelsEditD from "@/locales/zh/novelsEditD.json";
+import enNovelsEditD from "@/locales/en/novelsEditD.json";
+import zhComponentsLayout from "@/locales/zh/componentsLayout.json";
+import enComponentsLayout from "@/locales/en/componentsLayout.json";
+import zhComponentsTension from "@/locales/zh/componentsTension.json";
+import enComponentsTension from "@/locales/en/componentsTension.json";
+import zhComponentsCommon from "@/locales/zh/componentsCommon.json";
+import enComponentsCommon from "@/locales/en/componentsCommon.json";
+import zhComponentsMisc from "@/locales/zh/componentsMisc.json";
+import enComponentsMisc from "@/locales/en/componentsMisc.json";
 import { getActiveLocale, type AppLocale } from "./localeHeaders";
 
 export const SUPPORTED_LOCALES = ["zh", "en"] as const;
@@ -123,6 +139,14 @@ export const localeResources = {
     storeHooks: zhStoreHooks,
     worldsComponentsA: zhWorldsComponentsA,
     worldsComponentsB: zhWorldsComponentsB,
+    novelsEditA: zhNovelsEditA,
+    novelsEditB: zhNovelsEditB,
+    novelsEditC: zhNovelsEditC,
+    novelsEditD: zhNovelsEditD,
+    componentsLayout: zhComponentsLayout,
+    componentsTension: zhComponentsTension,
+    componentsCommon: zhComponentsCommon,
+    componentsMisc: zhComponentsMisc,
   },
   en: {
     home: enHome,
@@ -158,6 +182,14 @@ export const localeResources = {
     storeHooks: enStoreHooks,
     worldsComponentsA: enWorldsComponentsA,
     worldsComponentsB: enWorldsComponentsB,
+    novelsEditA: enNovelsEditA,
+    novelsEditB: enNovelsEditB,
+    novelsEditC: enNovelsEditC,
+    novelsEditD: enNovelsEditD,
+    componentsLayout: enComponentsLayout,
+    componentsTension: enComponentsTension,
+    componentsCommon: enComponentsCommon,
+    componentsMisc: enComponentsMisc,
   },
 } as const;
 
@@ -203,6 +235,14 @@ void i18n.use(initReactI18next).init({
     "storeHooks",
     "worldsComponentsA",
     "worldsComponentsB",
+    "novelsEditA",
+    "novelsEditB",
+    "novelsEditC",
+    "novelsEditD",
+    "componentsLayout",
+    "componentsTension",
+    "componentsCommon",
+    "componentsMisc",
   ],
   // Keys are flat strings that intentionally contain dots (e.g.
   // "metric.liveWorkflow.title"). Disable both separators so i18next treats

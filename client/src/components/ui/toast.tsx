@@ -1,7 +1,9 @@
 import type { ExternalToast, ToasterProps } from "sonner";
 import { Toaster as SonnerToaster, toast as sonnerToast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 function Toaster(props: ToasterProps) {
+  const { t } = useTranslation("componentsMisc");
   const { toastOptions, mobileOffset, offset, ...restProps } = props;
   return (
     <SonnerToaster
@@ -11,7 +13,7 @@ function Toaster(props: ToasterProps) {
       mobileOffset={mobileOffset ?? 12}
       toastOptions={{
         ...toastOptions,
-        closeButtonAriaLabel: toastOptions?.closeButtonAriaLabel ?? "关闭提示",
+        closeButtonAriaLabel: toastOptions?.closeButtonAriaLabel ?? t("toast.closeAriaLabel"),
         classNames: {
           ...toastOptions?.classNames,
           toast: `max-w-[calc(100vw-1.5rem)] overflow-visible ${toastOptions?.classNames?.toast ?? ""}`.trim(),

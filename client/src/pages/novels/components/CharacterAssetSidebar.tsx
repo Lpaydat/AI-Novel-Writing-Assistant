@@ -1,7 +1,9 @@
 import type { Character } from "@ai-novel/shared/types/novel";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { isProtagonistCharacter } from "./characterAssetWorkspace.helpers";
+import i18n from "@/i18n";
 
 interface CharacterAssetSidebarProps {
   characters: Character[];
@@ -25,7 +27,7 @@ function getCharacterCardClass(isSelected: boolean, isProtagonist: boolean): str
 }
 
 function confirmDeleteCharacter(character: Character, onDeleteCharacter: (characterId: string) => void) {
-  const confirmed = window.confirm(`确认删除角色“${character.name}”？此操作不可恢复。`);
+  const confirmed = window.confirm(i18n.t("sidebar.confirmDelete", { ns: "novelsEditA", name: character.name }));
   if (!confirmed) {
     return;
   }
@@ -41,6 +43,7 @@ function CharacterCard(props: {
   deletingCharacterId: string;
   isProtagonist?: boolean;
 }) {
+  const { t } = useTranslation("novelsEditA");
   const {
     character,
     selectedCharacterId,
@@ -53,9 +56,9 @@ function CharacterCard(props: {
   const isSelected = selectedCharacterId === character.id;
   const isDeletingThis = isDeletingCharacter && deletingCharacterId === character.id;
   const supportingLine = isProtagonist
-    ? character.currentGoal || character.storyFunction || character.role || "待补全主角目标"
-    : character.relationToProtagonist || character.role || "待补全角色定位";
-  const supportingLabel = character.relationToProtagonist ? "与主角关系" : "定位";
+    ? character.currentGoal || character.storyFunction || character.role || t("sidebar.protagonistGoalPlaceholder")
+    : character.relationToProtagonist || character.role || t("sidebar.rolePlaceholder");
+  const supportingLabel = character.relationToProtagonist ? t("sidebar.relationLabel") : t("sidebar.positionLabel");
 
   return (
     <div className={getCharacterCardClass(isSelected, isProtagonist)}>
@@ -66,14 +69,14 @@ function CharacterCard(props: {
       >
         <div className="flex flex-wrap items-center gap-2">
           <div className="truncate font-medium">{character.name}</div>
-          {isProtagonist ? <Badge variant="secondary">主角</Badge> : null}
+          {isProtagonist ? <Badge variant="secondary">{t("common.protagonist")}</Badge> : null}
         </div>
         <div className="mt-1 text-xs text-muted-foreground">
-          {isProtagonist ? `身份：${character.role || "待补全"}` : `${supportingLabel}：${supportingLine}`}
+          {isProtagonist ? t("sidebar.identity", { value: character.role || t("common.toFill") }) : t("sidebar.labeledLine", { label: supportingLabel, value: supportingLine })}
         </div>
         {isProtagonist ? (
           <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-            当前目标：{supportingLine}
+            {t("common.currentGoal", { value: supportingLine })}
           </div>
         ) : null}
       </button>
@@ -84,13 +87,14 @@ function CharacterCard(props: {
         onClick={() => confirmDeleteCharacter(character, onDeleteCharacter)}
         className="shrink-0 self-center"
       >
-        {isDeletingThis ? "删除中..." : "删除"}
+        {isDeletingThis ? t("common.deleting") : t("common.delete")}
       </Button>
     </div>
   );
 }
 
 export default function CharacterAssetSidebar(props: CharacterAssetSidebarProps) {
+  const { t } = useTranslation("novelsEditA");
   const {
     characters,
     selectedCharacterId,
@@ -107,7 +111,7 @@ export default function CharacterAssetSidebar(props: CharacterAssetSidebarProps)
       <section className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Protagonist</div>
-          {protagonist ? <Badge variant="outline">主角</Badge> : null}
+          {protagonist ? <Badge variant="outline">{t("common.protagonist")}</Badge> : null}
         </div>
         {protagonist ? (
           <CharacterCard
@@ -121,18 +125,18 @@ export default function CharacterAssetSidebar(props: CharacterAssetSidebarProps)
           />
         ) : (
           <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-3 text-xs leading-5 text-muted-foreground">
-            当前阵容还没有标记主角，可在角色定位中补充主角信息。
+            {t("sidebar.noProtagonist")}
           </div>
         )}
       </section>
 
       <section className="space-y-2">
         <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-          配角与关系角色
+          {t("sidebar.supportingSection")}
         </div>
         {characters.length === 0 ? (
           <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-            当前小说还没有角色，先在上方向导里创建或导入角色。
+            {t("sidebar.noCharacters")}
           </div>
         ) : supportingCharacters.length > 0 ? (
           <div className="max-h-[460px] space-y-2 overflow-auto pr-1">
@@ -150,7 +154,7 @@ export default function CharacterAssetSidebar(props: CharacterAssetSidebarProps)
           </div>
         ) : (
           <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-            当前阵容只有主角，后续可补充对手、同盟或关系压力角色。
+            {t("sidebar.onlyProtagonist")}
           </div>
         )}
       </section>

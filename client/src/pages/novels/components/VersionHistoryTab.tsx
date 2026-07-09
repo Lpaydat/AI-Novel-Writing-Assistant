@@ -1,4 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { createNovelSnapshot, listNovelSnapshots, restoreNovelSnapshot } from "@/api/novel";
 import { queryKeys } from "@/api/queryKeys";
 import { Badge } from "@/components/ui/badge";
@@ -9,20 +11,21 @@ interface VersionHistoryTabProps {
   novelId: string;
 }
 
-function formatSnapshotTrigger(triggerType: string): string {
+function formatSnapshotTrigger(triggerType: string, t: TFunction): string {
   if (triggerType === "manual") {
-    return "手动保存";
+    return t("versionHistory.trigger.manual");
   }
   if (triggerType === "auto_milestone") {
-    return "自动里程碑";
+    return t("versionHistory.trigger.autoMilestone");
   }
   if (triggerType === "before_pipeline") {
-    return "批量处理前";
+    return t("versionHistory.trigger.beforePipeline");
   }
-  return "版本快照";
+  return t("versionHistory.trigger.snapshot");
 }
 
 export default function VersionHistoryTab({ novelId }: VersionHistoryTabProps) {
+  const { t } = useTranslation("novelsEditD");
   const queryClient = useQueryClient();
   const snapshotsQuery = useQuery({
     queryKey: queryKeys.novels.snapshots(novelId),
@@ -54,13 +57,13 @@ export default function VersionHistoryTab({ novelId }: VersionHistoryTabProps) {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-muted/15 p-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <div className="font-medium">版本历史</div>
+          <div className="font-medium">{t("versionHistory.title")}</div>
           <div className="text-sm text-muted-foreground">
-            这里优先帮你找回最近的稳定版本。恢复前系统会自动再备份一次当前状态。
+            {t("versionHistory.desc")}
           </div>
         </div>
         <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
-          {createMutation.isPending ? "保存中..." : "保存当前版本"}
+          {createMutation.isPending ? t("common.saving") : t("versionHistory.saveCurrent")}
         </Button>
       </div>
 
@@ -73,21 +76,21 @@ export default function VersionHistoryTab({ novelId }: VersionHistoryTabProps) {
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-3">
                   <div className="space-y-1">
-                    <div className="font-medium">{snapshot.label || "未命名版本"}</div>
+                    <div className="font-medium">{snapshot.label || t("versionHistory.unnamedVersion")}</div>
                     <div className="text-xs text-muted-foreground">
-                      {formatSnapshotTrigger(snapshot.triggerType)} · {formatLocaleDateTime(snapshot.createdAt)}
+                      {formatSnapshotTrigger(snapshot.triggerType, t)} · {formatLocaleDateTime(snapshot.createdAt)}
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
                     <Badge variant={snapshot.triggerType === "manual" ? "secondary" : "outline"}>
-                      {formatSnapshotTrigger(snapshot.triggerType)}
+                      {formatSnapshotTrigger(snapshot.triggerType, t)}
                     </Badge>
                     <Badge variant="outline">{new Date(snapshot.createdAt).toLocaleDateString()}</Badge>
                   </div>
 
                   <div className="text-sm leading-6 text-muted-foreground">
-                    这个版本适合在你想退回到更稳定的章节推进状态时使用。
+                    {t("versionHistory.snapshotDesc")}
                   </div>
                 </div>
 
@@ -95,14 +98,14 @@ export default function VersionHistoryTab({ novelId }: VersionHistoryTabProps) {
                   variant="secondary"
                   size="sm"
                   onClick={() => {
-                    const confirmed = window.confirm("恢复前会自动备份当前状态。确认恢复这个版本吗？");
+                    const confirmed = window.confirm(t("versionHistory.restoreConfirm"));
                     if (confirmed) {
                       restoreMutation.mutate(snapshot.id);
                     }
                   }}
                   disabled={restoreMutation.isPending}
                 >
-                  {isRestoringCurrent ? "恢复中..." : "恢复到这个版本"}
+                  {isRestoringCurrent ? t("versionHistory.restoring") : t("versionHistory.restore")}
                 </Button>
               </div>
             </div>
@@ -110,7 +113,7 @@ export default function VersionHistoryTab({ novelId }: VersionHistoryTabProps) {
         })}
         {snapshots.length === 0 ? (
           <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-            当前还没有版本记录。建议在大改方向、批量生成或大段重写前，先手动保存一个版本。
+            {t("versionHistory.empty")}
           </div>
         ) : null}
       </div>

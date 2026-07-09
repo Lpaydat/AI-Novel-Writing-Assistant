@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import type { APIKeyStatus } from "@/api/settings";
 import { getAPIKeySettings } from "@/api/settings";
@@ -15,6 +16,7 @@ function hasUsableDesktopProviderConfig(providerConfigs: APIKeyStatus[]): boolea
 }
 
 export default function DesktopModelSetupGate() {
+  const { t } = useTranslation("componentsLayout");
   const location = useLocation();
   const shouldCheckDesktopSetup = APP_RUNTIME === "desktop" && APP_RUNTIME_IS_PACKAGED;
   const settingsQuery = useQuery({
@@ -89,7 +91,7 @@ export default function DesktopModelSetupGate() {
               <Link to="/settings">Open model settings</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/help">查看新手上路</Link>
+              <Link to="/help">{t("modelSetupGate.viewOnboarding")}</Link>
             </Button>
           </div>
         </CardContent>

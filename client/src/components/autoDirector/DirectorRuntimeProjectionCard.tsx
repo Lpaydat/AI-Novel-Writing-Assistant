@@ -12,6 +12,8 @@ import {
   ShieldCheck,
   XCircle,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -23,11 +25,11 @@ interface DirectorRuntimeProjectionCardProps {
 
 function formatDate(value: string | null | undefined): string {
   if (!value) {
-    return "暂无";
+    return i18n.t("common.none", { ns: "componentsMisc" });
   }
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return "暂无";
+    return i18n.t("common.none", { ns: "componentsMisc" });
   }
   return date.toLocaleString();
 }
@@ -43,14 +45,16 @@ function formatDuration(value: number | null | undefined): string | null {
   }
   const seconds = Math.round(value / 1000);
   if (seconds <= 0) {
-    return "<1 秒";
+    return i18n.t("common.duration.lessThanOneSecond", { ns: "componentsMisc" });
   }
   if (seconds < 60) {
-    return `${seconds} 秒`;
+    return i18n.t("common.duration.seconds", { ns: "componentsMisc", seconds });
   }
   const minutes = Math.floor(seconds / 60);
   const restSeconds = seconds % 60;
-  return restSeconds > 0 ? `${minutes} 分 ${restSeconds} 秒` : `${minutes} 分`;
+  return restSeconds > 0
+    ? i18n.t("common.duration.minutesSeconds", { ns: "componentsMisc", minutes, seconds: restSeconds })
+    : i18n.t("common.duration.minutes", { ns: "componentsMisc", minutes });
 }
 
 function formatUsageLine(usage: {
@@ -62,44 +66,44 @@ function formatUsageLine(usage: {
 }): string {
   const duration = formatDuration(usage.durationMs);
   return [
-    `${formatTokenCount(usage.llmCallCount)} 次调用`,
-    `输入 ${formatTokenCount(usage.promptTokens)}`,
-    `输出 ${formatTokenCount(usage.completionTokens)}`,
-    `总计 ${formatTokenCount(usage.totalTokens)} Tokens`,
-    duration ? `累计调用耗时 ${duration}` : null,
+    i18n.t("common.usage.calls", { ns: "componentsMisc", calls: formatTokenCount(usage.llmCallCount) }),
+    i18n.t("common.usage.input", { ns: "componentsMisc", value: formatTokenCount(usage.promptTokens) }),
+    i18n.t("common.usage.output", { ns: "componentsMisc", value: formatTokenCount(usage.completionTokens) }),
+    i18n.t("common.usage.total", { ns: "componentsMisc", value: formatTokenCount(usage.totalTokens) }),
+    duration ? i18n.t("common.usage.duration", { ns: "componentsMisc", duration }) : null,
   ].filter(Boolean).join(" · ");
 }
 
 function formatPolicyMode(mode: DirectorPolicyMode): string {
   if (mode === "suggest_only") {
-    return "只给建议";
+    return i18n.t("runtimeProjection.policy.suggestOnly", { ns: "componentsMisc" });
   }
   if (mode === "run_next_step") {
-    return "推进下一步";
+    return i18n.t("runtimeProjection.policy.runNextStep", { ns: "componentsMisc" });
   }
   if (mode === "auto_safe_scope") {
-    return "安全范围自动推进";
+    return i18n.t("runtimeProjection.policy.autoSafeScope", { ns: "componentsMisc" });
   }
-  return "推进到检查点";
+  return i18n.t("runtimeProjection.policy.runToCheckpoint", { ns: "componentsMisc" });
 }
 
 function formatStatus(status: DirectorRuntimeProjectionStatus): string {
   if (status === "running") {
-    return "推进中";
+    return i18n.t("runtimeProjection.status.running", { ns: "componentsMisc" });
   }
   if (status === "waiting_approval") {
-    return "等待确认";
+    return i18n.t("runtimeProjection.status.waitingApproval", { ns: "componentsMisc" });
   }
   if (status === "blocked") {
-    return "已暂停";
+    return i18n.t("runtimeProjection.status.blocked", { ns: "componentsMisc" });
   }
   if (status === "failed") {
-    return "失败";
+    return i18n.t("runtimeProjection.status.failed", { ns: "componentsMisc" });
   }
   if (status === "completed") {
-    return "已完成";
+    return i18n.t("runtimeProjection.status.completed", { ns: "componentsMisc" });
   }
-  return "待开始";
+  return i18n.t("runtimeProjection.status.pending", { ns: "componentsMisc" });
 }
 
 function statusClassName(status: DirectorRuntimeProjectionStatus): string {
@@ -152,9 +156,12 @@ function formatQualityDebtSummary(summary: DirectorRuntimeProjection["qualityDeb
     return null;
   }
   const orderText = summary.deferredChapterOrders.length > 0
-    ? `：第 ${summary.deferredChapterOrders.join("、")} 章`
+    ? i18n.t("runtimeProjection.qualityDebt.orders", {
+      ns: "componentsMisc",
+      orders: summary.deferredChapterOrders.join(i18n.t("common.listSeparator", { ns: "componentsMisc" })),
+    })
     : "";
-  return `质量待回收${orderText}。系统会先继续写后续章节，并在质量修复阶段回收这些问题。`;
+  return i18n.t("runtimeProjection.qualityDebt.summary", { ns: "componentsMisc", orderText });
 }
 
 function formatQualityBudgetSummary(summary: DirectorRuntimeProjection["qualityBudgetSummary"] | null | undefined): string | null {
@@ -162,9 +169,16 @@ function formatQualityBudgetSummary(summary: DirectorRuntimeProjection["qualityB
     return null;
   }
   const chapterText = typeof summary.currentChapterOrder === "number"
-    ? `第 ${summary.currentChapterOrder} 章`
-    : "当前章节";
-  return `${chapterText}质量预算：局部修复 ${summary.patchRepairUsed}/1，整章重写 ${summary.chapterRewriteUsed}/1，窗口重规划 ${summary.windowReplanUsed}/1。${summary.nextActionLabel}`;
+    ? i18n.t("runtimeProjection.qualityBudget.chapter", { ns: "componentsMisc", order: summary.currentChapterOrder })
+    : i18n.t("runtimeProjection.qualityBudget.currentChapter", { ns: "componentsMisc" });
+  return i18n.t("runtimeProjection.qualityBudget.summary", {
+    ns: "componentsMisc",
+    chapter: chapterText,
+    patch: summary.patchRepairUsed,
+    rewrite: summary.chapterRewriteUsed,
+    replan: summary.windowReplanUsed,
+    nextAction: summary.nextActionLabel,
+  });
 }
 
 function formatRootCauseSummary(projection: DirectorRuntimeProjection): string | null {
@@ -172,15 +186,15 @@ function formatRootCauseSummary(projection: DirectorRuntimeProjection): string |
     return null;
   }
   if (projection.rootCauseCode === "replan_required") {
-    return "当前问题来自章节职责失配，系统需要先调整附近章节安排。";
+    return i18n.t("runtimeProjection.rootCause.replanRequired", { ns: "componentsMisc" });
   }
   if (projection.rootCauseCode === "draft_obligation_unmet") {
-    return "正文已经生成，但仍有本章必须完成的内容没有兑现。";
+    return i18n.t("runtimeProjection.rootCause.draftObligationUnmet", { ns: "componentsMisc" });
   }
   if (projection.rootCauseCode === "draft_repair_exhausted") {
-    return "正文已经生成，但自动修复后仍有阻塞问题需要继续处理。";
+    return i18n.t("runtimeProjection.rootCause.draftRepairExhausted", { ns: "componentsMisc" });
   }
-  return "正文没有成功生成，需要重新执行当前章节。";
+  return i18n.t("runtimeProjection.rootCause.default", { ns: "componentsMisc" });
 }
 
 function formatPercent(value: number | null | undefined): string {
@@ -195,19 +209,20 @@ export default function DirectorRuntimeProjectionCard({
   className,
   compact = false,
 }: DirectorRuntimeProjectionCardProps) {
+  const { t } = useTranslation("componentsMisc");
   if (!projection) {
     return null;
   }
   const primaryText = projection.headline?.trim()
     || projection.currentLabel?.trim()
     || projection.lastEventSummary?.trim()
-    || "等待同步当前推进状态";
+    || t("runtimeProjection.awaitingSync");
   const detailText = projection.detail?.trim();
   const attentionText = projection.requiresUserAction
     ? projection.blockingReason?.trim()
       || projection.blockedReason?.trim()
       || projection.lastEventSummary?.trim()
-      || "请先处理当前停留点。"
+      || t("runtimeProjection.handleStop")
     : projection.blockingReason?.trim() || projection.blockedReason?.trim();
   const progressLine = projection.progressBreakdown?.explanation?.trim()
     || projection.progressSummary?.trim()
@@ -216,29 +231,35 @@ export default function DirectorRuntimeProjectionCard({
   const qualityBudgetLine = formatQualityBudgetSummary(projection.qualityBudgetSummary);
   const rootCauseLine = formatRootCauseSummary(projection);
   const obligationLine = projection.blockingObligations && projection.blockingObligations.length > 0
-    ? `仍需处理：${projection.blockingObligations.slice(0, 3).map((item) => item.summary).join("；")}`
+    ? t("runtimeProjection.obligationLine", {
+      items: projection.blockingObligations.slice(0, 3).map((item) => item.summary).join(t("common.semicolonSeparator")),
+    })
     : null;
   const activeExecutionLine = projection.activeExecution
-    ? `后台执行：${getDirectorNodeDisplayLabel({
-      nodeKey: projection.activeExecution.stepType,
-      fallback: projection.currentAction || "自动导演任务",
+    ? `${t("runtimeProjection.backgroundExec", {
+      label: getDirectorNodeDisplayLabel({
+        nodeKey: projection.activeExecution.stepType,
+        fallback: projection.currentAction || t("runtimeProjection.autoDirectorTask"),
+      }),
     })}${projection.activeExecution.resourceClass ? ` · ${projection.activeExecution.resourceClass}` : ""}`
     : null;
-  const waitingLine = projection.waitingReason ? `等待原因：${projection.waitingReason}` : null;
+  const waitingLine = projection.waitingReason
+    ? t("runtimeProjection.waitingReason", { reason: projection.waitingReason })
+    : null;
   const workerHealthLine = projection.workerHealth
     ? [
-      `执行队列：${projection.workerHealth.queuedCommandCount} 个等待`,
-      projection.workerHealth.runningCommandCount > 0 ? `${projection.workerHealth.runningCommandCount} 个处理中` : null,
-      projection.workerHealth.currentWorkerId ? `执行器：${projection.workerHealth.currentWorkerId}` : null,
+      t("runtimeProjection.worker.queue", { waiting: projection.workerHealth.queuedCommandCount }),
+      projection.workerHealth.runningCommandCount > 0 ? t("runtimeProjection.worker.processing", { processing: projection.workerHealth.runningCommandCount }) : null,
+      projection.workerHealth.currentWorkerId ? t("runtimeProjection.worker.workerId", { id: projection.workerHealth.currentWorkerId }) : null,
     ].filter(Boolean).join(" · ")
     : null;
   const helperLines = [
     activeExecutionLine,
     waitingLine,
     workerHealthLine,
-    projection.nextActionLabel ? `下一步：${projection.nextActionLabel}` : null,
-    projection.recommendedAction?.reason ? `推荐原因：${projection.recommendedAction.reason}` : null,
-    projection.isAutopilotRecoverable ? "AI 可以从当前进度继续处理。" : null,
+    projection.nextActionLabel ? t("runtimeProjection.nextStep", { label: projection.nextActionLabel }) : null,
+    projection.recommendedAction?.reason ? t("runtimeProjection.recommendReason", { reason: projection.recommendedAction.reason }) : null,
+    projection.isAutopilotRecoverable ? t("runtimeProjection.autopilotRecoverable") : null,
     rootCauseLine,
     obligationLine,
     qualityBudgetLine,
@@ -259,7 +280,7 @@ export default function DirectorRuntimeProjectionCard({
         <div className="flex min-w-0 items-start gap-2">
           <span className="mt-0.5 shrink-0">{statusIcon(projection.status)}</span>
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-foreground">导演进度</div>
+            <div className="text-sm font-semibold text-foreground">{t("runtimeProjection.headingLabel")}</div>
             <div className="mt-1 text-sm leading-5">{primaryText}</div>
           </div>
         </div>
@@ -281,19 +302,19 @@ export default function DirectorRuntimeProjectionCard({
       {progressBreakdown && !compact ? (
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <div className="rounded-md border bg-background/70 px-3 py-2">
-            <div className="text-[11px] text-muted-foreground">规划</div>
+            <div className="text-[11px] text-muted-foreground">{t("runtimeProjection.metric.planning")}</div>
             <div className="mt-1 text-sm font-semibold text-foreground">{formatPercent(progressBreakdown.planningProgress ?? progressBreakdown.planningPercent)}</div>
           </div>
           <div className="rounded-md border bg-background/70 px-3 py-2">
-            <div className="text-[11px] text-muted-foreground">章节</div>
+            <div className="text-[11px] text-muted-foreground">{t("runtimeProjection.metric.chapters")}</div>
             <div className="mt-1 text-sm font-semibold text-foreground">{progressBreakdown.continuableChapters}/{progressBreakdown.totalChapters}</div>
           </div>
           <div className="rounded-md border bg-background/70 px-3 py-2">
-            <div className="text-[11px] text-muted-foreground">质量</div>
+            <div className="text-[11px] text-muted-foreground">{t("runtimeProjection.metric.quality")}</div>
             <div className="mt-1 text-sm font-semibold text-foreground">{formatPercent(progressBreakdown.qualityProgress ?? progressBreakdown.qualityRepairPercent)}</div>
           </div>
           <div className="rounded-md border bg-background/70 px-3 py-2">
-            <div className="text-[11px] text-muted-foreground">当前动作</div>
+            <div className="text-[11px] text-muted-foreground">{t("runtimeProjection.metric.currentAction")}</div>
             <div className="mt-1 text-sm font-semibold text-foreground">{formatPercent(progressBreakdown.activeJobProgress)}</div>
           </div>
         </div>
@@ -301,7 +322,7 @@ export default function DirectorRuntimeProjectionCard({
 
       {attentionText ? (
         <div className="mt-3 rounded-md border bg-background/70 px-3 py-2 text-sm leading-5">
-          {projection.requiresUserAction ? "需要你处理：" : "暂停原因："}{attentionText}
+          {projection.requiresUserAction ? t("runtimeProjection.needAttention") : t("runtimeProjection.pauseReason")}{attentionText}
         </div>
       ) : null}
 
@@ -323,11 +344,11 @@ export default function DirectorRuntimeProjectionCard({
 
       {usageSummary ? (
         <div className="mt-3 rounded-md border bg-background/70 px-3 py-2 text-xs leading-5 text-muted-foreground">
-          <div className="font-medium text-foreground">AI 用量</div>
+          <div className="font-medium text-foreground">{t("common.usage.heading")}</div>
           <div className="mt-1">{formatUsageLine(usageSummary)}</div>
           {promptUsage.length > 0 && !compact ? (
             <div className="mt-2 space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground">阶段用量</div>
+              <div className="text-[11px] font-medium text-muted-foreground">{t("common.usage.stageHeading")}</div>
               {promptUsage.map((item) => (
                 <div key={`${item.promptAssetKey}:${item.promptVersion ?? ""}:${item.nodeKey ?? ""}`} className="flex flex-wrap items-center justify-between gap-2 border-t pt-1">
                   <span className="min-w-0 truncate text-foreground">
@@ -340,7 +361,7 @@ export default function DirectorRuntimeProjectionCard({
           ) : null}
           {stepUsage.length > 0 && !compact ? (
             <div className="mt-2 space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground">推进步骤</div>
+              <div className="text-[11px] font-medium text-muted-foreground">{t("common.usage.stepHeading")}</div>
               {stepUsage.map((item) => (
                 <div key={item.stepIdempotencyKey} className="flex flex-wrap items-center justify-between gap-2 border-t pt-1">
                   <span className="min-w-0 truncate text-foreground">
@@ -355,13 +376,13 @@ export default function DirectorRuntimeProjectionCard({
       ) : null}
 
       <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-        <span className="rounded-full bg-background/70 px-2 py-1">推进方式：{formatPolicyMode(projection.policyMode)}</span>
-        <span className="rounded-full bg-background/70 px-2 py-1">更新时间：{formatDate(projection.updatedAt)}</span>
+        <span className="rounded-full bg-background/70 px-2 py-1">{t("runtimeProjection.policyModeLabel")}{formatPolicyMode(projection.policyMode)}</span>
+        <span className="rounded-full bg-background/70 px-2 py-1">{t("runtimeProjection.updatedAtLabel")}{formatDate(projection.updatedAt)}</span>
       </div>
 
       {recentEvents.length > 0 && !compact ? (
         <div className="mt-3 space-y-2">
-          <div className="text-xs font-medium text-muted-foreground">最近进展</div>
+          <div className="text-xs font-medium text-muted-foreground">{t("runtimeProjection.recentProgress")}</div>
           {recentEvents.map((event) => (
             <div key={event.eventId} className="rounded-md border bg-background/70 px-3 py-2 text-xs leading-5">
               <div className="text-foreground">{event.summary}</div>

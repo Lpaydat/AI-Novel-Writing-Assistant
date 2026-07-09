@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -31,14 +32,18 @@ export default function SearchableSelect({
   value,
   onValueChange,
   options,
-  placeholder = "请选择",
-  searchPlaceholder = "搜索",
-  emptyText = "没有可选项",
+  placeholder: placeholderProp,
+  searchPlaceholder: searchPlaceholderProp,
+  emptyText: emptyTextProp,
   disabled = false,
   className,
   triggerClassName,
   contentClassName,
 }: SearchableSelectProps) {
+  const { t } = useTranslation("componentsCommon");
+  const placeholder = placeholderProp ?? t("searchableSelect.placeholder");
+  const searchPlaceholder = searchPlaceholderProp ?? t("searchableSelect.searchPlaceholder");
+  const emptyText = emptyTextProp ?? t("searchableSelect.emptyText");
   const rootRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [open, setOpen] = useState(false);

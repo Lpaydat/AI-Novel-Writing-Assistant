@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import LLMSelector from "@/components/common/LLMSelector";
 import LocaleSwitcher from "@/components/common/LocaleSwitcher";
@@ -16,6 +17,7 @@ interface NavbarProps {
 }
 
 export default function Navbar(props: NavbarProps) {
+  const { t } = useTranslation("componentsLayout");
   const { workspaceNavMode, onWorkspaceNavModeChange } = props;
   const location = useLocation();
   const isHome = location.pathname === "/";
@@ -28,7 +30,7 @@ export default function Navbar(props: NavbarProps) {
         <DesktopBrandMark className="h-8 w-8 shrink-0 drop-shadow-none" />
         <div className="flex min-w-0 flex-col leading-tight">
           <div className="flex min-w-0 items-center gap-1.5">
-            <span className="min-w-0 truncate text-sm font-semibold">AI 小说创作工作台</span>
+            <span className="min-w-0 truncate text-sm font-semibold">{t("navbar.appTitle")}</span>
             <AppVersionBadge />
             <ProjectGithubLink />
           </div>
@@ -44,7 +46,7 @@ export default function Navbar(props: NavbarProps) {
             className={useMobileAutoDirectorShell ? AUTO_DIRECTOR_MOBILE_CLASSES.navbarWorkspaceToggle : undefined}
             onClick={() => onWorkspaceNavModeChange?.(workspaceNavMode === "workspace" ? "project" : "workspace")}
           >
-            {workspaceNavMode === "workspace" ? "项目导航" : "创作导航"}
+            {workspaceNavMode === "workspace" ? t("navbar.projectNav") : t("navbar.workspaceNav")}
           </Button>
         ) : null}
         <div className={useMobileAutoDirectorShell ? AUTO_DIRECTOR_MOBILE_CLASSES.navbarModelSelector : undefined}>

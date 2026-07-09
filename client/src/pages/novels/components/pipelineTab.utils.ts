@@ -6,13 +6,13 @@ export interface PipelineStageItem {
 }
 
 export const PIPELINE_STAGE_ITEMS: PipelineStageItem[] = [
-  { key: "assemble_context", label: "装配上下文" },
-  { key: "generate_task_sheet", label: "生成任务单" },
-  { key: "generate_scene_cards", label: "生成场景拍点" },
-  { key: "generate_content", label: "生成正文" },
-  { key: "quality_check", label: "质量检测" },
-  { key: "auto_repair", label: "自动修复" },
-  { key: "update_memory", label: "更新剧情记忆" },
+  { key: "assemble_context", label: "pipelineUtils.stage.assembleContext" },
+  { key: "generate_task_sheet", label: "pipelineUtils.stage.generateTaskSheet" },
+  { key: "generate_scene_cards", label: "pipelineUtils.stage.generateSceneCards" },
+  { key: "generate_content", label: "pipelineUtils.stage.generateContent" },
+  { key: "quality_check", label: "pipelineUtils.stage.qualityCheck" },
+  { key: "auto_repair", label: "pipelineUtils.stage.autoRepair" },
+  { key: "update_memory", label: "pipelineUtils.stage.updateMemory" },
 ];
 
 function mapCurrentStage(currentStage: string | null | undefined): string | null {

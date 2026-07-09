@@ -1,3 +1,5 @@
+import i18n from "@/i18n";
+
 export interface StorylineStructuredView {
   coreTheme: string;
   mainGoal: string;
@@ -57,16 +59,17 @@ export function parseStorylineStructuredView(draftText: string): StorylineStruct
   const endingDirection = findByKeywords(lines, ["结局", "终局", "收尾"]);
   const forbiddenItems = findByKeywords(lines, ["禁止", "避免", "禁忌"]);
 
+  const unlabeled = i18n.t("storyline.unlabeled", { ns: "novelsEditC" });
   return {
-    coreTheme: coreTheme || "未标注",
-    mainGoal: mainGoal || "未标注",
-    earlyPhase: earlyPhase || "未标注",
-    middlePhase: middlePhase || "未标注",
-    latePhase: latePhase || "未标注",
-    growthCurve: growthCurve || "未标注",
-    emotionTrend: emotionTrend || "未标注",
-    coreConflicts: coreConflicts || "未标注",
-    endingDirection: endingDirection || "未标注",
-    forbiddenItems: forbiddenItems || "未标注",
+    coreTheme: coreTheme || unlabeled,
+    mainGoal: mainGoal || unlabeled,
+    earlyPhase: earlyPhase || unlabeled,
+    middlePhase: middlePhase || unlabeled,
+    latePhase: latePhase || unlabeled,
+    growthCurve: growthCurve || unlabeled,
+    emotionTrend: emotionTrend || unlabeled,
+    coreConflicts: coreConflicts || unlabeled,
+    endingDirection: endingDirection || unlabeled,
+    forbiddenItems: forbiddenItems || unlabeled,
   };
 }

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 interface DirectorTakeoverEntryPanelProps {
   title: string;
@@ -11,6 +12,7 @@ export default function DirectorTakeoverEntryPanel({
   description,
   entry,
 }: DirectorTakeoverEntryPanelProps) {
+  const { t } = useTranslation("novelsEditB");
   if (!entry) {
     return null;
   }
@@ -25,7 +27,7 @@ export default function DirectorTakeoverEntryPanel({
         <div className="shrink-0">{entry}</div>
       </div>
       <div className="mt-2 text-xs leading-5 text-muted-foreground">
-        接管前会先读取当前项目真实进度，并明确告诉你这次会跳过、继续还是重跑哪些步骤。
+        {t("takeoverEntry.note")}
       </div>
     </section>
   );

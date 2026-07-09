@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import type {
   BaseCharacter,
@@ -57,37 +58,37 @@ interface CharacterFormState {
 }
 
 const CAST_ROLE_LABELS: Record<CharacterCastRole, string> = {
-  protagonist: "主角",
-  antagonist: "主对手",
-  ally: "同盟",
-  foil: "镜像角色",
-  mentor: "导师",
-  love_interest: "情感牵引",
-  pressure_source: "压力源",
-  catalyst: "催化者",
+  protagonist: "character.castRole.protagonist",
+  antagonist: "character.castRole.antagonist",
+  ally: "character.castRole.ally",
+  foil: "character.castRole.foil",
+  mentor: "character.castRole.mentor",
+  love_interest: "character.castRole.loveInterest",
+  pressure_source: "character.castRole.pressureSource",
+  catalyst: "character.castRole.catalyst",
 };
 const CHARACTER_GENDER_LABELS: Record<CharacterGender, string> = {
-  male: "男",
-  female: "女",
-  other: "其他",
-  unknown: "未知",
+  male: "character.gender.male",
+  female: "character.gender.female",
+  other: "character.gender.other",
+  unknown: "character.gender.unknown",
 };
 const SUPPLEMENTAL_MODE_LABELS: Record<SupplementalCharacterGenerationMode, string> = {
-  auto: "AI 判断",
-  linked: "关系补位",
-  independent: "独立补位",
+  auto: "character.supplementalMode.auto",
+  linked: "character.supplementalMode.linked",
+  independent: "character.supplementalMode.independent",
 };
 
-function getCastRoleLabel(castRole?: CharacterCastRole | "auto" | null): string {
+function getCastRoleLabelKey(castRole?: CharacterCastRole | "auto" | null): string {
   if (!castRole || castRole === "auto") {
-    return "AI 判断";
+    return "character.castRole.auto";
   }
   return CAST_ROLE_LABELS[castRole] ?? castRole;
 }
 
-function getCharacterGenderLabel(gender?: CharacterGender | null): string {
+function getCharacterGenderLabelKey(gender?: CharacterGender | null): string {
   if (!gender) {
-    return "未知";
+    return "character.gender.unknown";
   }
   return CHARACTER_GENDER_LABELS[gender] ?? gender;
 }
@@ -228,6 +229,7 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
     directorTakeoverEntry,
   } = props;
 
+  const { t } = useTranslation("novelsEditC");
   const [isCharacterEntryOpen, setIsCharacterEntryOpen] = useState(false);
   const [isSupplementalCharacterOpen, setIsSupplementalCharacterOpen] = useState(false);
   const [relationToProtagonist, setRelationToProtagonist] = useState("");
@@ -284,7 +286,7 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
 
   const handleGenerateSupplementalCharacters = async () => {
     if (supplementalMode === "linked" && characters.length === 0) {
-      setSupplementalStatusMessage("当前还没有已建角色，不能基于关系补充角色。可以先建一个核心角色，或改用“生成相对独立角色”。");
+      setSupplementalStatusMessage(t("character.supplemental.noCharactersForLinked"));
       return;
     }
 
@@ -301,9 +303,9 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
           : undefined,
       });
       setSupplementalResult(response.data ?? null);
-      setSupplementalStatusMessage(response.message ?? "补充角色候选已生成。");
+      setSupplementalStatusMessage(response.message ?? t("character.supplemental.candidatesGenerated"));
     } catch (error) {
-      setSupplementalStatusMessage(error instanceof Error ? error.message : "补充角色生成失败。");
+      setSupplementalStatusMessage(error instanceof Error ? error.message : t("character.supplemental.generateFailed"));
     }
   };
 
@@ -320,57 +322,59 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
         : prev);
       setSupplementalStatusMessage(
         response.message
-        ?? `${createdName} 已加入当前小说${relationCount > 0 ? `，并同步 ${relationCount} 条关系` : ""}。`,
+        ?? (relationCount > 0
+          ? t("character.supplemental.appliedWithRelations", { name: createdName, count: relationCount })
+          : t("character.supplemental.applied", { name: createdName })),
       );
     } catch (error) {
-      setSupplementalStatusMessage(error instanceof Error ? error.message : "应用补充角色失败。");
+      setSupplementalStatusMessage(error instanceof Error ? error.message : t("character.supplemental.applyFailed"));
     }
   };
 
   return (
     <div className="space-y-5">
       <DirectorTakeoverEntryPanel
-        title="从角色准备接管"
-        description="AI 会先判断角色资产是否齐备，再决定继续补角色还是按你的选择重跑当前步骤。"
+        title={t("character.takeoverTitle")}
+        description={t("character.takeoverDesc")}
         entry={directorTakeoverEntry}
       />
       {characterMessage ? <div className="text-sm text-muted-foreground">{characterMessage}</div> : null}
 
       <StepHero
-        eyebrow="角色阵容"
-        title="角色准备"
-        description="先看角色阵容是否能支撑主线，再维护当前角色资产；新增、导入和补位作为阶段性动作按需使用。"
+        eyebrow={t("character.heroEyebrow")}
+        title={t("character.heroTitle")}
+        description={t("character.heroDesc")}
       >
         <StatusRail
           items={[
-            { label: "已建角色", value: characters.length, description: "先把推动主线的人物占位补齐。", tone: characters.length > 0 ? "success" : "warning" },
-            { label: "核心角色", value: coreCharacterCount, description: "至少明确主角与主要对手。", tone: coreCharacterCount > 0 ? "success" : "warning" },
-            { label: "当前焦点", value: selectedCharacter?.name ?? "尚未选择角色", description: selectedCharacter?.role || `${baseCharacters.length} 个基础角色可导入`, tone: selectedCharacter ? "info" : "neutral" },
+            { label: t("character.stat.created"), value: characters.length, description: t("character.stat.createdDesc"), tone: characters.length > 0 ? "success" : "warning" },
+            { label: t("character.stat.core"), value: coreCharacterCount, description: t("character.stat.coreDesc"), tone: coreCharacterCount > 0 ? "success" : "warning" },
+            { label: t("character.stat.focus"), value: selectedCharacter?.name ?? t("character.stat.noneSelected"), description: selectedCharacter?.role || t("character.stat.baseImportable", { count: baseCharacters.length }), tone: selectedCharacter ? "info" : "neutral" },
           ]}
         />
         <StepActionBar
           className="mt-4 bg-background/70"
-          label="角色动作"
-          description="日常编辑建议直接在下方角色资产工作台里处理。"
+          label={t("character.actionsLabel")}
+          description={t("character.actionsDesc")}
           actions={(
             <>
-            <Button onClick={() => setIsCharacterEntryOpen(true)}>新增角色</Button>
+            <Button onClick={() => setIsCharacterEntryOpen(true)}>{t("character.addCharacter")}</Button>
             <AiButton variant="outline" onClick={handleOpenSupplementalDialog}>
-              补充角色
+              {t("character.supplementCharacter")}
             </AiButton>
             <AiButton
               variant="secondary"
               onClick={onEvolveCharacter}
               disabled={isEvolvingCharacter || !selectedCharacterId}
             >
-              {isEvolvingCharacter ? "演进中..." : "AI 演进当前状态"}
+              {isEvolvingCharacter ? t("character.evolving") : t("character.evolveCurrentState")}
             </AiButton>
             <AiButton
               variant="outline"
               onClick={() => onGenerateVisibleProfile()}
               disabled={isGeneratingVisibleProfile || !selectedCharacterId}
             >
-              {isGeneratingVisibleProfile ? "生成中..." : "AI 补全外显资料"}
+              {isGeneratingVisibleProfile ? t("common.generating") : t("character.completeVisibleProfile")}
             </AiButton>
             </>
           )}
@@ -380,21 +384,21 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
       <Dialog open={isCharacterEntryOpen} onOpenChange={setIsCharacterEntryOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>新增角色</DialogTitle>
+            <DialogTitle>{t("character.addCharacter")}</DialogTitle>
             <DialogDescription>
-              只有在新建角色或从基础角色库导入时才需要打开这里。日常维护请直接使用角色资产工作台。
+              {t("character.addDialogDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
             <div className="space-y-3 rounded-2xl border p-4">
               <div className="space-y-1">
-                <div className="font-medium">快速创建</div>
+                <div className="font-medium">{t("character.quickCreate")}</div>
                 <div className="text-xs text-muted-foreground">
-                  适合临时补一个新人物占位，再交给下方工作台慢慢打磨。
+                  {t("character.quickCreateDesc")}
                 </div>
               </div>
               <Input
-                placeholder="角色名称（必填）"
+                placeholder={t("character.namePlaceholder")}
                 value={quickCharacterForm.name}
                 onChange={(event) => onQuickCharacterFormChange("name", event.target.value)}
               />
@@ -403,25 +407,25 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
                 value={quickCharacterForm.role}
                 onChange={(event) => onQuickCharacterFormChange("role", event.target.value)}
               >
-                <option value="主角">主角</option>
-                <option value="配角">配角</option>
-                <option value="反派">反派</option>
-                <option value="导师">导师</option>
-                <option value="情感线">情感线</option>
-                <option value="功能角色">功能角色</option>
+                <option value="主角">{t("character.roleOption.protagonist")}</option>
+                <option value="配角">{t("character.roleOption.supporting")}</option>
+                <option value="反派">{t("character.roleOption.antagonist")}</option>
+                <option value="导师">{t("character.roleOption.mentor")}</option>
+                <option value="情感线">{t("character.roleOption.loveLine")}</option>
+                <option value="功能角色">{t("character.roleOption.functional")}</option>
               </SelectControl>
               <Input
-                placeholder="与主角关系（如：试探合作）"
+                placeholder={t("character.relationPlaceholder")}
                 value={relationToProtagonist}
                 onChange={(event) => setRelationToProtagonist(event.target.value)}
               />
               <Input
-                placeholder="在故事中的作用（如：推动真相线）"
+                placeholder={t("character.storyFunctionPlaceholder")}
                 value={storyFunction}
                 onChange={(event) => setStoryFunction(event.target.value)}
               />
               <Input
-                placeholder="角色关键词（逗号分隔）"
+                placeholder={t("character.keywordsPlaceholder")}
                 value={wizardKeywords}
                 onChange={(event) => setWizardKeywords(event.target.value)}
               />
@@ -431,18 +435,18 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
                   checked={autoGenerateProfile}
                   onChange={(event) => setAutoGenerateProfile(event.target.checked)}
                 />
-                自动补齐性格、背景、成长弧和当前状态
+                {t("character.autoCompleteProfile")}
               </label>
               <AiButton onClick={handleQuickCreate} disabled={isQuickCreating || !quickCharacterForm.name.trim()}>
-                {isQuickCreating ? "生成中..." : "AI 生成角色卡"}
+                {isQuickCreating ? t("common.generating") : t("character.generateCard")}
               </AiButton>
             </div>
 
             <div className="space-y-3 rounded-2xl border p-4">
               <div className="space-y-1">
-                <div className="font-medium">从基础角色库导入</div>
+                <div className="font-medium">{t("character.importFromLibrary")}</div>
                 <div className="text-xs text-muted-foreground">
-                  适合快速引入成熟模板，再按当前小说需求继续微调。
+                  {t("character.importFromLibraryDesc")}
                 </div>
               </div>
               {baseCharacters.length > 0 ? (
@@ -454,7 +458,7 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
                   >
                     {baseCharacters.map((character) => (
                       <option key={character.id} value={character.id}>
-                        {character.name}（{character.role}）
+                        {t("character.baseOption", { name: character.name, role: character.role })}
                       </option>
                     ))}
                   </SelectControl>
@@ -463,11 +467,11 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium">{selectedBaseCharacter.name}</span>
                         <Badge variant={importedBaseCharacterIds.has(selectedBaseCharacter.id) ? "outline" : "secondary"}>
-                          {importedBaseCharacterIds.has(selectedBaseCharacter.id) ? "已关联" : "未关联"}
+                          {importedBaseCharacterIds.has(selectedBaseCharacter.id) ? t("character.linked") : t("character.notLinked")}
                         </Badge>
                       </div>
                       <div className="line-clamp-3 text-xs text-muted-foreground">
-                        性格：{selectedBaseCharacter.personality || "暂无"}
+                        {t("character.personalityLine", { value: selectedBaseCharacter.personality || t("common.none") })}
                       </div>
                     </div>
                   ) : null}
@@ -480,16 +484,16 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
                         || importedBaseCharacterIds.has(selectedBaseCharacter.id)
                       }
                     >
-                      {isImportingBaseCharacter ? "导入中..." : "导入为小说角色"}
+                      {isImportingBaseCharacter ? t("character.importing") : t("character.importAsNovelCharacter")}
                     </Button>
                     <Button asChild variant="outline">
-                      <Link to="/base-characters">管理基础角色库</Link>
+                      <Link to="/base-characters">{t("character.manageLibrary")}</Link>
                     </Button>
                   </div>
                 </>
               ) : (
                 <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                  基础角色库为空，请先创建。
+                  {t("character.libraryEmpty")}
                 </div>
               )}
             </div>
@@ -500,17 +504,17 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
       <Dialog open={isSupplementalCharacterOpen} onOpenChange={setIsSupplementalCharacterOpen}>
         <DialogContent className="flex max-h-[90vh] w-[calc(100vw-2rem)] max-w-5xl flex-col overflow-hidden p-0">
           <DialogHeader className="shrink-0 px-6 pb-0 pt-6">
-            <DialogTitle>补充角色</DialogTitle>
+            <DialogTitle>{t("character.supplementCharacter")}</DialogTitle>
             <DialogDescription>
-              适合在已有角色系统基础上补一个缺位人物。你可以指定“从现有关系衍生”或“生成相对独立角色”，也可以直接交给 AI 判断。
+              {t("character.supplemental.dialogDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto px-6 pb-6 pt-4 xl:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.1fr)] xl:overflow-hidden">
             <div className="space-y-4 rounded-2xl border p-4 xl:min-h-0 xl:overflow-y-auto">
               <div className="space-y-1">
-                <div className="font-medium">补位方式</div>
+                <div className="font-medium">{t("character.supplemental.modeTitle")}</div>
                 <div className="text-xs text-muted-foreground">
-                  默认推荐“AI 判断”，只有你很确定要补哪类人时再手动指定。
+                  {t("character.supplemental.modeHint")}
                 </div>
               </div>
               <SelectControl
@@ -518,16 +522,16 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
                 value={supplementalMode}
                 onChange={(event) => setSupplementalMode(event.target.value as SupplementalCharacterGenerationMode)}
               >
-                <option value="auto">AI 判断当前更需要哪种补位</option>
-                <option value="linked">基于现有角色衍生关系角色</option>
-                <option value="independent">生成相对独立角色</option>
+                <option value="auto">{t("character.supplemental.modeOption.auto")}</option>
+                <option value="linked">{t("character.supplemental.modeOption.linked")}</option>
+                <option value="independent">{t("character.supplemental.modeOption.independent")}</option>
               </SelectControl>
 
               {characters.length > 0 && supplementalMode !== "independent" ? (
                 <div className="space-y-2">
-                  <div className="font-medium">参考已有角色</div>
+                  <div className="font-medium">{t("character.supplemental.referenceTitle")}</div>
                   <div className="text-xs text-muted-foreground">
-                    可不选；不选时 AI 会自己判断应该围绕谁补位。
+                    {t("character.supplemental.referenceHint")}
                   </div>
                   <div className="max-h-40 space-y-2 overflow-auto rounded-xl border bg-muted/15 p-3">
                     {characters.map((character) => (
@@ -549,43 +553,43 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
 
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="space-y-2">
-                  <div className="font-medium">期望角色功能</div>
+                  <div className="font-medium">{t("character.supplemental.targetRoleTitle")}</div>
                   <SelectControl
                     className="w-full rounded-md border bg-background p-2 text-sm"
                     value={supplementalTargetRole}
                     onChange={(event) => setSupplementalTargetRole(event.target.value as CharacterCastRole | "auto")}
                   >
-                    <option value="auto">AI 判断</option>
-                    <option value="protagonist">主角</option>
-                    <option value="antagonist">主对手</option>
-                    <option value="ally">同盟</option>
-                    <option value="foil">镜像角色</option>
-                    <option value="mentor">导师</option>
-                    <option value="love_interest">情感牵引</option>
-                    <option value="pressure_source">压力源</option>
-                    <option value="catalyst">催化者</option>
+                    <option value="auto">{t("character.castRole.auto")}</option>
+                    <option value="protagonist">{t("character.castRole.protagonist")}</option>
+                    <option value="antagonist">{t("character.castRole.antagonist")}</option>
+                    <option value="ally">{t("character.castRole.ally")}</option>
+                    <option value="foil">{t("character.castRole.foil")}</option>
+                    <option value="mentor">{t("character.castRole.mentor")}</option>
+                    <option value="love_interest">{t("character.castRole.loveInterest")}</option>
+                    <option value="pressure_source">{t("character.castRole.pressureSource")}</option>
+                    <option value="catalyst">{t("character.castRole.catalyst")}</option>
                   </SelectControl>
                 </div>
                 <div className="space-y-2">
-                  <div className="font-medium">生成数量</div>
+                  <div className="font-medium">{t("character.supplemental.countTitle")}</div>
                   <SelectControl
                     className="w-full rounded-md border bg-background p-2 text-sm"
                     value={supplementalCount}
                     onChange={(event) => setSupplementalCount(event.target.value as "auto" | "1" | "2" | "3")}
                   >
-                    <option value="auto">AI 判断</option>
-                    <option value="1">1 个</option>
-                    <option value="2">2 个</option>
-                    <option value="3">3 个</option>
+                    <option value="auto">{t("character.castRole.auto")}</option>
+                    <option value="1">{t("character.supplemental.count", { count: 1 })}</option>
+                    <option value="2">{t("character.supplemental.count", { count: 2 })}</option>
+                    <option value="3">{t("character.supplemental.count", { count: 3 })}</option>
                   </SelectControl>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <div className="font-medium">额外说明</div>
+                <div className="font-medium">{t("character.supplemental.extraNotesTitle")}</div>
                 <textarea
                   className="min-h-[140px] w-full rounded-xl border bg-background p-3 text-sm"
-                  placeholder="例如：我想补一个能持续给主角施压、但又不是纯反派的人；或补一个和母亲线相关的旧识。"
+                  placeholder={t("character.supplemental.extraNotesPlaceholder")}
                   value={supplementalPrompt}
                   onChange={(event) => setSupplementalPrompt(event.target.value)}
                 />
@@ -597,7 +601,7 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
                   checked={supplementalUseWorldContext}
                   onChange={(event) => setSupplementalUseWorldContext(event.target.checked)}
                 />
-                基于本书世界生成
+                {t("character.supplemental.useWorldContext")}
               </label>
 
               <div className="flex flex-wrap gap-2">
@@ -605,10 +609,10 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
                   onClick={handleGenerateSupplementalCharacters}
                   disabled={isGeneratingSupplementalCharacters || (supplementalMode === "linked" && characters.length === 0)}
                 >
-                  {isGeneratingSupplementalCharacters ? "生成中..." : "生成补充角色候选"}
+                  {isGeneratingSupplementalCharacters ? t("common.generating") : t("character.supplemental.generateButton")}
                 </AiButton>
-                <Badge variant="outline">数量不选时由 AI 自行判断</Badge>
-                <Badge variant="outline">关系角色会优先围绕现有角色补位</Badge>
+                <Badge variant="outline">{t("character.supplemental.countAutoBadge")}</Badge>
+                <Badge variant="outline">{t("character.supplemental.relationBadge")}</Badge>
               </div>
 
               {supplementalStatusMessage ? (
@@ -620,19 +624,19 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
 
             <div className="space-y-3 rounded-2xl border p-4 xl:min-h-0 xl:overflow-y-auto">
               <div className="flex flex-wrap items-center gap-2">
-                <div className="font-medium">候选结果</div>
-                {supplementalResult ? <Badge variant="outline">{supplementalResult.candidates.length} 个候选</Badge> : null}
-                {supplementalResult?.mode ? <Badge variant="outline">本轮模式：{SUPPLEMENTAL_MODE_LABELS[supplementalResult.mode]}</Badge> : null}
+                <div className="font-medium">{t("character.supplemental.candidatesTitle")}</div>
+                {supplementalResult ? <Badge variant="outline">{t("character.supplemental.candidateCount", { count: supplementalResult.candidates.length })}</Badge> : null}
+                {supplementalResult?.mode ? <Badge variant="outline">{t("character.supplemental.roundMode", { value: t(SUPPLEMENTAL_MODE_LABELS[supplementalResult.mode]) })}</Badge> : null}
               </div>
               {supplementalResult?.planningSummary ? (
                 <div className="rounded-xl border border-amber-200/60 bg-amber-50/50 p-3 text-xs text-muted-foreground">
-                  AI 判断：{supplementalResult.planningSummary}
+                  {t("character.supplemental.aiJudgment", { value: supplementalResult.planningSummary })}
                 </div>
               ) : null}
 
               {isGeneratingSupplementalCharacters ? (
                 <div className="flex min-h-[320px] items-center justify-center rounded-xl border border-dashed text-sm text-muted-foreground">
-                  正在分析当前角色网并生成补位候选...
+                  {t("character.supplemental.analyzing")}
                 </div>
               ) : supplementalResult?.candidates.length ? (
                 <div className="space-y-3">
@@ -643,8 +647,8 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
                           <div className="flex flex-wrap items-center gap-2">
                             <div className="font-medium">{candidate.name}</div>
                             <Badge variant="outline">{candidate.role}</Badge>
-                            <Badge variant="secondary">{getCastRoleLabel(candidate.castRole)}</Badge>
-                            <Badge variant="outline">性别：{getCharacterGenderLabel(candidate.gender)}</Badge>
+                            <Badge variant="secondary">{t(getCastRoleLabelKey(candidate.castRole))}</Badge>
+                            <Badge variant="outline">{t("character.supplemental.genderLine", { value: t(getCharacterGenderLabelKey(candidate.gender)) })}</Badge>
                           </div>
                           <div className="text-sm text-muted-foreground">{candidate.summary}</div>
                         </div>
@@ -653,43 +657,43 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
                           onClick={() => void handleApplySupplementalCharacter(candidate)}
                           disabled={isApplyingSupplementalCharacter}
                         >
-                          {isApplyingSupplementalCharacter ? "创建中..." : "创建这个角色"}
+                          {isApplyingSupplementalCharacter ? t("character.supplemental.creating") : t("character.supplemental.createThis")}
                         </Button>
                       </div>
 
                       <div className="mt-3 grid gap-2 sm:grid-cols-2">
                         <div className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">
-                          <div>故事作用：{candidate.storyFunction}</div>
-                          <div>与主角关系：{candidate.relationToProtagonist || "AI 未指定"}</div>
-                          <div>外在目标：{candidate.outerGoal || "待补全"}</div>
-                          <div>当前目标：{candidate.currentGoal || "待补全"}</div>
+                          <div>{t("character.supplemental.storyFunctionLine", { value: candidate.storyFunction })}</div>
+                          <div>{t("character.supplemental.relationLine", { value: candidate.relationToProtagonist || t("character.supplemental.aiUnspecified") })}</div>
+                          <div>{t("character.supplemental.outerGoalLine", { value: candidate.outerGoal || t("character.supplemental.pendingFill") })}</div>
+                          <div>{t("character.supplemental.currentGoalLine", { value: candidate.currentGoal || t("character.supplemental.pendingFill") })}</div>
                         </div>
                         <div className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">
-                          <div>第一印象：{candidate.firstImpression || "待补全"}</div>
-                          <div>核心恐惧：{candidate.fear || "待补全"}</div>
-                          <div>错误信念：{candidate.misbelief || "待补全"}</div>
-                          <div>补位原因：{candidate.whyNow || "AI 未额外说明"}</div>
+                          <div>{t("character.supplemental.firstImpressionLine", { value: candidate.firstImpression || t("character.supplemental.pendingFill") })}</div>
+                          <div>{t("character.supplemental.fearLine", { value: candidate.fear || t("character.supplemental.pendingFill") })}</div>
+                          <div>{t("character.supplemental.misbeliefLine", { value: candidate.misbelief || t("character.supplemental.pendingFill") })}</div>
+                          <div>{t("character.supplemental.whyNowLine", { value: candidate.whyNow || t("character.supplemental.aiNoExtra") })}</div>
                         </div>
                       </div>
 
                       {candidate.relations.length > 0 ? (
                         <div className="mt-3 space-y-2">
-                          <div className="text-xs font-medium text-muted-foreground">建议同步的关系</div>
+                          <div className="text-xs font-medium text-muted-foreground">{t("character.supplemental.suggestedRelations")}</div>
                           <div className="grid gap-2 sm:grid-cols-2">
                             {candidate.relations.map((relation, index) => (
                               <div key={`${candidate.name}-${relation.sourceName}-${relation.targetName}-${index}`} className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">
                                 <div className="font-medium text-foreground">{getSupplementalRelationLabel(candidate, relation)}</div>
-                                <div>表层关系：{relation.surfaceRelation}</div>
-                                {relation.hiddenTension ? <div>隐藏张力：{relation.hiddenTension}</div> : null}
-                                {relation.conflictSource ? <div>冲突来源：{relation.conflictSource}</div> : null}
-                                {relation.nextTurnPoint ? <div>下一反转点：{relation.nextTurnPoint}</div> : null}
+                                <div>{t("character.supplemental.surfaceRelationLine", { value: relation.surfaceRelation })}</div>
+                                {relation.hiddenTension ? <div>{t("character.supplemental.hiddenTensionLine", { value: relation.hiddenTension })}</div> : null}
+                                {relation.conflictSource ? <div>{t("character.supplemental.conflictSourceLine", { value: relation.conflictSource })}</div> : null}
+                                {relation.nextTurnPoint ? <div>{t("character.supplemental.nextTurnPointLine", { value: relation.nextTurnPoint })}</div> : null}
                               </div>
                             ))}
                           </div>
                         </div>
                       ) : (
                         <div className="mt-3 rounded-xl border border-dashed p-3 text-xs text-muted-foreground">
-                          这名角色更偏向独立补位，不强制写入角色关系。
+                          {t("character.supplemental.independentNote")}
                         </div>
                       )}
                     </div>
@@ -697,7 +701,7 @@ export default function NovelCharacterPanel(props: NovelCharacterPanelProps) {
                 </div>
               ) : (
                 <div className="flex min-h-[320px] items-center justify-center rounded-xl border border-dashed px-6 text-center text-sm text-muted-foreground">
-                  先说明你想补哪类角色，或直接交给 AI 判断，再生成候选。
+                  {t("character.supplemental.emptyHint")}
                 </div>
               )}
             </div>

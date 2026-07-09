@@ -1,16 +1,16 @@
 /**
- * 生图确认弹窗触发 hook
+ * Hook that drives the image-generation confirmation dialog.
  *
- * 使用方式：
+ * Usage:
  *   const flow = useImageGenerationFlow();
  *   <button onClick={() => flow.start({
  *     prepare: () => prepareCharacterAssetImage(asset.id, provider),
  *     generate: (overrides) => generateCharacterAssetImage(asset.id, provider, overrides),
  *     onSuccess: () => refresh(),
- *   })}>AI 生图</button>
+ *   })}>AI generate</button>
  *   <ImageGenerationConfirmDialog {...flow.dialogProps} />
  *
- * 流程：start → prepare 拿预览 → 弹窗 → 用户 confirm/取消 → 取消时 generate
+ * Flow: start -> prepare fetches the preview -> dialog -> user confirms/cancels -> generate on confirm
  */
 import { useState } from "react";
 
@@ -29,7 +29,7 @@ export function useImageGenerationFlow() {
   const [preview, setPreview] = useState<ImageGenerationPreview | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  // 当前活跃的 generate 闭包（弹窗 confirm 时调用）
+  // Currently active generate closure (invoked when the dialog is confirmed)
   const [activeGenerate, setActiveGenerate] = useState<((o: ImageGenerationOverrides) => Promise<void>) | null>(null);
 
   const start = async <TResult>({ prepare, generate, onSuccess, onError }: StartOptions<TResult>) => {
@@ -40,7 +40,7 @@ export function useImageGenerationFlow() {
       const p = await prepare();
       setPreview(p);
       setLoading(false);
-      // 闭包绑定本次 generate
+      // Bind the closure to this generate call
       setActiveGenerate(() => async (overrides: ImageGenerationOverrides) => {
         setSubmitting(true);
         try {

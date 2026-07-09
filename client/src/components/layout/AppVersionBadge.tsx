@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { APP_VERSION } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ function formatAppVersion(version: string): string {
 }
 
 export default function AppVersionBadge({ className }: AppVersionBadgeProps) {
+  const { t } = useTranslation("componentsLayout");
   const versionLabel = formatAppVersion(APP_VERSION);
 
   return (
@@ -22,8 +24,8 @@ export default function AppVersionBadge({ className }: AppVersionBadgeProps) {
         "shrink-0 rounded-md border border-border/70 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium leading-none text-muted-foreground",
         className,
       )}
-      title={`当前版本 ${versionLabel}`}
-      aria-label={`当前版本 ${versionLabel}`}
+      title={t("versionBadge.title", { version: versionLabel })}
+      aria-label={t("versionBadge.title", { version: versionLabel })}
     >
       {versionLabel}
     </span>

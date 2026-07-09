@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import type { LLMProvider } from "@ai-novel/shared/types/llm";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ApiResponse } from "@ai-novel/shared/types/api";
@@ -59,6 +60,7 @@ export default function LLMSelector({
   showHelperText = true,
   className,
 }: LLMSelectorProps) {
+  const { t } = useTranslation("componentsCommon");
   const store = useLLMStore();
   const queryClient = useQueryClient();
   const latestProviderRefreshRef = useRef<LLMProvider | null>(null);
@@ -268,19 +270,19 @@ export default function LLMSelector({
   return (
     <div className={cn("space-y-2", compact && "space-y-1", className)}>
       <div className={cn("flex min-w-0 items-center gap-2", compact ? "flex-nowrap gap-1.5" : "flex-wrap")}>
-        {showBadge ? <Badge variant="secondary">模型</Badge> : null}
+        {showBadge ? <Badge variant="secondary">{t("llmSelector.badge")}</Badge> : null}
         <Select
           value={providerSelectValue}
           onValueChange={onProviderChange}
           disabled={!hasRunnableProviders}
         >
           <SelectTrigger className={cn(compact ? "h-9 w-[148px] lg:w-[164px]" : "w-full sm:w-[180px]")}>
-            <SelectValue placeholder={hasRunnableProviders ? "选择厂商" : "请先配置可用厂商"} />
+            <SelectValue placeholder={hasRunnableProviders ? t("llmSelector.selectProvider") : t("llmSelector.noProviderConfigured")} />
           </SelectTrigger>
           <SelectContent>
             {!hasRunnableProviders ? (
               <SelectItem value={NO_PROVIDER_VALUE} disabled>
-                请先配置可用厂商
+                {t("llmSelector.noProviderConfigured")}
               </SelectItem>
             ) : null}
             {providerOptions.map((provider) => (
@@ -296,9 +298,9 @@ export default function LLMSelector({
             value={resolvedModel}
             onValueChange={onModelChange}
             options={models.map((model) => ({ value: model }))}
-            placeholder={hasRunnableProviders ? "选择模型" : "暂无可用模型"}
-            searchPlaceholder="搜索模型"
-            emptyText="没有可用模型"
+            placeholder={hasRunnableProviders ? t("llmSelector.selectModel") : t("llmSelector.noModelAvailable")}
+            searchPlaceholder={t("llmSelector.searchModel")}
+            emptyText={t("llmSelector.emptyModel")}
             className={cn(compact ? "w-[184px] lg:w-[220px]" : "w-full sm:w-[240px]")}
             triggerClassName={compact ? "h-9 px-2.5" : undefined}
             disabled={!hasRunnableProviders}
@@ -308,14 +310,14 @@ export default function LLMSelector({
 
       {showHelperText && !hasRunnableProviders && !apiKeySettingsQuery.isLoading ? (
         <div className="text-xs text-muted-foreground">
-          当前没有已配置且启用的模型厂商，请先到系统设置里完成 API Key 和模型配置。
+          {t("llmSelector.helperNoProviders")}
         </div>
       ) : null}
 
       {showParameters ? (
         <div className="grid gap-2 md:grid-cols-2">
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground">温度 (0~2)</span>
+            <span className="text-muted-foreground">{t("llmSelector.temperatureLabel")}</span>
             <Input
               type="number"
               step="0.1"
@@ -347,7 +349,7 @@ export default function LLMSelector({
           </label>
 
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground">最大 Tokens (留空 = 不限制)</span>
+            <span className="text-muted-foreground">{t("llmSelector.maxTokensLabel")}</span>
             <Input
               type="number"
               step="1"

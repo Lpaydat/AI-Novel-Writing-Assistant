@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Castle, MapPinned, ShieldAlert, SlidersHorizontal } from "lucide-react";
 import type { StoryWorldSliceOverrides, StoryWorldSliceView } from "@ai-novel/shared/types/storyWorldSlice";
 import { Button } from "@/components/ui/button";
@@ -44,16 +46,16 @@ function toggleId(ids: string[], id: string, checked: boolean): string[] {
   return Array.from(set);
 }
 
-function labelStoryInputSource(source: string | null | undefined): string {
+function labelStoryInputSource(t: TFunction, source: string | null | undefined): string {
   switch (source) {
     case "explicit":
-      return "来自你这次手动输入的故事想法";
+      return t("worldUsage.storyInputSource.explicit");
     case "story_macro":
-      return "来自故事宏观规划里的故事想法";
+      return t("worldUsage.storyInputSource.storyMacro");
     case "novel_description":
-      return "来自小说简介";
+      return t("worldUsage.storyInputSource.novelDescription");
     default:
-      return "暂无";
+      return t("common.none");
   }
 }
 
@@ -64,11 +66,11 @@ function namesLine(items: Array<{ name: string }>, fallback: string): string {
   return items.slice(0, 3).map((item) => item.name).join(" · ");
 }
 
-function findPrimaryLocation(view: StoryWorldSliceView | null | undefined, primaryLocationId: string): string {
+function findPrimaryLocation(t: TFunction, view: StoryWorldSliceView | null | undefined, primaryLocationId: string): string {
   if (primaryLocationId === "__none__") {
-    return view?.slice?.activeLocations[0]?.name ?? "未指定";
+    return view?.slice?.activeLocations[0]?.name ?? t("worldUsage.unspecified");
   }
-  return view?.availableLocations.find((item) => item.id === primaryLocationId)?.name ?? "未指定";
+  return view?.availableLocations.find((item) => item.id === primaryLocationId)?.name ?? t("worldUsage.unspecified");
 }
 
 function MetricItem(props: { label: string; value: string; detail: string }) {
@@ -169,10 +171,11 @@ export function NovelWorldUsageSummary(props: NovelWorldUsageCardProps & {
   draft: NovelWorldUsageDraftState;
   onOpenDetails?: () => void;
 }) {
+  const { t } = useTranslation("novelsEditC");
   const slice = props.view?.slice ?? null;
   const hasWorld = props.view?.hasWorld ?? false;
-  const primaryLocation = findPrimaryLocation(props.view, props.draft.primaryLocationId);
-  const boundaryText = props.draft.scopeNote.trim() || slice?.storyScopeBoundary || "整理后会生成这本书的使用边界。";
+  const primaryLocation = findPrimaryLocation(t, props.view, props.draft.primaryLocationId);
+  const boundaryText = props.draft.scopeNote.trim() || slice?.storyScopeBoundary || t("worldUsage.boundaryPlaceholder");
   const canSave = hasWorld && Boolean(props.view);
 
   return (
@@ -181,23 +184,23 @@ export function NovelWorldUsageSummary(props: NovelWorldUsageCardProps & {
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            章节生成使用范围
+            {t("worldUsage.usageScopeTitle")}
           </div>
           <div className="mt-2 text-sm leading-6 text-muted-foreground">
             {slice
-              ? "这些规则、势力和地点会优先进入角色、大纲和章节生成。"
+              ? t("worldUsage.summaryHasSlice")
               : hasWorld
-                ? "先整理本书会实际使用的世界范围，避免章节生成读取过多无关设定。"
-                : "先创建或导入本书世界，再整理生成会读取的范围。"}
+                ? t("worldUsage.summaryHasWorld")
+                : t("worldUsage.summaryNoWorld")}
           </div>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           <Button type="button" variant="outline" onClick={props.onRefresh} disabled={!hasWorld || props.isRefreshing}>
-            {props.isRefreshing ? "整理中..." : "整理本书使用范围"}
+            {props.isRefreshing ? t("worldUsage.organizing") : t("worldUsage.organizeUsageScope")}
           </Button>
           <Button type="button" variant="ghost" onClick={props.onOpenDetails} disabled={!hasWorld}>
             <SlidersHorizontal className="size-4" />
-            调整保留项
+            {t("worldUsage.adjustRetained")}
           </Button>
         </div>
       </div>
@@ -209,27 +212,27 @@ export function NovelWorldUsageSummary(props: NovelWorldUsageCardProps & {
       ) : null}
 
       <div className="mt-4 grid gap-4 md:grid-cols-4">
-        <MetricItem label="主舞台" value={primaryLocation} detail={props.view?.worldName ?? "等待本书世界"} />
+        <MetricItem label={t("worldUsage.metric.primaryStage")} value={primaryLocation} detail={props.view?.worldName ?? t("worldUsage.awaitingWorld")} />
         <MetricItem
-          label="活跃势力"
-          value={`${slice?.activeForces.length ?? 0} 个`}
-          detail={namesLine(slice?.activeForces ?? [], "整理后显示")}
+          label={t("worldUsage.metric.activeForces")}
+          value={t("worldUsage.countForces", { count: slice?.activeForces.length ?? 0 })}
+          detail={namesLine(slice?.activeForces ?? [], t("worldUsage.shownAfterOrganize"))}
         />
         <MetricItem
-          label="故事地点"
-          value={`${slice?.activeLocations.length ?? 0} 处`}
-          detail={namesLine(slice?.activeLocations ?? [], "整理后显示")}
+          label={t("worldUsage.metric.storyLocations")}
+          value={t("worldUsage.countLocations", { count: slice?.activeLocations.length ?? 0 })}
+          detail={namesLine(slice?.activeLocations ?? [], t("worldUsage.shownAfterOrganize"))}
         />
         <MetricItem
-          label="硬规则"
-          value={`${slice?.appliedRules.length ?? 0} 条`}
-          detail={namesLine(slice?.appliedRules ?? [], "整理后显示")}
+          label={t("worldUsage.metric.hardRules")}
+          value={t("worldUsage.countRules", { count: slice?.appliedRules.length ?? 0 })}
+          detail={namesLine(slice?.appliedRules ?? [], t("worldUsage.shownAfterOrganize"))}
         />
       </div>
 
       <div className="mt-4 flex flex-col gap-3 border-t border-border/50 pt-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 text-sm leading-6 text-muted-foreground">
-          <span className="font-medium text-foreground">边界：</span>
+          <span className="font-medium text-foreground">{t("worldUsage.boundaryLabel")}</span>
           <span className="line-clamp-2">{boundaryText}</span>
         </div>
         <Button
@@ -238,7 +241,7 @@ export function NovelWorldUsageSummary(props: NovelWorldUsageCardProps & {
           disabled={!canSave || props.isSaving}
           onClick={() => props.onSave(props.draft.savePayload)}
         >
-          {props.isSaving ? "保存中..." : "保存保留项"}
+          {props.isSaving ? t("common.saving") : t("worldUsage.saveRetained")}
         </Button>
       </div>
     </section>
@@ -248,6 +251,7 @@ export function NovelWorldUsageSummary(props: NovelWorldUsageCardProps & {
 export function NovelWorldUsageDetails(props: NovelWorldUsageCardProps & {
   draft: NovelWorldUsageDraftState;
 }) {
+  const { t } = useTranslation("novelsEditC");
   const slice = props.view?.slice ?? null;
   const hasWorld = props.view?.hasWorld ?? false;
   const hasSlice = Boolean(slice);
@@ -257,17 +261,17 @@ export function NovelWorldUsageDetails(props: NovelWorldUsageCardProps & {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <div className="text-lg font-semibold text-foreground">生成使用范围</div>
+          <div className="text-lg font-semibold text-foreground">{t("worldUsage.detailsTitle")}</div>
           <div className="mt-1 text-sm leading-6 text-muted-foreground">
-            这里确认章节生成实际会读取的规则、势力和地点。你可以只指定少量必须保留项，其余交给系统按本书方向裁剪。
+            {t("worldUsage.detailsDesc")}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" onClick={props.onRefresh} disabled={!hasWorld || props.isRefreshing}>
-            {props.isRefreshing ? "整理中..." : "重新整理使用范围"}
+            {props.isRefreshing ? t("worldUsage.organizing") : t("worldUsage.reorganizeUsageScope")}
           </Button>
           <Button type="button" onClick={() => props.onSave(props.draft.savePayload)} disabled={!canSave || props.isSaving}>
-            {props.isSaving ? "保存中..." : "保存保留项"}
+            {props.isSaving ? t("common.saving") : t("worldUsage.saveRetained")}
           </Button>
         </div>
       </div>
@@ -280,14 +284,14 @@ export function NovelWorldUsageDetails(props: NovelWorldUsageCardProps & {
 
       {!hasWorld ? (
         <div className="rounded-md border border-dashed border-border/70 px-4 py-4 text-sm leading-6 text-muted-foreground">
-          这本小说还没有本书世界。先从世界库导入，或根据本书主题生成一套世界，再整理当前故事会重点使用的规则、势力和地点。
+          {t("worldUsage.noWorldHint")}
         </div>
       ) : null}
 
       {hasWorld ? (
         <div className="grid gap-4 md:grid-cols-2">
-          <MetricItem label="本书世界" value={props.view?.worldName ?? "未命名世界"} detail="章节生成读取的是这本书的世界副本。" />
-          <MetricItem label="故事想法来源" value={labelStoryInputSource(props.view?.storyInputSource)} detail="使用范围会结合当前故事方向裁剪。" />
+          <MetricItem label={t("worldUsage.metric.bookWorld")} value={props.view?.worldName ?? t("worldUsage.unnamedWorld")} detail={t("worldUsage.bookWorldDetail")} />
+          <MetricItem label={t("worldUsage.metric.storyInputSource")} value={labelStoryInputSource(t, props.view?.storyInputSource)} detail={t("worldUsage.storyInputSourceDetail")} />
         </div>
       ) : null}
 
@@ -295,61 +299,61 @@ export function NovelWorldUsageDetails(props: NovelWorldUsageCardProps & {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
           <section className="space-y-5">
             <div>
-              <div className="text-sm font-medium text-foreground">世界底色</div>
-              <div className="mt-1 text-sm leading-6 text-muted-foreground">{slice.coreWorldFrame || "暂无"}</div>
+              <div className="text-sm font-medium text-foreground">{t("worldUsage.worldBase")}</div>
+              <div className="mt-1 text-sm leading-6 text-muted-foreground">{slice.coreWorldFrame || t("common.none")}</div>
             </div>
             <div>
-              <div className="text-sm font-medium text-foreground">会用到的组织</div>
+              <div className="text-sm font-medium text-foreground">{t("worldUsage.usedForces")}</div>
               <div className="mt-2 text-sm leading-6 text-muted-foreground">
-                {namesLine(slice.activeForces, "暂无")}
+                {namesLine(slice.activeForces, t("common.none"))}
               </div>
             </div>
             <div>
-              <div className="text-sm font-medium text-foreground">会用到的地点</div>
+              <div className="text-sm font-medium text-foreground">{t("worldUsage.usedLocations")}</div>
               <div className="mt-2 text-sm leading-6 text-muted-foreground">
-                {namesLine(slice.activeLocations, "暂无")}
+                {namesLine(slice.activeLocations, t("common.none"))}
               </div>
             </div>
             <div>
-              <div className="text-sm font-medium text-foreground">核心规则</div>
+              <div className="text-sm font-medium text-foreground">{t("worldUsage.coreRules")}</div>
               <div className="mt-2 space-y-3">
                 {slice.appliedRules.length > 0 ? slice.appliedRules.map((item) => (
                   <div key={item.id} className="border-t border-border/50 pt-3 text-sm">
                     <div className="font-medium text-foreground">{item.name}</div>
                     <div className="mt-1 leading-6 text-muted-foreground">{item.summary}</div>
                   </div>
-                )) : <div className="text-sm text-muted-foreground">暂无</div>}
+                )) : <div className="text-sm text-muted-foreground">{t("common.none")}</div>}
               </div>
             </div>
             <div>
-              <div className="text-sm font-medium text-foreground">压力来源</div>
+              <div className="text-sm font-medium text-foreground">{t("worldUsage.pressureSources")}</div>
               <div className="mt-2 space-y-1 text-sm text-muted-foreground">
                 {slice.pressureSources.length > 0 ? slice.pressureSources.map((item) => (
                   <div key={item}>{item}</div>
-                )) : <div>暂无</div>}
+                )) : <div>{t("common.none")}</div>}
               </div>
             </div>
             <div>
-              <div className="text-sm font-medium text-foreground">不要越过的边界</div>
-              <div className="mt-1 text-sm leading-6 text-muted-foreground">{slice.storyScopeBoundary || "暂无"}</div>
+              <div className="text-sm font-medium text-foreground">{t("worldUsage.boundaryNotToCross")}</div>
+              <div className="mt-1 text-sm leading-6 text-muted-foreground">{slice.storyScopeBoundary || t("common.none")}</div>
             </div>
           </section>
 
           <section className="space-y-4 rounded-xl bg-muted/15 p-4">
             <div>
-              <div className="text-sm font-medium text-foreground">手动保留项</div>
+              <div className="text-sm font-medium text-foreground">{t("worldUsage.manualRetained")}</div>
               <div className="mt-1 text-sm leading-6 text-muted-foreground">
-                这里只指定必须出现或必须遵守的少量内容，不需要重填整套世界。
+                {t("worldUsage.manualRetainedDesc")}
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground">主舞台</label>
+              <label className="text-sm font-medium text-foreground">{t("worldUsage.primaryStageLabel")}</label>
               <Select value={props.draft.primaryLocationId} onValueChange={props.draft.setPrimaryLocationId}>
                 <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="请选择主舞台" />
+                  <SelectValue placeholder={t("worldUsage.selectPrimaryStage")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">不额外指定</SelectItem>
+                  <SelectItem value="__none__">{t("worldUsage.noExtraSpecify")}</SelectItem>
                   {props.view?.availableLocations.map((item) => (
                     <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
                   ))}
@@ -357,31 +361,31 @@ export function NovelWorldUsageDetails(props: NovelWorldUsageCardProps & {
               </Select>
             </div>
 
-            <DetailDisclosure title="必须保留的组织、地点和规则" description="适合开局地点、关键盟友、主要敌人和不能突破的力量代价。">
+            <DetailDisclosure title={t("worldUsage.mustRetainTitle")} description={t("worldUsage.mustRetainDesc")}>
               <div className="space-y-4">
                 <OverrideGroup
                   icon={Castle}
-                  title="必须保留的组织"
-                  description="主角出身、主要敌人、关键盟友这类前期不能漏掉的势力。"
-                  emptyText="本书世界里还没有可选组织。"
+                  title={t("worldUsage.mustRetainForces")}
+                  description={t("worldUsage.mustRetainForcesDesc")}
+                  emptyText={t("worldUsage.noForcesAvailable")}
                   items={props.view?.availableForces ?? []}
                   selectedIds={props.draft.requiredForceIds}
                   onToggle={(id, checked) => props.draft.setRequiredForceIds((prev) => toggleId(prev, id, checked))}
                 />
                 <OverrideGroup
                   icon={MapPinned}
-                  title="必须保留的地点"
-                  description="开局地点、试炼地、冲突爆发地和读者需要反复记住的舞台。"
-                  emptyText="本书世界里还没有可选地点。"
+                  title={t("worldUsage.mustRetainLocations")}
+                  description={t("worldUsage.mustRetainLocationsDesc")}
+                  emptyText={t("worldUsage.noLocationsAvailable")}
                   items={props.view?.availableLocations ?? []}
                   selectedIds={props.draft.requiredLocationIds}
                   onToggle={(id, checked) => props.draft.setRequiredLocationIds((prev) => toggleId(prev, id, checked))}
                 />
                 <OverrideGroup
                   icon={ShieldAlert}
-                  title="必须遵守的规则"
-                  description="力量代价、身份禁忌和不能被剧情随意突破的边界。"
-                  emptyText="本书世界里还没有可选规则。"
+                  title={t("worldUsage.mustRetainRules")}
+                  description={t("worldUsage.mustRetainRulesDesc")}
+                  emptyText={t("worldUsage.noRulesAvailable")}
                   items={props.view?.availableRules ?? []}
                   selectedIds={props.draft.requiredRuleIds}
                   onToggle={(id, checked) => props.draft.setRequiredRuleIds((prev) => toggleId(prev, id, checked))}
@@ -391,10 +395,10 @@ export function NovelWorldUsageDetails(props: NovelWorldUsageCardProps & {
 
             <div>
               <label className="text-sm font-medium text-foreground" htmlFor="story-world-scope-note">
-                前期不要越界的边界说明
+                {t("worldUsage.scopeNoteLabel")}
               </label>
               <div className="mt-1 text-sm leading-6 text-muted-foreground">
-                可以补一句边界，例如“保留现实都市基底，不要转成玄幻升级文”。
+                {t("worldUsage.scopeNoteDesc")}
               </div>
               <textarea
                 id="story-world-scope-note"
@@ -402,7 +406,7 @@ export function NovelWorldUsageDetails(props: NovelWorldUsageCardProps & {
                 onChange={(event) => props.draft.setScopeNote(event.target.value)}
                 rows={4}
                 className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                placeholder="例如：保留原作的现实商业环境和人物压迫感，不要引入超自然体系。"
+                placeholder={t("worldUsage.scopeNotePlaceholder")}
               />
             </div>
           </section>
@@ -411,7 +415,7 @@ export function NovelWorldUsageDetails(props: NovelWorldUsageCardProps & {
 
       {hasWorld && !hasSlice ? (
         <div className="rounded-md border border-dashed border-border/70 px-4 py-4 text-sm leading-6 text-muted-foreground">
-          这本书还没有整理出当前故事会用到的世界范围。点击“整理本书使用范围”后，会根据本书世界和故事想法生成一版可确认的规则、势力和地点范围。
+          {t("worldUsage.noSliceHint")}
         </div>
       ) : null}
     </div>
@@ -419,12 +423,13 @@ export function NovelWorldUsageDetails(props: NovelWorldUsageCardProps & {
 }
 
 export default function NovelWorldUsageCard(props: NovelWorldUsageCardProps) {
+  const { t } = useTranslation("novelsEditC");
   const draft = useNovelWorldUsageDraft(props);
 
   return (
     <div className="space-y-4">
       <NovelWorldUsageSummary {...props} draft={draft} />
-      <DetailDisclosure title="使用范围详情" description="查看和调整本书前期必须保留的世界约束。">
+      <DetailDisclosure title={t("worldUsage.detailsDisclosureTitle")} description={t("worldUsage.detailsDisclosureDesc")}>
         <NovelWorldUsageDetails {...props} draft={draft} />
       </DetailDisclosure>
     </div>

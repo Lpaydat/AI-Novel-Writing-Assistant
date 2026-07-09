@@ -14,6 +14,7 @@ import {
   refineDirectorCandidates,
 } from "@/api/novelDirector";
 import { toast } from "@/components/ui/toast";
+import i18n from "@/i18n";
 import type { buildAutoDirectorRequestPayload } from "./NovelAutoDirectorDialog.shared";
 import type { DirectorExecutionViewMode } from "./NovelAutoDirector.types";
 
@@ -115,7 +116,7 @@ export function useNovelAutoDirectorCandidateMutations({
     },
     onSuccess: ({ batch, workflowTaskId: nextWorkflowTaskId }) => {
       if (!batch) {
-        toast.error("自动导演没有返回可用方案。");
+        toast.error(i18n.t("autoDirector.noPlans", { ns: "novelsEditD" }));
         return;
       }
       if (nextWorkflowTaskId && nextWorkflowTaskId !== workflowTaskId) {
@@ -129,11 +130,11 @@ export function useNovelAutoDirectorCandidateMutations({
       setCandidateDialogOpen(true);
       setExecutionRequested(false);
       setExecutionError("");
-      toast.success(`${batch.roundLabel} 已生成 ${batch.candidates.length} 套方案。`);
+      toast.success(i18n.t("autoDirector.generated", { ns: "novelsEditD", roundLabel: batch.roundLabel, count: batch.candidates.length }));
     },
     onError: (error) => {
       setDialogMode("execution_failed");
-      setExecutionError(error instanceof Error ? error.message : "导演候选方案生成失败。");
+      setExecutionError(error instanceof Error ? error.message : i18n.t("autoDirector.generateFailed", { ns: "novelsEditD" }));
     },
   });
 
@@ -163,18 +164,18 @@ export function useNovelAutoDirectorCandidateMutations({
     },
     onSuccess: ({ batch, workflowTaskId: nextWorkflowTaskId, candidateId }) => {
       if (!batch) {
-        toast.error("定向修正失败，未返回更新后的方案。");
+        toast.error(i18n.t("autoDirector.patchNoResult", { ns: "novelsEditD" }));
         return;
       }
       applyUpdatedBatch(batch, nextWorkflowTaskId);
       setCandidatePatchFeedbacks((prev) => ({ ...prev, [candidateId]: "" }));
       setDialogMode("candidate_selection");
       setCandidateDialogOpen(true);
-      toast.success("已按你的意见修正这套方案。");
+      toast.success(i18n.t("autoDirector.patchSuccess", { ns: "novelsEditD" }));
     },
     onError: (error) => {
       setDialogMode("execution_failed");
-      setExecutionError(error instanceof Error ? error.message : "定向修正方案失败。");
+      setExecutionError(error instanceof Error ? error.message : i18n.t("autoDirector.patchFailed", { ns: "novelsEditD" }));
     },
   });
 
@@ -204,18 +205,18 @@ export function useNovelAutoDirectorCandidateMutations({
     },
     onSuccess: ({ batch, workflowTaskId: nextWorkflowTaskId, candidateId }) => {
       if (!batch) {
-        toast.error("标题组修正失败，未返回更新后的书名组。");
+        toast.error(i18n.t("autoDirector.titleNoResult", { ns: "novelsEditD" }));
         return;
       }
       applyUpdatedBatch(batch, nextWorkflowTaskId);
       setTitlePatchFeedbacks((prev) => ({ ...prev, [candidateId]: "" }));
       setDialogMode("candidate_selection");
       setCandidateDialogOpen(true);
-      toast.success("已重做这套方案的标题组。");
+      toast.success(i18n.t("autoDirector.titleSuccess", { ns: "novelsEditD" }));
     },
     onError: (error) => {
       setDialogMode("execution_failed");
-      setExecutionError(error instanceof Error ? error.message : "标题组修正失败。");
+      setExecutionError(error instanceof Error ? error.message : i18n.t("autoDirector.titleFailed", { ns: "novelsEditD" }));
     },
   });
 

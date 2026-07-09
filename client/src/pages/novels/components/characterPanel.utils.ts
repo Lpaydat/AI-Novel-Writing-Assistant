@@ -1,4 +1,5 @@
 import type { Character, CharacterTimeline } from "@ai-novel/shared/types/novel";
+import i18n from "@/i18n";
 
 const RELATION_POSITIVE_KEYWORDS = ["伙伴", "盟友", "信任", "守护", "亲密", "喜欢", "合作"];
 const RELATION_NEGATIVE_KEYWORDS = ["敌对", "对立", "怀疑", "背叛", "利用", "冲突", "压制"];
@@ -80,32 +81,32 @@ export function buildCharacterProfileFromWizard(payload: QuickCharacterCreatePay
 
 function inferCurrentRelation(source: string): string {
   if (!source) {
-    return "待定义";
+    return i18n.t("characterRelation.undefined", { ns: "novelsEditB" });
   }
   const positiveHits = countHits(source, RELATION_POSITIVE_KEYWORDS);
   const negativeHits = countHits(source, RELATION_NEGATIVE_KEYWORDS);
   if (positiveHits > negativeHits) {
-    return "合作 / 亲近";
+    return i18n.t("characterRelation.cooperative", { ns: "novelsEditB" });
   }
   if (negativeHits > positiveHits) {
-    return "对立 / 紧张";
+    return i18n.t("characterRelation.opposed", { ns: "novelsEditB" });
   }
-  return "复杂 / 待观察";
+  return i18n.t("characterRelation.complex", { ns: "novelsEditB" });
 }
 
 function inferTrend(source: string): string {
   if (!source) {
-    return "待观察";
+    return i18n.t("characterRelation.trendPending", { ns: "novelsEditB" });
   }
   const upHits = countHits(source, TREND_UP_KEYWORDS);
   const downHits = countHits(source, TREND_DOWN_KEYWORDS);
   if (upHits > downHits) {
-    return "升温";
+    return i18n.t("characterRelation.trendUp", { ns: "novelsEditB" });
   }
   if (downHits > upHits) {
-    return "恶化";
+    return i18n.t("characterRelation.trendDown", { ns: "novelsEditB" });
   }
-  return "平稳";
+  return i18n.t("characterRelation.trendStable", { ns: "novelsEditB" });
 }
 
 function includesCharacterName(source: string, characterName: string): boolean {
@@ -117,7 +118,7 @@ function includesCharacterName(source: string, characterName: string): boolean {
 
 function buildLatestEvidence(event?: CharacterTimeline): string {
   if (!event) {
-    return "暂无章节证据";
+    return i18n.t("characterRelation.noEvidence", { ns: "novelsEditB" });
   }
   const excerpt = compactText(event.content).slice(0, 36);
   return excerpt.length > 0 ? excerpt : event.title;
