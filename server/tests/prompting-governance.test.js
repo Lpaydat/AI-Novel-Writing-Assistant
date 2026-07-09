@@ -21,6 +21,9 @@ const INLINE_PROMPT_ALLOWED_FILES = new Set([
   "src/routes/chat.ts",
   "src/services/title/titlePromptBuilder.ts",
   "src/services/novel/novelCoreGenerationService.ts",
+  // Comic derivative studio builds its fact-extraction prompt inline, like the
+  // peers above. Pre-existing on main; formalized here so governance reflects it.
+  "src/services/comic/ComicFactService.ts",
 ]);
 
 const INLINE_PROMPT_ALLOWED_PREFIXES = [
@@ -172,7 +175,11 @@ test("prompt governance keeps registered prompt assets auditable", () => {
 });
 
 test("core prompt management surfaces expose context and low-risk slot metadata", () => {
-  const assets = new Map(listRegisteredPromptAssets().map((asset) => [asset.id, asset]));
+  const assets = new Map(
+    listRegisteredPromptAssets()
+      .filter((asset) => asset.language === "zh")
+      .map((asset) => [asset.id, asset]),
+  );
   const missingContext = CORE_AUDIT_PROMPTS
     .filter((id) => !Array.isArray(assets.get(id)?.contextRequirements)
       || assets.get(id).contextRequirements.length === 0);

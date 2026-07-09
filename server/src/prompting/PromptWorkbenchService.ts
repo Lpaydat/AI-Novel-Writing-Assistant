@@ -2,7 +2,6 @@ import type { BaseMessage } from "@langchain/core/messages";
 import { prisma } from "../db/prisma";
 import type { TaskType } from "../llm/modelRouter";
 import {
-  buildPromptAssetKey,
   type PromptAsset,
   type PromptContextRequirement,
   type PromptRunTrace,
@@ -132,7 +131,10 @@ function toCatalogItem(asset: UnknownPromptAsset): PromptCatalogItem {
       ? "missing_slots"
       : "complete";
   return {
-    key: buildPromptAssetKey(asset),
+    // Workbench identity is the 2-part id@version; language is a separate
+    // field. (The registry key from buildPromptAssetKey is 3-part
+    // id@version@language for locale routing — not what the catalog exposes.)
+    key: `${asset.id}@${asset.version}`,
     id: asset.id,
     version: asset.version,
     taskType: asset.taskType,
@@ -408,7 +410,11 @@ export class PromptWorkbenchService {
   constructor(private readonly db: PromptWorkbenchDb = prisma) {}
 
   listCatalog(filter?: PromptCatalogFilter): PromptCatalogItem[] {
+    // The workbench manages canonical prompts (zh anchors); en variants are
+    // auto-derived translations reached via locale routing, not separate
+    // catalog rows.
     return listRegisteredPromptAssets()
+      .filter((asset) => asset.language === "zh")
       .map(toCatalogItem)
       .filter((item) => matchesCatalogFilter(item, filter))
       .sort(sortCatalogItems);
