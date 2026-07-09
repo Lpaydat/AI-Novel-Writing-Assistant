@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { WorldConsistencyIssue, WorldConsistencyReport } from "@ai-novel/shared/types/world";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +23,7 @@ interface WorldConsistencyTabProps {
 
 export default function WorldConsistencyTab(props: WorldConsistencyTabProps) {
   const { report, issues, checkPending, onCheck, onPatchIssue } = props;
+  const { t } = useTranslation("worldsComponentsB");
   const [activeIssueId, setActiveIssueId] = useState<string | null>(null);
   const openIssues = useMemo(() => issues.filter((issue) => issue.status === "open"), [issues]);
   const activeIssue = useMemo(() => {
@@ -40,61 +42,61 @@ export default function WorldConsistencyTab(props: WorldConsistencyTabProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>世界手册体检</CardTitle>
+        <CardTitle>{t("consistency.title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col gap-3 rounded-md border p-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="text-sm font-medium">世界手册体检</div>
+            <div className="text-sm font-medium">{t("consistency.title")}</div>
             <div className="mt-1 text-xs leading-5 text-muted-foreground">
-              检查核心规则、题材信号、力量体系和冲突支撑是否互相冲突。发现问题后逐条处理即可。
+              {t("consistency.desc")}
             </div>
           </div>
           <Button onClick={onCheck} disabled={checkPending}>
-            {checkPending ? "检查中..." : "运行手册体检"}
+            {checkPending ? t("consistency.checking") : t("consistency.run")}
           </Button>
         </div>
 
         {report ? (
           <div className="grid gap-3 md:grid-cols-5">
             <div className="rounded-md border p-3 text-sm">
-              <div className="text-xs text-muted-foreground">检查状态</div>
+              <div className="text-xs text-muted-foreground">{t("consistency.statusLabel")}</div>
               <div className="mt-1 font-semibold">{localizeConsistencyStatus(report.status)}</div>
             </div>
             <div className="rounded-md border p-3 text-sm">
-              <div className="text-xs text-muted-foreground">一致性分数</div>
+              <div className="text-xs text-muted-foreground">{t("consistency.scoreLabel")}</div>
               <div className="mt-1 font-semibold">{report.score}</div>
             </div>
             <div className="rounded-md border p-3 text-sm">
-              <div className="text-xs text-muted-foreground">待处理</div>
+              <div className="text-xs text-muted-foreground">{t("consistency.pendingLabel")}</div>
               <div className="mt-1 font-semibold">{openIssues.length}</div>
             </div>
             <div className="rounded-md border p-3 text-sm">
-              <div className="text-xs text-muted-foreground">严重/警告</div>
+              <div className="text-xs text-muted-foreground">{t("consistency.errorWarnLabel")}</div>
               <div className="mt-1 font-semibold">{errorCount}/{warnCount}</div>
             </div>
             <div className="rounded-md border p-3 text-sm">
-              <div className="text-xs text-muted-foreground">已处理</div>
+              <div className="text-xs text-muted-foreground">{t("consistency.handledLabel")}</div>
               <div className="mt-1 font-semibold">{resolvedCount + ignoredCount}</div>
             </div>
             <div className="rounded-md border p-3 text-sm md:col-span-5">
-              <div className="text-xs text-muted-foreground">检查摘要</div>
+              <div className="text-xs text-muted-foreground">{t("consistency.summaryLabel")}</div>
               <div className="mt-1 font-medium">{report.summary}</div>
               <div className="mt-2 text-xs text-muted-foreground">
-                生成时间：{report.generatedAt ? new Date(report.generatedAt).toLocaleString() : "未知"}
+                {t("consistency.generatedAt", { time: report.generatedAt ? new Date(report.generatedAt).toLocaleString() : t("consistency.unknownTime") })}
               </div>
             </div>
           </div>
         ) : (
           <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-            运行检查后，这里会展示世界手册的体检结果和需要处理的问题。
+            {t("consistency.emptyReport")}
           </div>
         )}
 
         {issues.length > 0 ? (
           <div className="grid gap-3 lg:grid-cols-[280px_minmax(0,1fr)]">
             <div className="space-y-2 rounded-md border p-3">
-              <div className="text-sm font-medium">问题清单</div>
+              <div className="text-sm font-medium">{t("consistency.issueListTitle")}</div>
               {issues.map((issue) => {
                 const selected = activeIssue?.id === issue.id;
                 return (
@@ -132,19 +134,19 @@ export default function WorldConsistencyTab(props: WorldConsistencyTabProps) {
                   <div className="mt-2 text-sm">{localizeConsistencyIssueMessage(activeIssue)}</div>
                 </div>
                 <div className="rounded-md border border-dashed p-3 text-sm leading-6 text-muted-foreground">
-                  {localizeConsistencyIssueDetail(activeIssue) ?? "可以结合世界手册复核这条风险。"}
+                  {localizeConsistencyIssueDetail(activeIssue) ?? t("consistency.detailFallback")}
                 </div>
                 <div className="grid gap-2 md:grid-cols-3">
                   <div className="rounded-md border p-3 text-xs">
-                    <div className="text-muted-foreground">检查来源</div>
+                    <div className="text-muted-foreground">{t("consistency.sourceLabel")}</div>
                     <div className="mt-1 font-medium text-foreground">{localizeConsistencySource(activeIssue.source)}</div>
                   </div>
                   <div className="rounded-md border p-3 text-xs">
-                    <div className="text-muted-foreground">影响内容</div>
+                    <div className="text-muted-foreground">{t("consistency.affectedLabel")}</div>
                     <div className="mt-1 font-medium text-foreground">{localizeConsistencyField(activeIssue.targetField)}</div>
                   </div>
                   <div className="rounded-md border p-3 text-xs">
-                    <div className="text-muted-foreground">处理状态</div>
+                    <div className="text-muted-foreground">{t("consistency.handleStatusLabel")}</div>
                     <div className="mt-1 font-medium text-foreground">{localizeConsistencyStatus(activeIssue.status)}</div>
                   </div>
                 </div>
@@ -155,7 +157,7 @@ export default function WorldConsistencyTab(props: WorldConsistencyTabProps) {
                     onClick={() => onPatchIssue({ issueId: activeIssue.id, status: "resolved" })}
                     disabled={activeIssue.status === "resolved"}
                   >
-                    标记已解决
+                    {t("consistency.markResolved")}
                   </Button>
                   <Button
                     size="sm"
@@ -163,7 +165,7 @@ export default function WorldConsistencyTab(props: WorldConsistencyTabProps) {
                     onClick={() => onPatchIssue({ issueId: activeIssue.id, status: "ignored" })}
                     disabled={activeIssue.status === "ignored"}
                   >
-                    忽略
+                    {t("consistency.ignore")}
                   </Button>
                 </div>
               </div>
@@ -171,7 +173,7 @@ export default function WorldConsistencyTab(props: WorldConsistencyTabProps) {
           </div>
         ) : (
           <div className="rounded-md border p-3 text-sm text-muted-foreground">
-            还没有一致性问题记录，运行检查后会在这里展示结果。
+            {t("consistency.noIssues")}
           </div>
         )}
       </CardContent>

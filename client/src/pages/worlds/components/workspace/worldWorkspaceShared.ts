@@ -1,12 +1,13 @@
 import type { World } from "@ai-novel/shared/types/world";
+import i18n from "@/i18n";
 
 export const LAYERS = [
-  { key: "foundation", label: "L1 基础层", primaryField: "background" },
-  { key: "power", label: "L2 力量层", primaryField: "magicSystem" },
-  { key: "society", label: "L3 社会层", primaryField: "politics" },
-  { key: "culture", label: "L4 文化层", primaryField: "cultures" },
-  { key: "history", label: "L5 历史层", primaryField: "history" },
-  { key: "conflict", label: "L6 冲突层", primaryField: "conflicts" },
+  { key: "foundation", label: "layer.foundation", primaryField: "background" },
+  { key: "power", label: "layer.power", primaryField: "magicSystem" },
+  { key: "society", label: "layer.society", primaryField: "politics" },
+  { key: "culture", label: "layer.culture", primaryField: "cultures" },
+  { key: "history", label: "layer.history", primaryField: "history" },
+  { key: "conflict", label: "layer.conflict", primaryField: "conflicts" },
 ] as const;
 
 export type LayerKey = (typeof LAYERS)[number]["key"];
@@ -27,10 +28,10 @@ export type LayerField =
   | "factions";
 
 export const LAYER_STATUS_LABELS: Record<string, string> = {
-  pending: "待生成",
-  generated: "已生成",
-  confirmed: "已确认",
-  stale: "待重建",
+  pending: "layerStatus.pending",
+  generated: "layerStatus.generated",
+  confirmed: "layerStatus.confirmed",
+  stale: "layerStatus.stale",
 };
 
 export const LAYER_FIELDS_BY_KEY: Record<LayerKey, LayerField[]> = {
@@ -58,19 +59,19 @@ export type RefineAttribute =
   | "factions";
 
 export const REFINE_ATTRIBUTE_OPTIONS: Array<{ value: RefineAttribute; label: string }> = [
-  { value: "background", label: "基础背景" },
-  { value: "geography", label: "地理环境" },
-  { value: "cultures", label: "文化习俗" },
-  { value: "magicSystem", label: "力量体系" },
-  { value: "politics", label: "政治结构" },
-  { value: "races", label: "种族设定" },
-  { value: "religions", label: "宗教信仰" },
-  { value: "technology", label: "技术体系" },
-  { value: "history", label: "历史脉络" },
-  { value: "economy", label: "经济系统" },
-  { value: "conflicts", label: "核心冲突" },
-  { value: "description", label: "世界概述" },
-  { value: "factions", label: "势力关系" },
+  { value: "background", label: "refineAttr.background" },
+  { value: "geography", label: "refineAttr.geography" },
+  { value: "cultures", label: "refineAttr.cultures" },
+  { value: "magicSystem", label: "refineAttr.magicSystem" },
+  { value: "politics", label: "refineAttr.politics" },
+  { value: "races", label: "refineAttr.races" },
+  { value: "religions", label: "refineAttr.religions" },
+  { value: "technology", label: "refineAttr.technology" },
+  { value: "history", label: "refineAttr.history" },
+  { value: "economy", label: "refineAttr.economy" },
+  { value: "conflicts", label: "refineAttr.conflicts" },
+  { value: "description", label: "refineAttr.description" },
+  { value: "factions", label: "refineAttr.factions" },
 ];
 
 export function normalizeLayerText(raw: unknown): string {
@@ -116,7 +117,12 @@ function formatLayerStructuredValue(raw: unknown): string {
     return Object.entries(raw as Record<string, unknown>)
       .map(([key, value]) => {
         const text = formatLayerStructuredValue(value);
-        return text ? `${key}：${text.replace(/\n/g, "；")}` : "";
+        return text
+          ? `${key}${i18n.t("sep.colon", { ns: "worldsComponentsB" })}${text.replace(
+              /\n/g,
+              i18n.t("sep.semicolon", { ns: "worldsComponentsB" }),
+            )}`
+          : "";
       })
       .filter(Boolean)
       .join("\n");

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type {
   WorldSkeletonGenerationCounts,
   WorldSkeletonPreset,
@@ -15,28 +16,28 @@ const PRESET_CARDS: Array<{
 }> = [
   {
     value: "light",
-    title: "轻量舞台",
-    description: "适合短篇、单主线、低复杂度，先得到一个清楚好写的故事舞台。",
+    title: "stepTwo.preset.light.title",
+    description: "stepTwo.preset.light.desc",
   },
   {
     value: "standard",
-    title: "标准长篇",
-    description: "适合多数网文长篇，默认生成足够的规则、势力、地点和开局入口。",
+    title: "stepTwo.preset.standard.title",
+    description: "stepTwo.preset.standard.desc",
   },
   {
     value: "epic",
-    title: "复杂群像",
-    description: "适合多势力、多地点、多线冲突，需要更强的地图和关系承载。",
+    title: "stepTwo.preset.epic.title",
+    description: "stepTwo.preset.epic.desc",
   },
 ];
 
 const COUNT_LABELS: Record<keyof WorldSkeletonGenerationCounts, string> = {
-  rules: "核心规则",
-  factionGroups: "阵营方向",
-  forces: "具体势力",
-  locations: "关键地点",
-  conflicts: "关系/冲突",
-  storyEntrySuggestions: "故事入口",
+  rules: "stepTwo.count.rules",
+  factionGroups: "stepTwo.count.factionGroups",
+  forces: "stepTwo.count.forces",
+  locations: "stepTwo.count.locations",
+  conflicts: "stepTwo.count.conflicts",
+  storyEntrySuggestions: "stepTwo.count.storyEntrySuggestions",
 };
 
 interface WorldGeneratorStepTwoProps {
@@ -57,13 +58,14 @@ export default function WorldGeneratorStepTwo(props: WorldGeneratorStepTwoProps)
     onCountChange,
     onGenerateSkeleton,
   } = props;
+  const { t } = useTranslation("worldsComponentsB");
 
   return (
     <div className="space-y-4">
       <div className="rounded-md border bg-background p-4">
-        <div className="text-sm font-medium">选择世界规模</div>
+        <div className="text-sm font-medium">{t("stepTwo.scaleTitle")}</div>
         <div className="mt-1 text-xs text-muted-foreground">
-          规模会决定 AI 生成多少规则、阵营、具体势力、关键地点和可开书入口。默认推荐“标准长篇”。
+          {t("stepTwo.scaleHint")}
         </div>
       </div>
 
@@ -77,22 +79,22 @@ export default function WorldGeneratorStepTwo(props: WorldGeneratorStepTwoProps)
             }`}
             onClick={() => onPresetChange(item.value)}
           >
-            <div className="text-sm font-semibold">{item.title}</div>
-            <div className="mt-2 text-xs leading-5 text-muted-foreground">{item.description}</div>
+            <div className="text-sm font-semibold">{t(item.title)}</div>
+            <div className="mt-2 text-xs leading-5 text-muted-foreground">{t(item.description)}</div>
             <div className="mt-3 grid grid-cols-2 gap-1 text-xs text-muted-foreground">
-              <span>势力 {WORLD_SKELETON_PRESET_COUNTS[item.value].forces}</span>
-              <span>地点 {WORLD_SKELETON_PRESET_COUNTS[item.value].locations}</span>
-              <span>冲突 {WORLD_SKELETON_PRESET_COUNTS[item.value].conflicts}</span>
-              <span>入口 {WORLD_SKELETON_PRESET_COUNTS[item.value].storyEntrySuggestions}</span>
+              <span>{t("stepTwo.stat.forces", { count: WORLD_SKELETON_PRESET_COUNTS[item.value].forces })}</span>
+              <span>{t("stepTwo.stat.locations", { count: WORLD_SKELETON_PRESET_COUNTS[item.value].locations })}</span>
+              <span>{t("stepTwo.stat.conflicts", { count: WORLD_SKELETON_PRESET_COUNTS[item.value].conflicts })}</span>
+              <span>{t("stepTwo.stat.entries", { count: WORLD_SKELETON_PRESET_COUNTS[item.value].storyEntrySuggestions })}</span>
             </div>
           </button>
         ))}
       </div>
 
       <div className="rounded-md border p-4">
-        <div className="text-sm font-medium">调整数量</div>
+        <div className="text-sm font-medium">{t("stepTwo.adjustTitle")}</div>
         <div className="mt-1 text-xs text-muted-foreground">
-          新手建议保持默认；只有明确想要更小或更大的世界时再调整。
+          {t("stepTwo.adjustHint")}
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {(Object.keys(COUNT_LABELS) as Array<keyof WorldSkeletonGenerationCounts>).map((key) => {
@@ -100,7 +102,7 @@ export default function WorldGeneratorStepTwo(props: WorldGeneratorStepTwoProps)
             return (
               <label key={key} className="rounded-md border p-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-medium">{COUNT_LABELS[key]}</span>
+                  <span className="font-medium">{t(COUNT_LABELS[key])}</span>
                   <span className="text-xs text-muted-foreground">{counts[key]}</span>
                 </div>
                 <input
@@ -119,7 +121,7 @@ export default function WorldGeneratorStepTwo(props: WorldGeneratorStepTwoProps)
       </div>
 
       <Button onClick={onGenerateSkeleton} disabled={generating}>
-        {generating ? "生成世界骨架中..." : "生成世界骨架"}
+        {generating ? t("stepTwo.generating") : t("stepTwo.generate")}
       </Button>
     </div>
   );

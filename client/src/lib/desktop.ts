@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import i18n from "@/i18n";
 import { APP_RUNTIME } from "./constants";
 
 export type DesktopBootstrapState = "launching" | "starting-server" | "loading-ui" | "ready" | "error";
@@ -53,16 +54,18 @@ export interface DesktopDataImportResult {
   sourcePath?: string;
 }
 
-const DEFAULT_BOOTSTRAP_SNAPSHOT: DesktopBootstrapSnapshot = {
-  state: "launching",
-  stage: "launching",
-  title: "正在启动桌面工作区",
-  detail: "正在准备桌面本地运行时。",
-  logDir: "",
-  logFile: "",
-  updatedAt: "",
-  canRetry: false,
-};
+function createDefaultBootstrapSnapshot(): DesktopBootstrapSnapshot {
+  return {
+    state: "launching",
+    stage: "launching",
+    title: i18n.t("desktop.bootstrap.title", { ns: "lib" }),
+    detail: i18n.t("desktop.bootstrap.detail", { ns: "lib" }),
+    logDir: "",
+    logFile: "",
+    updatedAt: "",
+    canRetry: false,
+  };
+}
 
 const DEFAULT_UPDATER_SNAPSHOT: DesktopUpdaterSnapshot = {
   status: "disabled",
@@ -125,7 +128,7 @@ export async function importDesktopLegacyDatabase(options?: { preferSuggested?: 
 }
 
 export function useDesktopBootstrap(): DesktopBootstrapSnapshot {
-  const [snapshot, setSnapshot] = useState<DesktopBootstrapSnapshot>(DEFAULT_BOOTSTRAP_SNAPSHOT);
+  const [snapshot, setSnapshot] = useState<DesktopBootstrapSnapshot>(createDefaultBootstrapSnapshot);
 
   useEffect(() => {
     const bridge = getDesktopBridge();

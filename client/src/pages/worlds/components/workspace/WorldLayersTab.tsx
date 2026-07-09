@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { useTranslation } from "react-i18next";
 import type { World } from "@ai-novel/shared/types/world";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,6 +76,7 @@ export default function WorldLayersTab(props: WorldLayersTabProps) {
     refineContent,
     onAbortRefine,
   } = props;
+  const { t } = useTranslation("worldsComponentsB");
   const selectedLayerMeta = LAYERS.find((layer) => layer.key === selectedLayer) ?? LAYERS[0];
   const worldRecord = world as unknown as Record<string, unknown> | undefined;
   const hasSelectedDraft = Object.prototype.hasOwnProperty.call(layerDrafts, selectedLayerMeta.key);
@@ -91,23 +93,23 @@ export default function WorldLayersTab(props: WorldLayersTabProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>分层整理世界</CardTitle>
+        <CardTitle>{t("layersTab.title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center gap-2 rounded-md border p-3">
           <Button onClick={onGenerateAll} disabled={generateAllPending || !world}>
-            {generateAllPending ? "整理中..." : isInitialLayerGeneration ? "AI 整理六层摘要" : "重新整理六层摘要"}
+            {generateAllPending ? t("common.organizing") : isInitialLayerGeneration ? t("layersTab.generateAllInitial") : t("layersTab.generateAllRedo")}
           </Button>
           <div className="text-xs text-muted-foreground">
             {isInitialLayerGeneration
-              ? "系统会把世界手册整理为基础、力量、社会、文化、历史和冲突六个写作摘要。"
-              : "有世界骨架时会按手册内容整理摘要；没有骨架的旧世界才会补写缺失层级。"}
+              ? t("layersTab.generateAllHintInitial")
+              : t("layersTab.generateAllHintRedo")}
           </div>
         </div>
 
         <div className="grid gap-3 lg:grid-cols-[240px_minmax(0,1fr)]">
           <div className="space-y-2 rounded-md border p-3">
-            <div className="text-sm font-medium">选择要整理的层级</div>
+            <div className="text-sm font-medium">{t("layersTab.selectLayerTitle")}</div>
             <div className="space-y-2">
               {LAYERS.map((layer) => {
                 const layerStatus = layerStates[layer.key]?.status ?? "pending";
@@ -124,11 +126,11 @@ export default function WorldLayersTab(props: WorldLayersTabProps) {
                     onClick={() => setSelectedLayer(layer.key)}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-medium text-foreground">{layer.label}</span>
-                      {hasDraft ? <span className="text-xs text-primary">草稿</span> : null}
+                      <span className="font-medium text-foreground">{t(layer.label)}</span>
+                      {hasDraft ? <span className="text-xs text-primary">{t("layersTab.draft")}</span> : null}
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">
-                      {LAYER_STATUS_LABELS[layerStatus] ?? layerStatus}
+                      {t(LAYER_STATUS_LABELS[layerStatus] ?? layerStatus)}
                     </div>
                   </button>
                 );
@@ -139,12 +141,12 @@ export default function WorldLayersTab(props: WorldLayersTabProps) {
           <div className="rounded-md border p-3 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <div className="font-medium">{selectedLayerMeta.label}</div>
+                <div className="font-medium">{t(selectedLayerMeta.label)}</div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  状态：{LAYER_STATUS_LABELS[selectedLayerStatus] ?? selectedLayerStatus}
+                  {t("layersTab.statusPrefix", { status: t(LAYER_STATUS_LABELS[selectedLayerStatus] ?? selectedLayerStatus) })}
                 </div>
               </div>
-              {hasSelectedDraft ? <div className="text-xs text-primary">有未保存草稿</div> : null}
+              {hasSelectedDraft ? <div className="text-xs text-primary">{t("layersTab.unsavedDraft")}</div> : null}
             </div>
             <textarea
               className="min-h-[260px] w-full rounded-md border bg-background p-2 text-sm"
@@ -169,32 +171,32 @@ export default function WorldLayersTab(props: WorldLayersTabProps) {
               >
                 {isInitialLayerGeneration
                   ? generateAllPending
-                    ? "六层生成中..."
-                    : "首次 AI 生成六层"
+                    ? t("layersTab.generatingSixInitial")
+                    : t("layersTab.generateSixFirst")
                   : isGeneratingSelectedLayer
-                    ? "重写中..."
-                    : "AI 整理本层"}
+                    ? t("layersTab.rewriting")
+                    : t("layersTab.generateThisLayer")}
               </Button>
               <Button
                 variant="secondary"
                 onClick={() => onSaveLayer({ layerKey: selectedLayerMeta.key, content: selectedLayerValue })}
                 disabled={saveLayerPending || generateAllPending || !selectedLayerValue.trim()}
               >
-                {isSavingSelectedLayer ? "保存中..." : "保存本层"}
+                {isSavingSelectedLayer ? t("common.savingShort") : t("layersTab.saveThisLayer")}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => onConfirmLayer(selectedLayerMeta.key)}
                 disabled={confirmLayerPending || generateAllPending}
               >
-                {isConfirmingSelectedLayer ? "确认中..." : "确认本层"}
+                {isConfirmingSelectedLayer ? t("layersTab.confirming") : t("layersTab.confirmThisLayer")}
               </Button>
             </div>
           </div>
         </div>
 
         <div className="rounded-md border p-3">
-          <div className="mb-2 text-sm font-medium">AI 精修</div>
+          <div className="mb-2 text-sm font-medium">{t("layersTab.refineTitle")}</div>
           <div className="grid gap-2 md:grid-cols-4">
             <SelectControl
               className="rounded-md border bg-background p-2 text-sm"
@@ -203,7 +205,7 @@ export default function WorldLayersTab(props: WorldLayersTabProps) {
             >
               {REFINE_ATTRIBUTE_OPTIONS.map((item) => (
                 <option key={item.value} value={item.value}>
-                  {item.label}
+                  {t(item.label)}
                 </option>
               ))}
             </SelectControl>
@@ -212,19 +214,19 @@ export default function WorldLayersTab(props: WorldLayersTabProps) {
               value={refineMode}
               onChange={(event) => setRefineMode(event.target.value as "replace" | "alternatives")}
             >
-              <option value="replace">替换优化</option>
-              <option value="alternatives">提供备选方案</option>
+              <option value="replace">{t("layersTab.refineMode.replace")}</option>
+              <option value="alternatives">{t("layersTab.refineMode.alternatives")}</option>
             </SelectControl>
             <SelectControl
               className="rounded-md border bg-background p-2 text-sm"
               value={refineLevel}
               onChange={(event) => setRefineLevel(event.target.value as "light" | "deep")}
             >
-              <option value="light">轻度</option>
-              <option value="deep">深度</option>
+              <option value="light">{t("layersTab.refineLevel.light")}</option>
+              <option value="deep">{t("layersTab.refineLevel.deep")}</option>
             </SelectControl>
             <Button onClick={onStartRefine} disabled={refineStreaming}>
-              {refineStreaming ? "精修中..." : selectedLayer === "foundation" ? "精修世界基底" : "精修本层"}
+              {refineStreaming ? t("layersTab.refining") : selectedLayer === "foundation" ? t("layersTab.refineFoundation") : t("layersTab.refineThisLayer")}
             </Button>
           </div>
           <StreamOutput content={refineContent} isStreaming={refineStreaming} onAbort={onAbortRefine} />

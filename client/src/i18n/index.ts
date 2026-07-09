@@ -65,6 +65,20 @@ import zhNovelsChapterEditor from "@/locales/zh/novelsChapterEditor.json";
 import enNovelsChapterEditor from "@/locales/en/novelsChapterEditor.json";
 import zhNovelsChapterInsights from "@/locales/zh/novelsChapterInsights.json";
 import enNovelsChapterInsights from "@/locales/en/novelsChapterInsights.json";
+import zhNovels from "@/locales/zh/novels.json";
+import enNovels from "@/locales/en/novels.json";
+import zhNovelsSetup from "@/locales/zh/novelsSetup.json";
+import enNovelsSetup from "@/locales/en/novelsSetup.json";
+import zhLib from "@/locales/zh/lib.json";
+import enLib from "@/locales/en/lib.json";
+import zhApi from "@/locales/zh/api.json";
+import enApi from "@/locales/en/api.json";
+import zhStoreHooks from "@/locales/zh/storeHooks.json";
+import enStoreHooks from "@/locales/en/storeHooks.json";
+import zhWorldsComponentsA from "@/locales/zh/worldsComponentsA.json";
+import enWorldsComponentsA from "@/locales/en/worldsComponentsA.json";
+import zhWorldsComponentsB from "@/locales/zh/worldsComponentsB.json";
+import enWorldsComponentsB from "@/locales/en/worldsComponentsB.json";
 import { getActiveLocale, type AppLocale } from "./localeHeaders";
 
 export const SUPPORTED_LOCALES = ["zh", "en"] as const;
@@ -102,6 +116,13 @@ export const localeResources = {
     novelsList: zhNovelsList,
     novelsChapterEditor: zhNovelsChapterEditor,
     novelsChapterInsights: zhNovelsChapterInsights,
+    novels: zhNovels,
+    novelsSetup: zhNovelsSetup,
+    lib: zhLib,
+    api: zhApi,
+    storeHooks: zhStoreHooks,
+    worldsComponentsA: zhWorldsComponentsA,
+    worldsComponentsB: zhWorldsComponentsB,
   },
   en: {
     home: enHome,
@@ -130,6 +151,13 @@ export const localeResources = {
     novelsList: enNovelsList,
     novelsChapterEditor: enNovelsChapterEditor,
     novelsChapterInsights: enNovelsChapterInsights,
+    novels: enNovels,
+    novelsSetup: enNovelsSetup,
+    lib: enLib,
+    api: enApi,
+    storeHooks: enStoreHooks,
+    worldsComponentsA: enWorldsComponentsA,
+    worldsComponentsB: enWorldsComponentsB,
   },
 } as const;
 
@@ -168,6 +196,13 @@ void i18n.use(initReactI18next).init({
     "novelsList",
     "novelsChapterEditor",
     "novelsChapterInsights",
+    "novels",
+    "novelsSetup",
+    "lib",
+    "api",
+    "storeHooks",
+    "worldsComponentsA",
+    "worldsComponentsB",
   ],
   // Keys are flat strings that intentionally contain dots (e.g.
   // "metric.liveWorkflow.title"). Disable both separators so i18next treats

@@ -1,0 +1,9 @@
+{
+  "chatStore.sessionDefaultTitle": "新对话",
+  "directorChapterTitleRepair.noRepairableWarning": "当前任务没有可直接 AI 修复的章节标题提醒。",
+  "directorChapterTitleRepair.noTask": "当前没有可修复的自动导演任务。",
+  "directorChapterTitleRepair.repairFailed": "AI 修复章节标题失败。",
+  "directorChapterTitleRepair.repairStarted": "已开始 AI 修复章节标题，系统正在重写当前卷拆章。",
+  "sse.requestFailedWithStatus": "请求失败，状态码 {{status}}",
+  "sse.streamFailed": "流式请求失败。"
+}

@@ -24,6 +24,7 @@ import type {
   WorldSkeletonGenerationOptions,
   WorldSkeletonGenerationPayload,
 } from "@ai-novel/shared/types/worldWizard";
+import i18n from "@/i18n";
 import { apiClient } from "./client";
 
 const WORLD_GENERATE_ALL_TIMEOUT_MS = 3 * 60 * 1000;
@@ -51,10 +52,12 @@ function normalizeSuggestedAxioms(raw: unknown): string[] {
         .find((value) => typeof value === "string") as string | undefined;
 
       if (title && description && effect) {
-        return `${title}（${description}，影响：${effect}）`.trim();
+        return i18n
+          .t("world.axiom.titleDescriptionEffect", { ns: "api", title, description, effect })
+          .trim();
       }
       if (title && description) {
-        return `${title}：${description}`.trim();
+        return i18n.t("world.axiom.titleDescription", { ns: "api", title, description }).trim();
       }
       if (title) {
         return title.trim();

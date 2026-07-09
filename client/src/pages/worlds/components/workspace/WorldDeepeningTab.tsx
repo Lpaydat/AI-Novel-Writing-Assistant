@@ -1,4 +1,5 @@
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useTranslation } from "react-i18next";
 import type { WorldDeepeningQuestion } from "@ai-novel/shared/types/world";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ export default function WorldDeepeningTab(props: WorldDeepeningTabProps) {
     onGenerate,
     onSubmit,
   } = props;
+  const { t } = useTranslation("worldsComponentsB");
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const activeQuestion = useMemo(() => {
     if (questions.length === 0) {
@@ -43,18 +45,18 @@ export default function WorldDeepeningTab(props: WorldDeepeningTabProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>补齐世界手册</CardTitle>
+        <CardTitle>{t("deepening.title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col gap-3 rounded-md border p-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="text-sm font-medium">补齐世界手册的关键空白</div>
+            <div className="text-sm font-medium">{t("deepening.subtitle")}</div>
             <div className="mt-1 text-xs leading-5 text-muted-foreground">
-              系统会根据这份世界手册提出少量问题。回答后会整合进世界设定，帮助规则、势力、地点和冲突更清晰。
+              {t("deepening.desc")}
             </div>
           </div>
           <Button onClick={onGenerate} disabled={generatePending}>
-            {generatePending ? "生成中..." : "生成补齐问题"}
+            {generatePending ? t("deepening.generating") : t("deepening.generate")}
           </Button>
         </div>
 
@@ -62,7 +64,7 @@ export default function WorldDeepeningTab(props: WorldDeepeningTabProps) {
           <div className="grid gap-3 lg:grid-cols-[260px_minmax(0,1fr)]">
             <div className="space-y-2 rounded-md border p-3">
               <div className="flex items-center justify-between gap-2">
-                <div className="text-sm font-medium">待补问题</div>
+                <div className="text-sm font-medium">{t("deepening.pendingTitle")}</div>
                 <div className="text-xs text-muted-foreground">{answeredCount}/{questions.length}</div>
               </div>
               {questions.map((question, index) => {
@@ -79,9 +81,9 @@ export default function WorldDeepeningTab(props: WorldDeepeningTabProps) {
                     onClick={() => setActiveQuestionId(question.id)}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-medium text-foreground">问题 {index + 1}</span>
+                      <span className="font-medium text-foreground">{t("deepening.questionLabel", { index: index + 1 })}</span>
                       <span className={answered ? "text-xs text-primary" : "text-xs text-muted-foreground"}>
-                        {answered ? "有回答" : "待回答"}
+                        {answered ? t("deepening.answered") : t("deepening.unanswered")}
                       </span>
                     </div>
                     <div className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
@@ -97,12 +99,12 @@ export default function WorldDeepeningTab(props: WorldDeepeningTabProps) {
                 <div>
                   <div className="text-sm font-medium text-foreground">{activeQuestion.question}</div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    这条回答会用于补齐世界手册。
+                    {t("deepening.answerNote")}
                   </div>
                 </div>
                 {activeQuickOptions.length > 0 ? (
                   <div className="space-y-2">
-                    <div className="text-xs text-muted-foreground">可直接采用的回答方向</div>
+                    <div className="text-xs text-muted-foreground">{t("deepening.quickOptionsLabel")}</div>
                     <div className="flex flex-wrap gap-2">
                       {activeQuickOptions.map((option) => (
                         <Button
@@ -121,7 +123,7 @@ export default function WorldDeepeningTab(props: WorldDeepeningTabProps) {
                   </div>
                 ) : (
                   <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-                    可以直接写你的设定答案，也可以先用一句话描述方向。
+                    {t("deepening.noQuickOptions")}
                   </div>
                 )}
                 <textarea
@@ -130,14 +132,14 @@ export default function WorldDeepeningTab(props: WorldDeepeningTabProps) {
                   onChange={(event) =>
                     setAnswerDrafts((prev) => ({ ...prev, [activeQuestion.id]: event.target.value }))
                   }
-                  placeholder="填写这条设定补充"
+                  placeholder={t("deepening.answerPlaceholder")}
                 />
               </div>
             ) : null}
           </div>
         ) : (
           <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-            这里会展示能帮助世界成型的问题。生成问题后，逐条补充即可。
+            {t("deepening.emptyState")}
           </div>
         )}
         <div className="flex justify-end">
@@ -145,7 +147,7 @@ export default function WorldDeepeningTab(props: WorldDeepeningTabProps) {
             onClick={onSubmit}
             disabled={submitPending || answeredCount === 0 || questions.length === 0}
           >
-            {submitPending ? "整合中..." : "提交并整合回答"}
+            {submitPending ? t("deepening.submitting") : t("deepening.submit")}
           </Button>
         </div>
       </CardContent>

@@ -1,6 +1,7 @@
 ﻿import type { NovelAutoDirectorTaskSummary } from "@ai-novel/shared/types/novel";
 import type { NovelWorkflowCheckpoint } from "@ai-novel/shared/types/novelWorkflow";
 import type { TaskStatus } from "@ai-novel/shared/types/task";
+import i18n from "@/i18n";
 
 export type WorkflowBadgeVariant = "default" | "outline" | "secondary" | "destructive";
 
@@ -15,45 +16,45 @@ type WorkflowTaskLike = {
 export const LIVE_TASK_STATUSES = new Set<TaskStatus>(["queued", "running", "waiting_approval"]);
 export const BACKGROUND_RUNNING_TASK_STATUSES = new Set<TaskStatus>(["running"]);
 
-function getExecutionScopeLabel(scopeLabel?: string | null, fallback = "第 1-10 章"): string {
+function getExecutionScopeLabel(scopeLabel?: string | null, fallback = i18n.t("novelWorkflowTaskUi.defaultScopeLabel", { ns: "lib" })): string {
   return scopeLabel?.trim() || fallback;
 }
 
 function buildAutoExecutionRunningLabel(scopeLabel?: string | null): string {
-  return `${getExecutionScopeLabel(scopeLabel)}自动执行中`;
+  return i18n.t("novelWorkflowTaskUi.autoExecuteRunning", { ns: "lib", scopeLabel: getExecutionScopeLabel(scopeLabel) });
 }
 
 function buildAutoExecutionPausedLabel(scopeLabel?: string | null): string {
-  return `${getExecutionScopeLabel(scopeLabel)}自动执行已暂停`;
+  return i18n.t("novelWorkflowTaskUi.autoExecutePaused", { ns: "lib", scopeLabel: getExecutionScopeLabel(scopeLabel) });
 }
 
 function buildAutoExecutionCancelledLabel(scopeLabel?: string | null): string {
-  return `${getExecutionScopeLabel(scopeLabel)}自动执行已取消`;
+  return i18n.t("novelWorkflowTaskUi.autoExecuteCancelled", { ns: "lib", scopeLabel: getExecutionScopeLabel(scopeLabel) });
 }
 
 export function formatWorkflowCheckpoint(checkpoint?: NovelWorkflowCheckpoint | null, scopeLabel?: string | null): string {
   if (checkpoint === "candidate_selection_required") {
-    return "等待确认书级方向";
+    return i18n.t("novelWorkflowTaskUi.checkpointCandidateSelection", { ns: "lib" });
   }
   if (checkpoint === "book_contract_ready") {
-    return "Book Contract 已就绪";
+    return i18n.t("novelWorkflowTaskUi.checkpointBookContractReady", { ns: "lib" });
   }
   if (checkpoint === "character_setup_required") {
-    return "角色准备待审核";
+    return i18n.t("novelWorkflowTaskUi.checkpointCharacterSetup", { ns: "lib" });
   }
   if (checkpoint === "volume_strategy_ready") {
-    return "卷战略待审核";
+    return i18n.t("novelWorkflowTaskUi.checkpointVolumeStrategy", { ns: "lib" });
   }
   if (checkpoint === "chapter_batch_ready") {
     return buildAutoExecutionPausedLabel(scopeLabel);
   }
   if (checkpoint === "replan_required") {
-    return "等待重规划";
+    return i18n.t("novelWorkflowTaskUi.checkpointReplanRequired", { ns: "lib" });
   }
   if (checkpoint === "workflow_completed") {
-    return "自动导演已完成";
+    return i18n.t("novelWorkflowTaskUi.checkpointWorkflowCompleted", { ns: "lib" });
   }
-  return "自动导演";
+  return i18n.t("novelWorkflowTaskUi.checkpointDefault", { ns: "lib" });
 }
 
 export function getWorkflowBadge(task?: NovelAutoDirectorTaskSummary | null): {
@@ -89,31 +90,31 @@ export function getWorkflowBadge(task?: NovelAutoDirectorTaskSummary | null): {
   }
   if (task.status === "running") {
     return {
-      label: displayStatus ?? "自动导演进行中",
+      label: displayStatus ?? i18n.t("novelWorkflowTaskUi.badgeRunning", { ns: "lib" }),
       variant: "default",
     };
   }
   if (task.status === "queued") {
     return {
-      label: displayStatus ?? "自动导演排队中",
+      label: displayStatus ?? i18n.t("novelWorkflowTaskUi.badgeQueued", { ns: "lib" }),
       variant: "secondary",
     };
   }
   if (task.status === "failed") {
     return {
-      label: displayStatus ?? "自动导演失败",
+      label: displayStatus ?? i18n.t("novelWorkflowTaskUi.badgeFailed", { ns: "lib" }),
       variant: "destructive",
     };
   }
   if (task.status === "cancelled") {
     return {
-      label: displayStatus ?? "自动导演已取消",
+      label: displayStatus ?? i18n.t("novelWorkflowTaskUi.badgeCancelled", { ns: "lib" }),
       variant: "outline",
     };
   }
   return {
     label: displayStatus ?? (task.checkpointType === "workflow_completed"
-      ? "自动导演已完成"
+      ? i18n.t("novelWorkflowTaskUi.checkpointWorkflowCompleted", { ns: "lib" })
       : formatWorkflowCheckpoint(task.checkpointType, task.executionScopeLabel)),
     variant: "outline",
   };
@@ -127,10 +128,17 @@ export function getWorkflowDescription(task?: NovelAutoDirectorTaskSummary | nul
     (task.status === "queued" || task.status === "running")
     && task.checkpointType === "chapter_batch_ready"
   ) {
-    return `AI 正在后台继续执行${getExecutionScopeLabel(task.executionScopeLabel)}，当前进度 ${Math.round(task.progress * 100)}%。`;
+    return i18n.t("novelWorkflowTaskUi.descriptionRunning", {
+      ns: "lib",
+      scopeLabel: getExecutionScopeLabel(task.executionScopeLabel),
+      progress: Math.round(task.progress * 100),
+    });
   }
   if ((task.status === "failed" || task.status === "cancelled") && task.checkpointType === "chapter_batch_ready") {
-    return `${getExecutionScopeLabel(task.executionScopeLabel)}自动执行在批量阶段暂停了，建议先查看任务，再决定是否继续自动执行。`;
+    return i18n.t("novelWorkflowTaskUi.descriptionBatchPaused", {
+      ns: "lib",
+      scopeLabel: getExecutionScopeLabel(task.executionScopeLabel),
+    });
   }
   if (task.blockingReason?.trim()) {
     return task.blockingReason.trim();
@@ -142,10 +150,10 @@ export function getWorkflowDescription(task?: NovelAutoDirectorTaskSummary | nul
     return task.currentItemLabel.trim();
   }
   if (task.resumeAction?.trim()) {
-    return `推荐继续：${task.resumeAction.trim()}`;
+    return i18n.t("novelWorkflowTaskUi.recommendContinue", { ns: "lib", action: task.resumeAction.trim() });
   }
   if (task.nextActionLabel?.trim()) {
-    return `下一步：${task.nextActionLabel.trim()}`;
+    return i18n.t("novelWorkflowTaskUi.nextStep", { ns: "lib", action: task.nextActionLabel.trim() });
   }
   return null;
 }

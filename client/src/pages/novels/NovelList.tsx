@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { DirectorContinuationMode } from "@ai-novel/shared/types/novelDirector";
 import type {
   DirectorBookAutomationAction,
@@ -51,6 +52,7 @@ function createDownload(blob: Blob, fileName: string): void {
 }
 
 export default function NovelList() {
+  const { t } = useTranslation("novels");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<StatusFilter>("all");
@@ -90,10 +92,10 @@ export default function NovelList() {
     mutationFn: (id: string) => deleteNovel(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.novels.all });
-      toast.success("小说已删除。");
+      toast.success(t("list.deleteSuccess"));
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "删除小说失败。");
+      toast.error(error instanceof Error ? error.message : t("list.deleteError"));
     },
   });
 
@@ -106,10 +108,10 @@ export default function NovelList() {
     ),
     onSuccess: ({ blob, fileName }) => {
       createDownload(blob, fileName);
-      toast.success("导出已开始。");
+      toast.success(t("list.exportStarted"));
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "导出小说失败。");
+      toast.error(error instanceof Error ? error.message : t("list.exportError"));
     },
   });
 
@@ -143,8 +145,8 @@ export default function NovelList() {
         error instanceof Error
           ? error.message
           : input.mode === "auto_execute_range"
-            ? "继续自动执行当前章节范围失败。"
-            : "继续自动导演失败。",
+            ? t("list.continueRangeError")
+            : t("list.continueError"),
       );
     },
   });
@@ -169,7 +171,7 @@ export default function NovelList() {
   }, [page, totalPages]);
 
   const handleDelete = (novelId: string, title: string) => {
-    const confirmed = window.confirm(`确认删除《${title}》吗？该操作会直接删除当前小说。`);
+    const confirmed = window.confirm(t("list.deleteConfirm", { title }));
     if (!confirmed) {
       return;
     }
@@ -219,11 +221,11 @@ export default function NovelList() {
       ) : novelListQuery.isError ? (
         <Card>
           <CardHeader>
-            <CardTitle>加载小说列表失败</CardTitle>
-            <CardDescription>当前无法读取项目列表，可以重试一次。</CardDescription>
+            <CardTitle>{t("list.loadFailedTitle")}</CardTitle>
+            <CardDescription>{t("list.loadFailedDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => void novelListQuery.refetch()}>重新加载</Button>
+            <Button onClick={() => void novelListQuery.refetch()}>{t("list.reload")}</Button>
           </CardContent>
         </Card>
       ) : novels.length === 0 ? (
@@ -269,20 +271,20 @@ export default function NovelList() {
       >
         <AppDialogContent
           className="max-w-2xl"
-          title="AI 驾驶舱"
+          title={t("list.cockpitTitle")}
           description={
             selectedCockpitNovel?.title
-              ? `查看《${selectedCockpitNovel.title}》的 AI 推进状态和下一步动作。`
-              : "查看这本书的 AI 推进状态和下一步动作。"
+              ? t("list.cockpitDescWithTitle", { title: selectedCockpitNovel.title })
+              : t("list.cockpitDesc")
           }
         >
           {cockpitProjectionQuery.isPending ? (
             <div className="rounded-lg border p-3 text-sm text-muted-foreground">
-              读取这本书的 AI 状态...
+              {t("list.cockpitLoading")}
             </div>
           ) : cockpitProjectionQuery.isError ? (
             <div className="rounded-lg border p-3">
-              <div className="text-sm text-muted-foreground">无法读取这本书的 AI 状态，请稍后重试。</div>
+              <div className="text-sm text-muted-foreground">{t("list.cockpitError")}</div>
               <Button
                 type="button"
                 size="sm"
@@ -290,7 +292,7 @@ export default function NovelList() {
                 className="mt-3"
                 onClick={() => void cockpitProjectionQuery.refetch()}
               >
-                重新读取
+                {t("list.cockpitRetry")}
               </Button>
             </div>
           ) : cockpitProjection ? (
@@ -305,7 +307,7 @@ export default function NovelList() {
               }}
             />
           ) : (
-            <AICockpit fallbackSummary="这本书没有需要处理的 AI 自动推进任务。" />
+            <AICockpit fallbackSummary={t("list.cockpitFallback")} />
           )}
         </AppDialogContent>
       </Dialog>

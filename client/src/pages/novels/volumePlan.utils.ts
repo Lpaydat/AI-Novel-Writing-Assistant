@@ -6,6 +6,7 @@ import type {
   VolumeStrategyPlan,
   VolumeSyncPreview,
 } from "@ai-novel/shared/types/novel";
+import i18n from "@/i18n";
 
 export interface ExistingOutlineChapter {
   id: string;
@@ -33,13 +34,13 @@ export function buildVolumePlanningReadiness(params: {
   const { volumes, strategyPlan, beatSheets } = params;
   const blockingReasons: string[] = [];
   if (!strategyPlan) {
-    blockingReasons.push("请先生成卷战略建议，再确认卷骨架。");
+    blockingReasons.push(i18n.t("volumeReadiness.needStrategy", { ns: "novels" }));
   }
   if (volumes.length === 0) {
-    blockingReasons.push("当前还没有卷骨架。");
+    blockingReasons.push(i18n.t("volumeReadiness.noSkeleton", { ns: "novels" }));
   }
   if (!beatSheets.some((sheet) => sheet.beats.length > 0)) {
-    blockingReasons.push("当前卷还没有节奏板，默认不能直接拆章节列表。");
+    blockingReasons.push(i18n.t("volumeReadiness.noBeatSheet", { ns: "novels" }));
   }
   return {
     canGenerateStrategy: true,
@@ -250,14 +251,14 @@ function compareNumber(a: number | null | undefined, b: number | null | undefine
 }
 
 function getChangedFields(existing: ExistingOutlineChapter, chapter: VolumeChapterPlan, action: "update" | "move"): string[] {
-  const changed: string[] = action === "move" ? ["章节顺序"] : [];
-  if (!compareText(existing.title, chapter.title)) changed.push("标题");
-  if (!compareText(existing.expectation, chapter.summary)) changed.push("摘要");
-  if (!compareNumber(existing.targetWordCount, chapter.targetWordCount)) changed.push("目标字数");
-  if (!compareNumber(existing.conflictLevel, chapter.conflictLevel)) changed.push("冲突等级");
-  if (!compareNumber(existing.revealLevel, chapter.revealLevel)) changed.push("揭露等级");
-  if (!compareText(existing.mustAvoid, chapter.mustAvoid)) changed.push("禁止事项");
-  if (!compareText(existing.taskSheet, chapter.taskSheet)) changed.push("任务单");
+  const changed: string[] = action === "move" ? [i18n.t("syncField.chapterOrder", { ns: "novels" })] : [];
+  if (!compareText(existing.title, chapter.title)) changed.push(i18n.t("syncField.title", { ns: "novels" }));
+  if (!compareText(existing.expectation, chapter.summary)) changed.push(i18n.t("syncField.summary", { ns: "novels" }));
+  if (!compareNumber(existing.targetWordCount, chapter.targetWordCount)) changed.push(i18n.t("syncField.targetWordCount", { ns: "novels" }));
+  if (!compareNumber(existing.conflictLevel, chapter.conflictLevel)) changed.push(i18n.t("syncField.conflictLevel", { ns: "novels" }));
+  if (!compareNumber(existing.revealLevel, chapter.revealLevel)) changed.push(i18n.t("syncField.revealLevel", { ns: "novels" }));
+  if (!compareText(existing.mustAvoid, chapter.mustAvoid)) changed.push(i18n.t("syncField.mustAvoid", { ns: "novels" }));
+  if (!compareText(existing.taskSheet, chapter.taskSheet)) changed.push(i18n.t("syncField.taskSheet", { ns: "novels" }));
   return changed;
 }
 
@@ -311,7 +312,7 @@ export function buildVolumeSyncPreview(
         chapterOrder: entry.chapter.chapterOrder,
         nextTitle: entry.chapter.title,
         hasContent: false,
-        changedFields: ["新章节"],
+        changedFields: [i18n.t("syncField.newChapter", { ns: "novels" })],
       });
       continue;
     }
@@ -365,23 +366,23 @@ export function buildVolumeSyncPreview(
       deleteCount += 1;
       items.push({
         action: "delete",
-        volumeTitle: "未匹配",
+        volumeTitle: i18n.t("sync.unmatched", { ns: "novels" }),
         chapterOrder: chapter.order,
         nextTitle: chapter.title,
         previousTitle: chapter.title,
         hasContent,
-        changedFields: ["从卷纲移除"],
+        changedFields: [i18n.t("syncField.removedFromVolume", { ns: "novels" })],
       });
     } else {
       deleteCandidateCount += 1;
       items.push({
         action: "delete_candidate",
-        volumeTitle: "未匹配",
+        volumeTitle: i18n.t("sync.unmatched", { ns: "novels" }),
         chapterOrder: chapter.order,
         nextTitle: chapter.title,
         previousTitle: chapter.title,
         hasContent,
-        changedFields: ["待确认删除"],
+        changedFields: [i18n.t("syncField.pendingDelete", { ns: "novels" })],
       });
     }
   }

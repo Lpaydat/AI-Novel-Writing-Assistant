@@ -7,13 +7,14 @@ import type {
   CreativeHubThreadState,
 } from "@ai-novel/shared/types/creativeHub";
 import { API_BASE_URL } from "@/lib/constants";
+import i18n from "@/i18n";
 import { getLocaleHeaders } from "@/i18n/localeHeaders";
 import { apiClient } from "./client";
 
 function ensureThreadId(threadId: string): string {
   const normalized = threadId.trim();
   if (!normalized) {
-    throw new Error("创作中枢线程不存在，请先创建线程。");
+    throw new Error(i18n.t("creativeHub.threadNotFound", { ns: "api" }));
   }
   return normalized;
 }
@@ -112,7 +113,7 @@ export async function* streamCreativeHubRun(
   });
 
   if (!response.ok || !response.body) {
-    throw new Error(`创作中枢请求失败，状态码 ${response.status}`);
+    throw new Error(i18n.t("creativeHub.streamRequestFailed", { ns: "api", status: response.status }));
   }
 
   const reader = response.body.getReader();

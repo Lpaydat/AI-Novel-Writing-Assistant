@@ -1,5 +1,6 @@
 import type { AutoDirectorFollowUpItem } from "@ai-novel/shared/types/autoDirectorFollowUp";
 import type { AutoDirectorFollowUpSection } from "@ai-novel/shared/types/autoDirectorValidation";
+import i18n from "@/i18n";
 
 export const AUTO_DIRECTOR_PAUSE_NOTIFICATION_SETTINGS_EVENT = "ai-novel:auto-director-pause-notifications";
 
@@ -85,10 +86,10 @@ function clipNotificationBody(value: string, maxLength = 120): string {
 export function buildAutoDirectorPauseNotificationBody(item: AutoDirectorFollowUpItem): string {
   const scope = item.executionScope?.trim();
   const summary = item.followUpSummary?.trim() || item.reasonLabel;
-  const prefix = scope
-    ? `《${item.novelTitle}》${scope}需要处理`
-    : `《${item.novelTitle}》需要处理`;
-  return clipNotificationBody(`${prefix}：${summary}`);
+  const body = scope
+    ? i18n.t("autoDirectorPauseNotifications.bodyWithScope", { ns: "lib", novelTitle: item.novelTitle, scope, summary })
+    : i18n.t("autoDirectorPauseNotifications.bodyWithoutScope", { ns: "lib", novelTitle: item.novelTitle, summary });
+  return clipNotificationBody(body);
 }
 
 export function showAutoDirectorPauseNotification(input: {
@@ -99,7 +100,7 @@ export function showAutoDirectorPauseNotification(input: {
     return false;
   }
 
-  const notification = new window.Notification("自动导演需要你处理", {
+  const notification = new window.Notification(i18n.t("autoDirectorPauseNotifications.notificationTitle", { ns: "lib" }), {
     body: buildAutoDirectorPauseNotificationBody(input.item),
     tag: NOTIFICATION_TAG,
   });

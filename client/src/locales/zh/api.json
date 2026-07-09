@@ -1,0 +1,9 @@
+{
+  "client.networkError": "网络连接失败，请检查网络后重试。",
+  "client.requestFailed": "请求失败。",
+  "client.serverError": "服务器错误，请稍后重试。",
+  "creativeHub.streamRequestFailed": "创作中枢请求失败，状态码 {{status}}",
+  "creativeHub.threadNotFound": "创作中枢线程不存在，请先创建线程。",
+  "world.axiom.titleDescription": "{{title}}：{{description}}",
+  "world.axiom.titleDescriptionEffect": "{{title}}（{{description}}，影响：{{effect}}）"
+}

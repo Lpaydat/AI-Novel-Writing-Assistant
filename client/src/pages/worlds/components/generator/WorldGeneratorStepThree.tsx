@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { WorldSkeletonGenerationPayload } from "@ai-novel/shared/types/worldWizard";
 import { Button } from "@/components/ui/button";
 
@@ -26,6 +27,7 @@ function SectionList(props: { title: string; items: string[]; emptyText: string 
 
 export default function WorldGeneratorStepThree(props: WorldGeneratorStepThreeProps) {
   const { skeleton, savePending, onBackToScale, onSave } = props;
+  const { t } = useTranslation("worldsComponentsB");
   const structure = skeleton.structuredData;
   const forceNameById = new Map(structure.forces.map((item) => [item.id, item.name]));
   const locationNameById = new Map(structure.locations.map((item) => [item.id, item.name]));
@@ -39,65 +41,65 @@ export default function WorldGeneratorStepThree(props: WorldGeneratorStepThreePr
             <div className="mt-1 text-sm text-muted-foreground">{skeleton.concept.oneSentence}</div>
           </div>
           <div className="rounded-md border px-3 py-2 text-xs text-muted-foreground">
-            完整度 {Math.round(skeleton.assessment.completenessScore)} / 100
+            {t("stepThree.completeness", { score: Math.round(skeleton.assessment.completenessScore) })}
           </div>
         </div>
         <div className="mt-3 grid gap-2 md:grid-cols-3">
           <div className="rounded border p-2 text-xs">
-            <div className="text-muted-foreground">阅读感</div>
+            <div className="text-muted-foreground">{t("stepThree.readerImpression")}</div>
             <div className="mt-1 font-medium">{skeleton.concept.readerImpression}</div>
           </div>
           <div className="rounded border p-2 text-xs">
-            <div className="text-muted-foreground">类型承诺</div>
+            <div className="text-muted-foreground">{t("stepThree.genrePromise")}</div>
             <div className="mt-1 font-medium">{skeleton.concept.genrePromise}</div>
           </div>
           <div className="rounded border p-2 text-xs">
-            <div className="text-muted-foreground">可开书状态</div>
-            <div className="mt-1 font-medium">{skeleton.assessment.readyForNovelUse ? "可以进入世界手册" : "建议先补齐缺口"}</div>
+            <div className="text-muted-foreground">{t("stepThree.readyStatus")}</div>
+            <div className="mt-1 font-medium">{skeleton.assessment.readyForNovelUse ? t("stepThree.readyYes") : t("stepThree.readyNo")}</div>
           </div>
         </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <SectionList
-          title="核心规则"
-          emptyText="暂无核心规则"
+          title={t("stepThree.section.rules")}
+          emptyText={t("stepThree.empty.rules")}
           items={structure.rules.axioms.map((item) =>
-            [item.name, item.summary, item.cost && `代价：${item.cost}`, item.boundary && `边界：${item.boundary}`]
+            [item.name, item.summary, item.cost && t("stepThree.cost", { value: item.cost }), item.boundary && t("stepThree.boundary", { value: item.boundary })]
               .filter(Boolean)
               .join(" | "),
           )}
         />
         <SectionList
-          title="主要势力"
-          emptyText="暂无势力"
+          title={t("stepThree.section.forces")}
+          emptyText={t("stepThree.empty.forces")}
           items={structure.forces.map((item) =>
             [
               item.name,
               item.type,
               item.role,
-              item.currentObjective && `目标：${item.currentObjective}`,
-              item.pressure && `压力：${item.pressure}`,
+              item.currentObjective && t("stepThree.objective", { value: item.currentObjective }),
+              item.pressure && t("stepThree.pressure", { value: item.pressure }),
             ].filter(Boolean).join(" | "),
           )}
         />
         <SectionList
-          title="关键地点"
-          emptyText="暂无地点"
+          title={t("stepThree.section.locations")}
+          emptyText={t("stepThree.empty.locations")}
           items={structure.locations.map((item) =>
             [
               item.name,
               item.type,
               item.directionHint,
               item.terrain,
-              item.riskLevel ? `风险 ${item.riskLevel}` : item.risk,
+              item.riskLevel ? t("stepThree.risk", { value: item.riskLevel }) : item.risk,
               item.storyRelevance || item.narrativeFunction,
             ].filter(Boolean).join(" | "),
           )}
         />
         <SectionList
-          title="势力关系"
-          emptyText="暂无势力关系"
+          title={t("stepThree.section.forceRelations")}
+          emptyText={t("stepThree.empty.forceRelations")}
           items={structure.relations.forceRelations.map((item) =>
             [
               forceNameById.get(item.sourceForceId) ?? item.sourceForceId,
@@ -109,8 +111,8 @@ export default function WorldGeneratorStepThree(props: WorldGeneratorStepThreePr
           )}
         />
         <SectionList
-          title="地理关系"
-          emptyText="暂无地理关系"
+          title={t("stepThree.section.geoRelations")}
+          emptyText={t("stepThree.empty.geoRelations")}
           items={(structure.relations.locationConnections ?? []).map((item) =>
             [
               locationNameById.get(item.sourceLocationId) ?? item.sourceLocationId,
@@ -122,8 +124,8 @@ export default function WorldGeneratorStepThree(props: WorldGeneratorStepThreePr
           )}
         />
         <SectionList
-          title="故事入口"
-          emptyText="暂无故事入口"
+          title={t("stepThree.section.storyEntries")}
+          emptyText={t("stepThree.empty.storyEntries")}
           items={skeleton.storyEntrySuggestions.map((item) =>
             [item.title, item.description, item.firstConflict].filter(Boolean).join(" | "),
           )}
@@ -132,11 +134,11 @@ export default function WorldGeneratorStepThree(props: WorldGeneratorStepThreePr
 
       {skeleton.assessment.missingParts.length > 0 ? (
         <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
-          <div className="font-semibold">完整度诊断</div>
+          <div className="font-semibold">{t("stepThree.diagnosisTitle")}</div>
           <div className="mt-2 space-y-1">
             {skeleton.assessment.missingParts.map((item, index) => (
               <div key={`${item.area}-${index}`}>
-                {item.issue}：{item.suggestedAction}
+                {t("stepThree.diagnosisLine", { issue: item.issue, action: item.suggestedAction })}
               </div>
             ))}
           </div>
@@ -145,10 +147,10 @@ export default function WorldGeneratorStepThree(props: WorldGeneratorStepThreePr
 
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" onClick={onBackToScale}>
-          返回调整规模
+          {t("stepThree.back")}
         </Button>
         <Button onClick={onSave} disabled={savePending}>
-          {savePending ? "保存世界中..." : "保存并进入世界手册"}
+          {savePending ? t("stepThree.saving") : t("stepThree.save")}
         </Button>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import type { DirectorTaskNotice } from "@ai-novel/shared/types/novelDirector";
 import type { UnifiedTaskDetail } from "@ai-novel/shared/types/task";
+import i18n from "@/i18n";
 
 type StructuredOutlineTaskLike = Pick<
   UnifiedTaskDetail,
@@ -26,7 +27,7 @@ export function parseDirectorTaskNotice(meta: Record<string, unknown> | null | u
         type: notice.action.type === "open_structured_outline" ? "open_structured_outline" : "open_structured_outline",
         label: typeof notice.action.label === "string" && notice.action.label.trim()
           ? notice.action.label.trim()
-          : "快速修复章节标题",
+          : i18n.t("directorTaskNotice.quickFixChapterTitle", { ns: "lib" }),
         volumeId: typeof notice.action.volumeId === "string" && notice.action.volumeId.trim()
           ? notice.action.volumeId.trim()
           : null,
@@ -94,7 +95,7 @@ export function resolveChapterTitleWarning(task: StructuredOutlineTaskLike | nul
     return {
       summary: taskNotice.summary,
       route: buildTaskNoticeRoute(task, taskNotice),
-      label: "快速修复章节标题",
+      label: i18n.t("directorTaskNotice.quickFixChapterTitle", { ns: "lib" }),
       volumeId: taskNotice.action?.volumeId ?? task.resumeTarget?.volumeId ?? seedResumeTarget?.volumeId ?? null,
     };
   }
@@ -104,7 +105,7 @@ export function resolveChapterTitleWarning(task: StructuredOutlineTaskLike | nul
   return {
     summary: task.failureSummary?.trim() ?? "",
     route: buildStructuredOutlineRoute(task, task.resumeTarget?.volumeId ?? seedResumeTarget?.volumeId ?? null),
-    label: "快速修复章节标题",
+    label: i18n.t("directorTaskNotice.quickFixChapterTitle", { ns: "lib" }),
     volumeId: task.resumeTarget?.volumeId ?? seedResumeTarget?.volumeId ?? null,
   };
 }

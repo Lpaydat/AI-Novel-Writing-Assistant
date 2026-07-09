@@ -1,0 +1,9 @@
+{
+  "chatStore.sessionDefaultTitle": "New chat",
+  "directorChapterTitleRepair.noRepairableWarning": "This task has no chapter title reminder that AI can repair directly.",
+  "directorChapterTitleRepair.noTask": "There is no auto director task available to repair.",
+  "directorChapterTitleRepair.repairFailed": "AI chapter title repair failed.",
+  "directorChapterTitleRepair.repairStarted": "AI chapter title repair has started. The system is rewriting the chapter split for the current volume.",
+  "sse.requestFailedWithStatus": "Request failed with status code {{status}}",
+  "sse.streamFailed": "Streaming request failed."
+}

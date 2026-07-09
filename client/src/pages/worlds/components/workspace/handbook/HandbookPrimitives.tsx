@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 
 export function SectionHeader({
@@ -13,6 +14,8 @@ export function SectionHeader({
   description: string;
   count?: number;
 }) {
+  const { t } = useTranslation("worldsComponentsA");
+
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
@@ -22,7 +25,9 @@ export function SectionHeader({
         </div>
         <div className="mt-1 text-sm leading-6 text-muted-foreground">{description}</div>
       </div>
-      {typeof count === "number" ? <Badge variant="secondary">{count} 条</Badge> : null}
+      {typeof count === "number" ? (
+        <Badge variant="secondary">{t("sectionHeader.countBadge", { value: count })}</Badge>
+      ) : null}
     </div>
   );
 }

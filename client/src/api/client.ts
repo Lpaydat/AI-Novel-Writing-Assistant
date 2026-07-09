@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import type { ApiResponse } from "@ai-novel/shared/types/api";
 import { API_BASE_URL, API_TIMEOUT_MS } from "@/lib/constants";
 import { toast } from "@/components/ui/toast";
+import i18n from "@/i18n";
 import { getLocaleHeaders } from "@/i18n/localeHeaders";
 
 export interface ApiHttpError extends Error {
@@ -40,19 +41,20 @@ apiClient.interceptors.response.use(
     const backendError = error.response?.data?.error;
     const backendMessage = error.response?.data?.message;
     const silentErrorStatuses = error.config?.silentErrorStatuses ?? [];
-    let title = backendError ?? error.message ?? "请求失败。";
+    const genericServerErrorTitle = i18n.t("client.serverError", { ns: "api" });
+    let title = backendError ?? error.message ?? i18n.t("client.requestFailed", { ns: "api" });
     let description = backendMessage && backendMessage !== backendError ? backendMessage : undefined;
 
     if (!status) {
-      title = "网络连接失败，请检查网络后重试。";
+      title = i18n.t("client.networkError", { ns: "api" });
       description = undefined;
     } else if (status >= 500) {
-      title = backendError ?? "服务器错误，请稍后重试。";
+      title = backendError ?? genericServerErrorTitle;
       description = backendMessage && backendMessage !== title ? backendMessage : undefined;
     }
 
     if (!status || !silentErrorStatuses.includes(status)) {
-      const isGenericServerErrorToast = title === "服务器错误，请稍后重试。";
+      const isGenericServerErrorToast = title === genericServerErrorTitle;
 
       if (description) {
         toast.error(

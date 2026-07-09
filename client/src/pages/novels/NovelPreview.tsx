@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Chapter, ChapterStatus } from "@ai-novel/shared/types/novel";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, BookOpen, Check, Copy, Edit3, FileText, ListTree } from "lucide-react";
@@ -29,22 +30,22 @@ function formatCount(value: number): string {
   return formatLocaleNumber(value);
 }
 
-function formatChapterStatus(status?: ChapterStatus | null): string {
+function chapterStatusKey(status?: ChapterStatus | null): string {
   switch (status) {
     case "completed":
-      return "正文完成";
+      return "previewStatus.completed";
     case "pending_review":
-      return "待审校";
+      return "previewStatus.pendingReview";
     case "needs_repair":
-      return "待修复";
+      return "previewStatus.needsRepair";
     case "generating":
-      return "生成中";
+      return "previewStatus.generating";
     case "pending_generation":
-      return "待生成";
+      return "previewStatus.pendingGeneration";
     case "unplanned":
-      return "未规划";
+      return "previewStatus.unplanned";
     default:
-      return "未标记";
+      return "previewStatus.unmarked";
   }
 }
 
@@ -80,6 +81,7 @@ async function writeTextToClipboard(text: string): Promise<void> {
 }
 
 export default function NovelPreview() {
+  const { t } = useTranslation("novels");
   const { id = "" } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const [copiedChapterId, setCopiedChapterId] = useState<string | null>(null);
@@ -140,19 +142,19 @@ export default function NovelPreview() {
 
   const copyActiveChapter = async () => {
     if (!activeChapter || !activeContent) {
-      toast.error("当前章节还没有可复制的正文。");
+      toast.error(t("preview.noCopyContent"));
       return;
     }
 
     try {
       await writeTextToClipboard(activeContent);
       setCopiedChapterId(activeChapter.id);
-      toast.success("正文已复制到剪贴板。");
+      toast.success(t("preview.copySuccess"));
       window.setTimeout(() => {
         setCopiedChapterId((current) => (current === activeChapter.id ? null : current));
       }, 1600);
     } catch {
-      toast.error("复制失败，请手动选择正文后复制。");
+      toast.error(t("preview.copyError"));
     }
   };
 
@@ -160,12 +162,12 @@ export default function NovelPreview() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>缺少小说信息</CardTitle>
-          <CardDescription>返回小说列表后重新选择要预览的作品。</CardDescription>
+          <CardTitle>{t("preview.missingNovelTitle")}</CardTitle>
+          <CardDescription>{t("preview.missingNovelDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild>
-            <Link to="/novels">返回小说列表</Link>
+            <Link to="/novels">{t("preview.backToList")}</Link>
           </Button>
         </CardContent>
       </Card>
@@ -182,22 +184,22 @@ export default function NovelPreview() {
           <Button asChild variant="ghost" size="sm" className="px-0 text-muted-foreground">
             <Link to="/novels">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              返回小说列表
+              {t("preview.backToList")}
             </Link>
           </Button>
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="break-words text-2xl font-semibold tracking-tight">
-                {novel?.title ?? "小说预览"}
+                {novel?.title ?? t("preview.defaultTitle")}
               </h1>
               {novel?.status ? (
                 <Badge variant={novel.status === "published" ? "default" : "secondary"}>
-                  {novel.status === "published" ? "已发布" : "草稿"}
+                  {novel.status === "published" ? t("preview.published") : t("preview.draft")}
                 </Badge>
               ) : null}
             </div>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              按章节阅读已生成正文，适合检查连贯性、节奏和已经写出的内容。
+              {t("preview.intro")}
             </p>
           </div>
         </div>
@@ -205,14 +207,14 @@ export default function NovelPreview() {
           <Button asChild variant="outline">
             <Link to={`/novels/${id}/edit`}>
               <Edit3 className="h-4 w-4" aria-hidden="true" />
-              打开工作区
+              {t("preview.openWorkspace")}
             </Link>
           </Button>
           {activeChapter ? (
             <Button asChild>
               <Link to={`/novels/${id}/chapters/${activeChapter.id}`}>
                 <FileText className="h-4 w-4" aria-hidden="true" />
-                编辑本章
+                {t("preview.editChapter")}
               </Link>
             </Button>
           ) : null}
@@ -247,8 +249,8 @@ export default function NovelPreview() {
       ) : isError ? (
         <Card>
           <CardHeader>
-            <CardTitle>加载预览失败</CardTitle>
-            <CardDescription>当前无法读取小说章节，可以重新加载。</CardDescription>
+            <CardTitle>{t("preview.loadFailedTitle")}</CardTitle>
+            <CardDescription>{t("preview.loadFailedDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={() => {
@@ -256,19 +258,19 @@ export default function NovelPreview() {
               void chaptersQuery.refetch();
             }}
             >
-              重新加载
+              {t("preview.reload")}
             </Button>
           </CardContent>
         </Card>
       ) : chapters.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>还没有章节</CardTitle>
-            <CardDescription>先进入小说工作区生成章节目录或正文，再回到这里预览整本内容。</CardDescription>
+            <CardTitle>{t("preview.noChaptersTitle")}</CardTitle>
+            <CardDescription>{t("preview.noChaptersDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild>
-              <Link to={`/novels/${id}/edit`}>进入小说工作区</Link>
+              <Link to={`/novels/${id}/edit`}>{t("preview.enterWorkspace")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -278,10 +280,14 @@ export default function NovelPreview() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <ListTree className="h-4 w-4" aria-hidden="true" />
-                章节目录
+                {t("preview.tocTitle")}
               </CardTitle>
               <CardDescription>
-                已生成正文 {generatedChapters.length}/{chapters.length} 章，约 {formatCount(totalWordCount)} 字。
+                {t("preview.tocSummary", {
+                  generated: generatedChapters.length,
+                  total: chapters.length,
+                  words: formatCount(totalWordCount),
+                })}
               </CardDescription>
             </CardHeader>
             <CardContent className="min-h-0 space-y-2 overflow-y-auto pr-2 lg:max-h-[calc(100vh-20rem)]">
@@ -301,19 +307,19 @@ export default function NovelPreview() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="font-medium text-foreground">
-                          第 {chapter.order} 章
+                          {t("preview.chapterNumber", { order: chapter.order })}
                         </div>
                         <div className="mt-1 line-clamp-2 break-words text-muted-foreground">
-                          {chapter.title || "未命名章节"}
+                          {chapter.title || t("preview.untitledChapter")}
                         </div>
                       </div>
                       <Badge variant={chapterContent ? "outline" : "secondary"}>
-                        {chapterContent ? "有正文" : "无正文"}
+                        {chapterContent ? t("preview.hasContent") : t("preview.noContent")}
                       </Badge>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <span>{formatChapterStatus(chapter.chapterStatus)}</span>
-                      <span>{formatCount(countWords(chapter.content))} 字</span>
+                      <span>{t(chapterStatusKey(chapter.chapterStatus))}</span>
+                      <span>{t("preview.wordCount", { count: formatCount(countWords(chapter.content)) })}</span>
                     </div>
                   </button>
                 );
@@ -328,12 +334,17 @@ export default function NovelPreview() {
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <BookOpen className="h-5 w-5 shrink-0" aria-hidden="true" />
                     <span className="break-words">
-                      {activeChapter ? `第 ${activeChapter.order} 章：${activeChapter.title || "未命名章节"}` : "选择章节"}
+                      {activeChapter
+                        ? t("preview.activeChapterTitle", {
+                          order: activeChapter.order,
+                          title: activeChapter.title || t("preview.untitledChapter"),
+                        })
+                        : t("preview.selectChapter")}
                     </span>
                   </CardTitle>
                   {activeChapter ? (
                     <CardDescription className="mt-2">
-                      {formatChapterStatus(activeChapter.chapterStatus)} · {formatCount(countWords(activeChapter.content))} 字
+                      {t(chapterStatusKey(activeChapter.chapterStatus))} · {t("preview.wordCount", { count: formatCount(countWords(activeChapter.content)) })}
                     </CardDescription>
                   ) : null}
                 </div>
@@ -351,12 +362,12 @@ export default function NovelPreview() {
                       ) : (
                         <Copy className="h-4 w-4" aria-hidden="true" />
                       )}
-                      {copiedChapterId === activeChapter.id ? "已复制" : "复制正文"}
+                      {copiedChapterId === activeChapter.id ? t("preview.copied") : t("preview.copyContent")}
                     </Button>
                     <Button asChild variant="outline" size="sm">
                       <Link to={`/novels/${id}/chapters/${activeChapter.id}`}>
                         <Edit3 className="h-4 w-4" aria-hidden="true" />
-                        编辑本章
+                        {t("preview.editChapter")}
                       </Link>
                     </Button>
                   </div>
@@ -372,13 +383,13 @@ export default function NovelPreview() {
                 <div className="flex min-h-[420px] items-center justify-center px-6 text-center">
                   <div className="max-w-md space-y-3">
                     <FileText className="mx-auto h-10 w-10 text-muted-foreground" aria-hidden="true" />
-                    <div className="text-lg font-medium">本章还没有正文</div>
+                    <div className="text-lg font-medium">{t("preview.noChapterContentTitle")}</div>
                     <p className="text-sm leading-6 text-muted-foreground">
-                      进入章节编辑页生成或补写正文后，这里会显示完整内容。
+                      {t("preview.noChapterContentDesc")}
                     </p>
                     {activeChapter ? (
                       <Button asChild>
-                        <Link to={`/novels/${id}/chapters/${activeChapter.id}`}>编辑本章</Link>
+                        <Link to={`/novels/${id}/chapters/${activeChapter.id}`}>{t("preview.editChapter")}</Link>
                       </Button>
                     ) : null}
                   </div>

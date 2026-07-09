@@ -1,0 +1,9 @@
+{
+  "client.networkError": "Network connection failed. Please check your network and try again.",
+  "client.requestFailed": "Request failed.",
+  "client.serverError": "Server error. Please try again later.",
+  "creativeHub.streamRequestFailed": "Creative Hub request failed, status code {{status}}",
+  "creativeHub.threadNotFound": "Creative Hub thread not found. Please create a thread first.",
+  "world.axiom.titleDescription": "{{title}}: {{description}}",
+  "world.axiom.titleDescriptionEffect": "{{title}} ({{description}}, impact: {{effect}})"
+}

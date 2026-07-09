@@ -1,6 +1,7 @@
 import type { DirectorCommandAcceptedResponse } from "@ai-novel/shared/types/directorRuntime";
 import type { DirectorContinuationMode } from "@ai-novel/shared/types/novelDirector";
 import type { UnifiedTaskDetail } from "@ai-novel/shared/types/task";
+import i18n from "@/i18n";
 
 export function resolveWorkflowContinuationFeedback(
   task: UnifiedTaskDetail | DirectorCommandAcceptedResponse | null | undefined,
@@ -14,7 +15,7 @@ export function resolveWorkflowContinuationFeedback(
 } {
   const requestedScopeLabel = options?.scopeLabel?.trim();
   const taskScopeLabel = task && "executionScopeLabel" in task ? task.executionScopeLabel?.trim() : undefined;
-  const scopeLabel = requestedScopeLabel || taskScopeLabel || "当前章节范围";
+  const scopeLabel = requestedScopeLabel || taskScopeLabel || i18n.t("novelWorkflowContinuation.defaultScopeLabel", { ns: "lib" });
 
   if (task && "kind" in task && task.status === "failed") {
     return {
@@ -23,18 +24,18 @@ export function resolveWorkflowContinuationFeedback(
         || task.blockingReason?.trim()
         || task.lastError?.trim()
         || (options?.mode === "auto_execute_range"
-          ? `继续自动执行${scopeLabel}失败。`
-          : "继续自动导演失败。"),
+          ? i18n.t("novelWorkflowContinuation.continueAutoExecuteFailed", { ns: "lib", scopeLabel })
+          : i18n.t("novelWorkflowContinuation.continueDirectorFailed", { ns: "lib" })),
     };
   }
 
   return {
     tone: "success",
     message: options?.mode === "skip_quality_repair"
-      ? `已跳过本次质量建议，自动导演会继续执行${scopeLabel}。`
+      ? i18n.t("novelWorkflowContinuation.skippedQualityContinue", { ns: "lib", scopeLabel })
       : options?.mode === "auto_execute_range"
-        ? `已继续自动执行${scopeLabel}。`
-        : "自动导演已继续推进。",
+        ? i18n.t("novelWorkflowContinuation.continuedAutoExecute", { ns: "lib", scopeLabel })
+        : i18n.t("novelWorkflowContinuation.directorContinued", { ns: "lib" }),
   };
 }
 

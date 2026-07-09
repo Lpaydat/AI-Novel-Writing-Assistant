@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 import type { StructuredChapter, StructuredVolume } from "./structuredOutline.utils";
 
 export interface OutlineSyncChapter {
@@ -84,25 +85,25 @@ function compareNullableNumber(a: number | null | undefined, b: number | null | 
 function getChangedFields(existing: OutlineSyncChapter, chapter: StructuredChapter): string[] {
   const changed: string[] = [];
   if (!compareNullableString(existing.title, chapter.title)) {
-    changed.push("标题");
+    changed.push(i18n.t("syncField.title", { ns: "novels" }));
   }
   if (!compareNullableString(existing.expectation, chapter.summary)) {
-    changed.push("摘要");
+    changed.push(i18n.t("syncField.summary", { ns: "novels" }));
   }
   if (!compareNullableNumber(existing.targetWordCount, chapter.targetWordCount)) {
-    changed.push("目标字数");
+    changed.push(i18n.t("syncField.targetWordCount", { ns: "novels" }));
   }
   if (!compareNullableNumber(existing.conflictLevel, chapter.conflictLevel)) {
-    changed.push("冲突等级");
+    changed.push(i18n.t("syncField.conflictLevel", { ns: "novels" }));
   }
   if (!compareNullableNumber(existing.revealLevel, chapter.revealLevel)) {
-    changed.push("揭露等级");
+    changed.push(i18n.t("syncField.revealLevel", { ns: "novels" }));
   }
   if (!compareNullableString(existing.mustAvoid, chapter.mustAvoid)) {
-    changed.push("禁止事项");
+    changed.push(i18n.t("syncField.mustAvoid", { ns: "novels" }));
   }
   if (chapter.taskSheet?.trim() && !compareNullableString(existing.taskSheet, chapter.taskSheet)) {
-    changed.push("任务单");
+    changed.push(i18n.t("syncField.taskSheet", { ns: "novels" }));
   }
   return changed;
 }
@@ -133,7 +134,7 @@ export function buildStructuredOutlineSyncPreview(
         order: chapter.order,
         nextTitle: chapter.title,
         hasContent: false,
-        changedFields: ["新章节"],
+        changedFields: [i18n.t("syncField.newChapter", { ns: "novels" })],
       });
       continue;
     }
@@ -180,7 +181,7 @@ export function buildStructuredOutlineSyncPreview(
         order: chapter.order,
         nextTitle: chapter.title,
         hasContent,
-        changedFields: ["从大纲移除"],
+        changedFields: [i18n.t("syncField.removedFromOutline", { ns: "novels" })],
       });
     } else {
       deleteCandidateCount += 1;
@@ -189,7 +190,7 @@ export function buildStructuredOutlineSyncPreview(
         order: chapter.order,
         nextTitle: chapter.title,
         hasContent,
-        changedFields: ["待确认删除"],
+        changedFields: [i18n.t("syncField.pendingDelete", { ns: "novels" })],
       });
     }
   }

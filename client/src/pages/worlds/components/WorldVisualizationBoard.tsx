@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type {
   WorldGeographyDirection,
   WorldVisualizationPayload,
@@ -6,6 +7,7 @@ import type {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SelectControl from "@/components/common/SelectControl";
+import i18n from "@/i18n";
 
 interface WorldVisualizationBoardProps {
   payload?: WorldVisualizationPayload;
@@ -85,12 +87,12 @@ function getNodeBadgeText(label: string): string {
 }
 
 const FACTION_TYPE_LABELS: Record<string, string> = {
-  all: "全部类型",
-  state: "政权",
-  faction: "阵营",
-  race: "种族",
-  organization: "组织",
-  other: "其他",
+  all: "viz.factionType.all",
+  state: "viz.factionType.state",
+  faction: "viz.factionType.faction",
+  race: "viz.factionType.race",
+  organization: "viz.factionType.organization",
+  other: "viz.factionType.other",
 };
 
 const FACTION_TYPE_COLORS: Record<string, string> = {
@@ -142,9 +144,9 @@ function buildMapLayout(nodes: GraphNode[], width: number, height: number) {
 
 function getMapLabelMeta(node: GraphNode): string {
   return [
-    node.directionHint ? DIRECTION_LABELS[node.directionHint] : "",
+    node.directionHint ? i18n.t(DIRECTION_LABELS[node.directionHint], { ns: "worldsComponentsB" }) : "",
     node.terrain ? truncateText(node.terrain, 8) : "",
-    node.risk ? "风险" : "",
+    node.risk ? i18n.t("viz.riskShort", { ns: "worldsComponentsB" }) : "",
   ].filter(Boolean).join(" / ");
 }
 
@@ -371,15 +373,15 @@ const ROUTE_STYLES: Record<string, { stroke: string; dash?: string }> = {
 };
 
 const DIRECTION_LABELS: Record<WorldGeographyDirection, string> = {
-  north: "北",
-  south: "南",
-  east: "东",
-  west: "西",
-  center: "中",
-  northeast: "东北",
-  northwest: "西北",
-  southeast: "东南",
-  southwest: "西南",
+  north: "viz.direction.north",
+  south: "viz.direction.south",
+  east: "viz.direction.east",
+  west: "viz.direction.west",
+  center: "viz.direction.center",
+  northeast: "viz.direction.northeast",
+  northwest: "viz.direction.northwest",
+  southeast: "viz.direction.southeast",
+  southwest: "viz.direction.southwest",
 };
 
 function DraggableGraph(props: {
@@ -390,6 +392,7 @@ function DraggableGraph(props: {
   layout?: "graph" | "map";
 }) {
   const { title, nodes, edges, colorByType, layout = "graph" } = props;
+  const { t, i18n: i18nRef } = useTranslation("worldsComponentsB");
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
@@ -404,7 +407,9 @@ function DraggableGraph(props: {
   );
   const labelPlacements = useMemo(
     () => buildLabelPlacements(nodes, positions, width, height, layout),
-    [height, layout, nodes, positions, width],
+    // i18nRef.language: getMapLabelMeta (via getLabelSize) resolves direction/risk
+    // labels through i18n, so recompute placements when the language changes.
+    [height, layout, nodes, positions, width, i18nRef.language],
   );
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -431,7 +436,7 @@ function DraggableGraph(props: {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="font-medium">{title}</div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">缩放</span>
+          <span className="text-xs text-muted-foreground">{t("viz.zoom")}</span>
           <input
             type="range"
             min={0.6}
@@ -441,7 +446,7 @@ function DraggableGraph(props: {
             onChange={(event) => setZoom(Number(event.target.value))}
           />
           <Button size="sm" variant="outline" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>
-            重置
+            {t("viz.reset")}
           </Button>
         </div>
       </div>
@@ -479,10 +484,10 @@ function DraggableGraph(props: {
                 strokeLinecap="round"
               />
               <g fontSize={13} fontWeight={700} fill="#475569">
-                <text x={width / 2} y={24} textAnchor="middle">北</text>
-                <text x={width / 2} y={height - 14} textAnchor="middle">南</text>
-                <text x={20} y={height / 2} textAnchor="middle">西</text>
-                <text x={width - 20} y={height / 2} textAnchor="middle">东</text>
+                <text x={width / 2} y={24} textAnchor="middle">{t("viz.direction.north")}</text>
+                <text x={width / 2} y={height - 14} textAnchor="middle">{t("viz.direction.south")}</text>
+                <text x={20} y={height / 2} textAnchor="middle">{t("viz.direction.west")}</text>
+                <text x={width - 20} y={height / 2} textAnchor="middle">{t("viz.direction.east")}</text>
               </g>
             </g>
           ) : null}
@@ -626,7 +631,7 @@ function DraggableGraph(props: {
         </svg>
       </div>
       <div className="mt-2 text-xs text-muted-foreground">
-        拖动画布可移动视图，使用滑块调整缩放。
+        {t("viz.dragHint")}
       </div>
     </div>
   );
@@ -637,6 +642,7 @@ export default function WorldVisualizationBoard({ payload }: WorldVisualizationB
   const [keyword, setKeyword] = useState("");
   const [factionType, setFactionType] = useState("all");
   const [timelineLimit, setTimelineLimit] = useState(8);
+  const { t } = useTranslation("worldsComponentsB");
 
   const factionTypeOptions = useMemo(() => {
     const types = Array.from(
@@ -713,16 +719,16 @@ export default function WorldVisualizationBoard({ payload }: WorldVisualizationB
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" variant={mode === "faction" ? "default" : "secondary"} onClick={() => setMode("faction")}>
-          势力图谱
+          {t("viz.mode.faction")}
         </Button>
         <Button size="sm" variant={mode === "geography" ? "default" : "secondary"} onClick={() => setMode("geography")}>
-          地理地图
+          {t("viz.mode.geography")}
         </Button>
         <Button size="sm" variant={mode === "power" ? "default" : "secondary"} onClick={() => setMode("power")}>
-          力量体系
+          {t("viz.mode.power")}
         </Button>
         <Button size="sm" variant={mode === "timeline" ? "default" : "secondary"} onClick={() => setMode("timeline")}>
-          世界时间线
+          {t("viz.mode.timeline")}
         </Button>
       </div>
 
@@ -730,7 +736,7 @@ export default function WorldVisualizationBoard({ payload }: WorldVisualizationB
         <Input
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
-          placeholder="按名称或关键词筛选"
+          placeholder={t("viz.filterPlaceholder")}
         />
         {mode === "faction" ? (
           <SelectControl
@@ -740,7 +746,7 @@ export default function WorldVisualizationBoard({ payload }: WorldVisualizationB
           >
             {factionTypeOptions.map((type) => (
               <option key={type} value={type}>
-                {FACTION_TYPE_LABELS[type] ?? type}
+                {t(FACTION_TYPE_LABELS[type] ?? type)}
               </option>
             ))}
           </SelectControl>
@@ -749,7 +755,7 @@ export default function WorldVisualizationBoard({ payload }: WorldVisualizationB
         )}
         {mode === "timeline" ? (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>显示数量</span>
+            <span>{t("viz.showCount")}</span>
             <input
               type="range"
               min={3}
@@ -776,12 +782,12 @@ export default function WorldVisualizationBoard({ payload }: WorldVisualizationB
                     className="inline-block h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: FACTION_TYPE_COLORS[type] ?? FACTION_TYPE_COLORS.other }}
                   />
-                  <span>{FACTION_TYPE_LABELS[type] ?? type}</span>
+                  <span>{t(FACTION_TYPE_LABELS[type] ?? type)}</span>
                 </div>
               ))}
           </div>
           <DraggableGraph
-            title={`势力图谱（${factionNodes.length} 个节点）`}
+            title={t("viz.factionGraphTitle", { count: factionNodes.length })}
             nodes={factionNodes}
             edges={factionEdges}
             colorByType={(type) => FACTION_TYPE_COLORS[type ?? "other"] ?? FACTION_TYPE_COLORS.other}
@@ -791,7 +797,7 @@ export default function WorldVisualizationBoard({ payload }: WorldVisualizationB
 
       {mode === "geography" ? (
         <DraggableGraph
-          title={`世界地图（${geographyNodes.length} 个地点）`}
+          title={t("viz.geoMapTitle", { count: geographyNodes.length })}
           nodes={geographyNodes}
           edges={geographyEdges}
           colorByType={() => "#ea580c"}
@@ -801,7 +807,7 @@ export default function WorldVisualizationBoard({ payload }: WorldVisualizationB
 
       {mode === "power" ? (
         <div className="rounded-md border p-3 text-sm">
-          <div className="mb-2 font-medium">力量体系（{filteredPower.length} 项）</div>
+          <div className="mb-2 font-medium">{t("viz.powerTitle", { count: filteredPower.length })}</div>
           <div className="space-y-2">
             {filteredPower.map((item) => (
               <div key={`${item.level}-${item.description}`} className="rounded border p-2">
@@ -810,7 +816,7 @@ export default function WorldVisualizationBoard({ payload }: WorldVisualizationB
               </div>
             ))}
             {filteredPower.length === 0 ? (
-              <div className="text-xs text-muted-foreground">暂无匹配内容</div>
+              <div className="text-xs text-muted-foreground">{t("viz.noMatch")}</div>
             ) : null}
           </div>
         </div>
@@ -818,7 +824,7 @@ export default function WorldVisualizationBoard({ payload }: WorldVisualizationB
 
       {mode === "timeline" ? (
         <div className="rounded-md border p-3 text-sm">
-          <div className="mb-2 font-medium">世界时间线（{filteredTimeline.length} 条）</div>
+          <div className="mb-2 font-medium">{t("viz.timelineTitle", { count: filteredTimeline.length })}</div>
           <div className="space-y-2">
             {filteredTimeline.map((item, index) => (
               <div key={`${item.year}-${item.event}-${index}`} className="flex gap-3 rounded border p-2">
@@ -827,7 +833,7 @@ export default function WorldVisualizationBoard({ payload }: WorldVisualizationB
               </div>
             ))}
             {filteredTimeline.length === 0 ? (
-              <div className="text-xs text-muted-foreground">暂无匹配内容</div>
+              <div className="text-xs text-muted-foreground">{t("viz.noMatch")}</div>
             ) : null}
           </div>
         </div>

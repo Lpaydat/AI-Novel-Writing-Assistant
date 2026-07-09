@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TitleFactorySuggestion, TitleLibraryEntry } from "@ai-novel/shared/types/title";
+import i18n from "@/i18n";
 import {
   AI_FREEDOM_OPTIONS,
   EMOTION_OPTIONS,
@@ -72,9 +74,9 @@ function renderLibraryDescription(entry: TitleLibraryEntry): string {
     return truncateText(entry.description, 100);
   }
   if (entry.keywords?.trim()) {
-    return `关键词：${truncateText(entry.keywords, 80)}`;
+    return i18n.t("titleQuickFill.libraryKeywords", { ns: "novelsSetup", keywords: truncateText(entry.keywords, 80) });
   }
-  return "标题库候选，可直接写入当前创建表单。";
+  return i18n.t("titleQuickFill.libraryDefaultDesc", { ns: "novelsSetup" });
 }
 
 function joinKeywords(...values: Array<string | null | undefined>): string | null {
@@ -90,6 +92,7 @@ export default function NovelCreateTitleQuickFill({
   basicForm,
   onApplyTitle,
 }: NovelCreateTitleQuickFillProps) {
+  const { t } = useTranslation("novelsSetup");
   const llm = useLLMStore();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -132,7 +135,7 @@ export default function NovelCreateTitleQuickFill({
   const generateMutation = useMutation({
     mutationFn: async () => {
       if (!hasGenerationContext) {
-        throw new Error("请先填写一句标题简报，或补一个参考标题后再生成。");
+        throw new Error(t("titleQuickFill.needBrief"));
       }
       const response = await generateTitleIdeas({
         mode: generationMode,
@@ -150,7 +153,7 @@ export default function NovelCreateTitleQuickFill({
     onSuccess: (rows) => {
       const next = sortSuggestions(rows);
       setSuggestions(next);
-      toast.success(`已生成 ${next.length} 个标题候选。`);
+      toast.success(t("titleQuickFill.generatedCount", { count: next.length }));
     },
   });
 
@@ -164,35 +167,35 @@ export default function NovelCreateTitleQuickFill({
     }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.titles.all });
-      toast.success("标题已加入标题库。");
+      toast.success(t("titleQuickFill.savedToLibrary"));
     },
   });
 
   const handleApplyTitle = (title: string, source: "generated" | "library") => {
     onApplyTitle(title);
     setOpen(false);
-    toast.success(source === "generated" ? "标题候选已写入创建表单。" : "标题库标题已写入创建表单。");
+    toast.success(source === "generated" ? t("titleQuickFill.appliedGenerated") : t("titleQuickFill.appliedLibrary"));
   };
 
   const handleCopySuggestion = async (suggestion: TitleFactorySuggestion) => {
     await navigator.clipboard.writeText(suggestion.title);
-    toast.success("标题已复制到剪贴板。");
+    toast.success(t("titleQuickFill.copied"));
   };
 
   return (
     <>
       <div className="flex items-center justify-end">
         <AiButton type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
-          标题快速选填
+          {t("titleQuickFill.title")}
         </AiButton>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>标题快速选填</DialogTitle>
+            <DialogTitle>{t("titleQuickFill.title")}</DialogTitle>
             <DialogDescription>
-              不做绑定关系，只是帮你更快把标题写进创建表单。可以直接生成候选，也可以从标题库挑一个回填。
+              {t("titleQuickFill.dialogDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -202,14 +205,14 @@ export default function NovelCreateTitleQuickFill({
             className="space-y-4"
           >
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="generate">快速生成</TabsTrigger>
-              <TabsTrigger value="library">标题库选择</TabsTrigger>
+              <TabsTrigger value="generate">{t("titleQuickFill.tabGenerate")}</TabsTrigger>
+              <TabsTrigger value="library">{t("titleQuickFill.tabLibrary")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="generate" className="space-y-4">
               <div className="space-y-4">
                 <div className="text-xs leading-6 text-muted-foreground">
-                  会优先读取当前创建页里已经填写的简介、题材、文风、节奏和叙事视角。你也可以在下面临时补充一句简报，不用先回到表单里填写。
+                  {t("titleQuickFill.generateHint")}
                 </div>
                 <div>
                   <LLMSelector />
@@ -221,17 +224,17 @@ export default function NovelCreateTitleQuickFill({
                       htmlFor="novel-create-title-quick-brief"
                       className="text-sm font-medium text-foreground"
                     >
-                      补充标题简报
+                      {t("titleQuickFill.briefLabel")}
                     </label>
                     <textarea
                       id="novel-create-title-quick-brief"
                       className="min-h-[132px] w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                       value={manualBrief}
                       onChange={(event) => setManualBrief(event.target.value)}
-                      placeholder="例如：末世废土里，一个被流放的维修师意外掌握古代机甲核心，想要标题更有硬核设定感和命运感。"
+                      placeholder={t("titleQuickFill.briefPlaceholder")}
                     />
                     <div className="text-xs leading-6 text-muted-foreground">
-                      这里只影响这一次生成，不会自动回写到小说创建表单。
+                      {t("titleQuickFill.briefNote")}
                     </div>
                   </div>
 
@@ -241,33 +244,33 @@ export default function NovelCreateTitleQuickFill({
                         htmlFor="novel-create-title-reference"
                         className="text-sm font-medium text-foreground"
                       >
-                        参考标题
+                        {t("titleQuickFill.referenceLabel")}
                       </label>
                       <Input
                         id="novel-create-title-reference"
                         value={referenceTitle}
                         onChange={(event) => setReferenceTitle(event.target.value)}
-                        placeholder="可选，填了会按参考改编式生成"
+                        placeholder={t("titleQuickFill.referencePlaceholder")}
                       />
                     </div>
                     <div className="text-xs leading-6 text-muted-foreground">
                       {referenceTitle.trim()
-                        ? "当前会参考你输入的标题节奏和命名结构，再结合这本小说的信息重新产出候选。"
-                        : "留空时会按简报直接生成。如果你心里已经有一个风格方向，可以在这里填参考标题。"}
+                        ? t("titleQuickFill.referenceHintFilled")
+                        : t("titleQuickFill.referenceHintEmpty")}
                     </div>
                   </div>
                 </div>
 
                 <div className="border-l border-border/60 pl-3">
-                  <div className="text-xs font-medium text-foreground">当前已自动读取的创建页信息</div>
+                  <div className="text-xs font-medium text-foreground">{t("titleQuickFill.autoBriefTitle")}</div>
                   <div className="mt-2 whitespace-pre-wrap text-xs leading-6 text-muted-foreground">
-                    {autoBrief || "创建页里暂时还没有足够的信息。你可以直接在上面的“补充标题简报”里写一句题材、卖点或冲突再生成。"}
+                    {autoBrief || t("titleQuickFill.autoBriefEmpty")}
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                   <label className="space-y-2 text-sm">
-                    <span className="font-medium text-foreground">生成数量</span>
+                    <span className="font-medium text-foreground">{t("titleQuickFill.countLabel")}</span>
                     <Input
                       type="number"
                       min={3}
@@ -283,13 +286,13 @@ export default function NovelCreateTitleQuickFill({
                     onClick={() => generateMutation.mutate()}
                     disabled={generateMutation.isPending || !hasGenerationContext}
                   >
-                    {generateMutation.isPending ? "生成中..." : "生成标题候选"}
+                    {generateMutation.isPending ? t("titleQuickFill.generating") : t("titleQuickFill.generateButton")}
                   </AiButton>
                 </div>
 
                 {!hasGenerationContext ? (
                   <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800">
-                    至少先补一句标题简报，或填写一个参考标题；如果创建页里已经有简介、类型或文风，也会自动参与生成。
+                    {t("titleQuickFill.noContextHint")}
                   </div>
                 ) : null}
               </div>
@@ -297,40 +300,38 @@ export default function NovelCreateTitleQuickFill({
               <TitleSuggestionList
                 suggestions={suggestions}
                 selectedTitle={basicForm.title}
-                primaryActionLabel="填入标题"
+                primaryActionLabel={t("titleQuickFill.applyLabel")}
                 onPrimaryAction={(suggestion) => handleApplyTitle(suggestion.title, "generated")}
                 onCopy={handleCopySuggestion}
                 onSave={(suggestion) => saveMutation.mutate(suggestion)}
                 savingTitle={saveMutation.isPending ? saveMutation.variables?.title ?? "" : ""}
-                emptyMessage="可以直接在上面的补充标题简报里写一句题材或卖点，再点一次生成，结果会直接作为创建页的标题候选。"
+                emptyMessage={t("titleQuickFill.emptyMessage")}
               />
             </TabsContent>
 
             <TabsContent value="library" className="space-y-4">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="space-y-1">
-                  <div className="text-sm font-medium text-foreground">从标题库快速选用</div>
+                  <div className="text-sm font-medium text-foreground">{t("titleQuickFill.libraryHeading")}</div>
                   <div className="text-xs leading-6 text-muted-foreground">
-                    默认按点击率排序
-                    {basicForm.genreId ? "，并按当前题材基底过滤" : ""}
-                    。
+                    {t("titleQuickFill.libraryDefaultSort", { filter: basicForm.genreId ? t("titleQuickFill.libraryGenreFilter") : "" })}
                   </div>
                 </div>
                 <Input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="搜索标题关键词"
+                  placeholder={t("titleQuickFill.searchPlaceholder")}
                   className="md:max-w-xs"
                 />
               </div>
 
               {libraryQuery.isLoading ? (
                 <div className="py-8 text-center text-sm text-muted-foreground">
-                  标题库加载中...
+                  {t("titleQuickFill.libraryLoading")}
                 </div>
               ) : (libraryQuery.data?.data?.items ?? []).length === 0 ? (
                 <div className="py-8 text-center text-sm text-muted-foreground">
-                  当前条件下还没有可用标题。可以切到“快速生成”先产出一批候选。
+                  {t("titleQuickFill.libraryEmpty")}
                 </div>
               ) : (
                 <div className="divide-y divide-border/60">
@@ -348,14 +349,14 @@ export default function NovelCreateTitleQuickFill({
                             <div className="flex flex-wrap items-center gap-2">
                               {typeof entry.clickRate === "number" ? (
                                 <Badge className={getClickRateBadgeClass(entry.clickRate)}>
-                                  预估 {entry.clickRate}
+                                  {t("titleQuickFill.estimatedClickRate", { rate: entry.clickRate })}
                                 </Badge>
                               ) : null}
                               {typeof entry.usedCount === "number" ? (
-                                <Badge variant="secondary">已用 {entry.usedCount}</Badge>
+                                <Badge variant="secondary">{t("titleQuickFill.usedCount", { count: entry.usedCount })}</Badge>
                               ) : null}
                               {entry.genre?.name ? <Badge variant="outline">{entry.genre.name}</Badge> : null}
-                              {isSelected ? <Badge variant="outline">当前选中</Badge> : null}
+                              {isSelected ? <Badge variant="outline">{t("titleQuickFill.currentSelected")}</Badge> : null}
                             </div>
                             <div className="text-lg font-semibold text-foreground">{entry.title}</div>
                             <div className="text-sm leading-6 text-muted-foreground">
@@ -365,7 +366,7 @@ export default function NovelCreateTitleQuickFill({
 
                           <div className="flex flex-wrap items-center gap-2">
                             <Button type="button" size="sm" onClick={() => handleApplyTitle(entry.title, "library")}>
-                              填入标题
+                              {t("titleQuickFill.applyLabel")}
                             </Button>
                           </div>
                         </div>

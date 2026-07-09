@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { del, get, set } from "idb-keyval";
+import i18n from "@/i18n";
 
 const CHAT_SESSIONS_KEY = "chat-sessions";
 const CHAT_CURRENT_SESSION_KEY = "chat-current-session-id";
@@ -69,7 +70,7 @@ export const useChatStore = create<ChatStoreState>((setState, getState) => ({
       hydrated: true,
     });
   },
-  createSession: async (title = "新对话") => {
+  createSession: async (title = i18n.t("chatStore.sessionDefaultTitle", { ns: "storeHooks" })) => {
     const now = new Date().toISOString();
     const session: ChatSession = {
       id: generateId("session"),
