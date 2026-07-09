@@ -55,6 +55,14 @@
 - If a workflow belongs in another module, explain the correct user entry point directly, for example "从小说基础信息设置书级默认写法", rather than "书级默认写法已经迁回小说页".
 - Before finishing UI work, review newly added copy and rewrite any sentence that sounds like it is talking to the developer or describing the modification process.
 
+### i18n Conventions
+
+- This is a fork of an upstream Chinese-only project. `zh` is the source of truth and default locale; `en` is an additive layer. Full architecture: `docs/wiki/architecture/i18n-locale-isolation-and-routing.md` (English sibling: `.en.md`).
+- Three golden rules that keep upstream merges conflict-free:
+  1. **New strings go in NEW files** — locale JSON under `client/src/locales/{zh,en}/`, `SERVER_MESSAGES` catalog keys, or `.en.ts` prompt siblings. These are additive and never conflict with upstream.
+  2. **Existing files get only a one-line wrap** — `"中文"` → `serverT("k")` / `t("k")` / `formatLocaleNumber()`; do not refactor logic while wrapping.
+  3. **Structural files stay byte-identical** — shared-type label maps and the `id@version@language` prompt registry keep the original data byte-identical with a parallel locale dictionary beside it (S1/F3).
+
 ## Architecture Rules
 
 - If a single source file becomes too long, it must be split into functional modules.
