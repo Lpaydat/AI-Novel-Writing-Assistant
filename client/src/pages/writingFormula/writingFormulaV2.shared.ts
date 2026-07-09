@@ -4,6 +4,7 @@ import type {
   StyleFeatureDecision,
   StyleProfile,
 } from "@ai-novel/shared/types/styleEngine";
+import i18n from "@/i18n";
 
 export const WRITING_FORMULA_V2_MODES = ["imitate", "clean", "book-style"] as const;
 export const STARTER_STYLE_PROFILE_SOURCE_PREFIX = "starter-style-profile:";
@@ -62,7 +63,11 @@ export function buildStyleRuleSuggestionDraft(report: StyleDetectionReport | nul
 
   const seen = new Set<string>();
   return report.violations.reduce<string[]>((result, violation) => {
-    const summary = `${violation.ruleName}：${violation.suggestion}`.trim();
+    const summary = i18n.t("suggestion.ruleSummary", {
+      ns: "writingFormula",
+      ruleName: violation.ruleName,
+      suggestion: violation.suggestion,
+    }).trim();
     if (!summary || seen.has(summary)) {
       return result;
     }
@@ -80,22 +85,22 @@ export function getStyleProfileOriginLabel(
   profile: Pick<StyleProfile, "sourceRefId" | "sourceType">,
 ): string {
   if (isStarterStyleProfile(profile)) {
-    return "预置";
+    return i18n.t("origin.starter", { ns: "writingFormula" });
   }
   if (profile.sourceRefId?.startsWith(AI_STYLE_BRIEF_SOURCE_PREFIX)) {
-    return "AI生成";
+    return i18n.t("origin.aiGenerated", { ns: "writingFormula" });
   }
   if (profile.sourceType === "from_text") {
-    return "文本提取";
+    return i18n.t("origin.fromText", { ns: "writingFormula" });
   }
   if (profile.sourceType === "from_book_analysis") {
-    return "拆书生成";
+    return i18n.t("origin.fromBookAnalysis", { ns: "writingFormula" });
   }
   if (profile.sourceType === "from_knowledge_document") {
-    return "知识库原文";
+    return i18n.t("origin.fromKnowledgeDocument", { ns: "writingFormula" });
   }
   if (profile.sourceType === "from_current_work") {
-    return "当前作品";
+    return i18n.t("origin.fromCurrentWork", { ns: "writingFormula" });
   }
-  return "手动创建";
+  return i18n.t("origin.manual", { ns: "writingFormula" });
 }

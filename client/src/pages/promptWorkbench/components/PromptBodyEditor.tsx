@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Descendant, Value } from "platejs";
 import { ParagraphPlugin, Plate, PlateContent, usePlateEditor } from "platejs/react";
 import { CheckCircle2, LockKeyhole, MapPin, RotateCcw, ShieldCheck } from "lucide-react";
@@ -75,6 +76,7 @@ function PromptSlotTextEditor(props: {
   disabled?: boolean;
   onChange: (next: string) => void;
 }) {
+  const { t } = useTranslation("promptWorkbench");
   const {
     disabled,
     immersive,
@@ -151,7 +153,7 @@ function PromptSlotTextEditor(props: {
       </div>
       {remaining !== null ? (
         <div className="border-t border-[#dce8e4] bg-[#fbfdfb] px-3 py-1.5 text-right text-xs text-[#6f7f78]">
-          {remaining < 0 ? <span className="text-destructive">{remaining}</span> : remaining} 字剩余
+          {remaining < 0 ? <span className="text-destructive">{remaining}</span> : remaining} {t("bodyEditor.charsRemainingSuffix")}
         </div>
       ) : null}
     </div>
@@ -159,6 +161,7 @@ function PromptSlotTextEditor(props: {
 }
 
 function SlotBadges({ section }: { section: PromptEditorSection }) {
+  const { t } = useTranslation("promptWorkbench");
   return (
     <div className="flex flex-wrap gap-2">
       <Badge variant="outline" className="border-[#cbdad6] bg-[#f7fbf9] text-[#315f58]">
@@ -175,21 +178,22 @@ function SlotBadges({ section }: { section: PromptEditorSection }) {
         {section.sourceLabel}
       </Badge>
       {section.isDirty ? (
-        <Badge variant="secondary" className="border-[#b8d9d0] bg-[#eaf7f2] text-[#0f766e]">未保存</Badge>
+        <Badge variant="secondary" className="border-[#b8d9d0] bg-[#eaf7f2] text-[#0f766e]">{t("common.unsaved")}</Badge>
       ) : null}
     </div>
   );
 }
 
 function ReconcileMiniBadge({ item }: { item?: PromptSlotReconcileItem }) {
+  const { t } = useTranslation("promptWorkbench");
   if (!item || item.state === "unchanged") {
     return null;
   }
   const label = item.state === "drifted"
-    ? "官方已更新"
+    ? t("reconcile.miniDrifted")
     : item.state === "new"
-      ? "新增槽位"
-      : "槽位已移除";
+      ? t("reconcile.miniNew")
+      : t("reconcile.slotRemoved");
   return (
     <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-800">
       {label}
@@ -205,6 +209,7 @@ function PromptSlotSection(props: {
   onChange: (key: string, value: PromptSlotValue) => void;
   onReset: (key: string) => void;
 }) {
+  const { t } = useTranslation("promptWorkbench");
   const { disabled, immersive, onChange, onReset, reconcileItem, section } = props;
   const canReset = section.isDirty || section.isSavedOverride;
   const maxLength = getMaxLength(section);
@@ -228,7 +233,7 @@ function PromptSlotSection(props: {
           ) : null}
           {"anchor" in section.slot && section.slot.anchor ? (
             <p className="mt-1 text-xs text-muted-foreground">
-              锚点：<code className="rounded bg-muted px-1">{section.slot.anchor}</code>
+              {t("bodyEditor.anchorLabel")}<code className="rounded bg-muted px-1">{section.slot.anchor}</code>
             </p>
           ) : null}
         </div>
@@ -239,7 +244,7 @@ function PromptSlotSection(props: {
             variant="ghost"
             onClick={() => onReset(section.slotKey)}
             disabled={disabled}
-            title={section.isOfficialDefaultOverride ? "清除本书官方默认标记，重新继承全局覆盖" : "清除当前层覆盖"}
+            title={section.isOfficialDefaultOverride ? t("bodyEditor.resetOfficialDefaultTitle") : t("bodyEditor.resetOverrideTitle")}
             className="h-8 w-8 shrink-0 p-0"
           >
             <RotateCcw className="h-4 w-4" />
@@ -284,7 +289,7 @@ function PromptSlotSection(props: {
 
         {"requiredTokens" in section.slot && section.slot.requiredTokens?.length ? (
           <div className="mt-2 text-xs text-muted-foreground">
-            需保留：{section.slot.requiredTokens.join("、")}
+            {t("bodyEditor.mustKeepLabel")}{section.slot.requiredTokens.join(t("common.listSeparator"))}
           </div>
         ) : null}
       </div>
@@ -292,17 +297,17 @@ function PromptSlotSection(props: {
   );
 }
 
-function reconcileStateLabel(item: PromptSlotReconcileItem): string {
-  if (item.state === "drifted") return "官方文案已更新";
-  if (item.state === "new") return "官方新增槽位";
-  return "槽位已移除";
+function reconcileStateLabel(item: PromptSlotReconcileItem, t: (key: string) => string): string {
+  if (item.state === "drifted") return t("reconcile.drifted");
+  if (item.state === "new") return t("reconcile.new");
+  return t("reconcile.slotRemoved");
 }
 
-function displaySlotValue(value: string | boolean | undefined): string {
-  if (value === undefined) return "无";
-  if (typeof value === "boolean") return value ? "开启" : "关闭";
+function displaySlotValue(value: string | boolean | undefined, t: (key: string) => string): string {
+  if (value === undefined) return t("common.none");
+  if (typeof value === "boolean") return value ? t("common.on") : t("common.off");
   const trimmed = value.trim();
-  if (!trimmed) return "空";
+  if (!trimmed) return t("common.empty");
   return trimmed.length > 160 ? `${trimmed.slice(0, 160)}...` : trimmed;
 }
 
@@ -313,6 +318,7 @@ function PromptOfficialVersionPanel(props: {
   onApplyOfficial: (slotKeys: string[]) => void;
   onKeepMine: (slotKeys: string[]) => void;
 }) {
+  const { t } = useTranslation("promptWorkbench");
   const { isLoading, onApplyOfficial, onKeepMine, pending, reconcile } = props;
   const actionableItems = (reconcile?.items ?? []).filter((item) => item.state !== "unchanged");
   const restoreKeys = actionableItems.map((item) => item.key);
@@ -326,10 +332,10 @@ function PromptOfficialVersionPanel(props: {
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-sm font-semibold text-[#25443f]">
             <ShieldCheck className="h-4 w-4 text-[#0f766e]" />
-            官方版本对齐
+            {t("officialPanel.title")}
           </div>
           <p className="mt-1 text-xs leading-relaxed text-[#52606d]">
-            对照当前官方槽位，恢复可靠默认值，或保留你的设置并消除版本提醒。
+            {t("officialPanel.subtitle")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -341,7 +347,7 @@ function PromptOfficialVersionPanel(props: {
             onClick={() => onApplyOfficial(restoreKeys)}
             className="border-[#b8d9d0] bg-white text-[#0f5f59] hover:bg-[#eaf7f2]"
           >
-            恢复官方当前版
+            {t("officialPanel.restoreCurrent")}
           </Button>
           <Button
             type="button"
@@ -351,18 +357,18 @@ function PromptOfficialVersionPanel(props: {
             onClick={() => onKeepMine(keepKeys)}
             className="text-[#52606d] hover:bg-white"
           >
-            保留我的设置
+            {t("officialPanel.keepMine")}
           </Button>
         </div>
       </div>
 
       {isLoading ? (
         <div className="mt-4 rounded-md border border-dashed border-[#cbdad6] bg-white px-3 py-3 text-sm text-muted-foreground">
-          正在读取官方版本...
+          {t("officialPanel.loading")}
         </div>
       ) : actionableItems.length === 0 ? (
         <div className="mt-4 rounded-md border border-[#d8e2de] bg-white px-3 py-3 text-sm text-[#315f58]">
-          当前槽位与官方当前版一致。
+          {t("officialPanel.upToDate")}
         </div>
       ) : (
         <div className="mt-4 space-y-2">
@@ -373,11 +379,11 @@ function PromptOfficialVersionPanel(props: {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-semibold text-foreground">{item.label}</span>
                     <Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-800">
-                      {reconcileStateLabel(item)}
+                      {reconcileStateLabel(item, t)}
                     </Badge>
                     {item.overrideMode === "official_default" ? (
                       <Badge variant="outline" className="border-[#a7d7ca] bg-[#eaf7f2] text-[#0f766e]">
-                        本书使用官方默认
+                        {t("slotSource.novelOfficialDefault")}
                       </Badge>
                     ) : null}
                   </div>
@@ -386,12 +392,12 @@ function PromptOfficialVersionPanel(props: {
                   ) : null}
                   <div className="grid gap-2 text-xs text-[#52606d] md:grid-cols-2">
                     <div className="rounded-md bg-[#f7fbf9] px-2 py-2">
-                      <div className="mb-1 font-medium text-[#25443f]">官方当前版</div>
-                      <div className="whitespace-pre-wrap break-words">{displaySlotValue(item.defaultCurrent)}</div>
+                      <div className="mb-1 font-medium text-[#25443f]">{t("officialPanel.officialCurrentLabel")}</div>
+                      <div className="whitespace-pre-wrap break-words">{displaySlotValue(item.defaultCurrent, t)}</div>
                     </div>
                     <div className="rounded-md bg-[#fffaf0] px-2 py-2">
-                      <div className="mb-1 font-medium text-[#7a5620]">我的设置</div>
-                      <div className="whitespace-pre-wrap break-words">{displaySlotValue(item.overrideValue)}</div>
+                      <div className="mb-1 font-medium text-[#7a5620]">{t("officialPanel.mineLabel")}</div>
+                      <div className="whitespace-pre-wrap break-words">{displaySlotValue(item.overrideValue, t)}</div>
                     </div>
                   </div>
                 </div>
@@ -404,7 +410,7 @@ function PromptOfficialVersionPanel(props: {
                     onClick={() => onApplyOfficial([item.key])}
                     className="border-[#b8d9d0] bg-white text-[#0f5f59] hover:bg-[#eaf7f2]"
                   >
-                    恢复官方当前版
+                    {t("officialPanel.restoreCurrent")}
                   </Button>
                   <Button
                     type="button"
@@ -414,7 +420,7 @@ function PromptOfficialVersionPanel(props: {
                     onClick={() => onKeepMine([item.key])}
                     className="text-[#52606d] hover:bg-[#f4faf7]"
                   >
-                    保留我的设置
+                    {t("officialPanel.keepMine")}
                   </Button>
                 </div>
               </div>
@@ -462,6 +468,7 @@ function ToggleSlotControl(props: {
   disabled?: boolean;
   onChange: (value: boolean) => void;
 }) {
+  const { t } = useTranslation("promptWorkbench");
   const { disabled, onChange, section } = props;
   const slot = section.slot as PromptSlotDefToggle;
   const checked = Boolean(section.value);
@@ -469,11 +476,11 @@ function ToggleSlotControl(props: {
     <div className="space-y-3">
       <div className="flex items-center gap-3">
         <Switch checked={checked} disabled={disabled} onCheckedChange={onChange} />
-        <span className="text-sm font-medium text-foreground">{checked ? "已启用" : "已关闭"}</span>
+        <span className="text-sm font-medium text-foreground">{checked ? t("common.enabled") : t("common.disabled")}</span>
       </div>
       {checked ? (
         <div className="rounded-md bg-[#eef7f3] px-3 py-2 text-xs leading-relaxed text-[#52746d]">
-          启用后追加：{slot.copy}
+          {t("bodyEditor.enabledAppendLabel")}{slot.copy}
         </div>
       ) : null}
     </div>
@@ -485,6 +492,7 @@ function TokenSlotControl(props: {
   disabled?: boolean;
   onChange: (value: string) => void;
 }) {
+  const { t } = useTranslation("promptWorkbench");
   const { disabled, onChange, section } = props;
   const maxLength = getMaxLength(section);
   return (
@@ -497,7 +505,7 @@ function TokenSlotControl(props: {
         className="font-mono"
       />
       {"patternHint" in section.slot && section.slot.patternHint ? (
-        <div className="text-xs text-muted-foreground">期望格式：{section.slot.patternHint}</div>
+        <div className="text-xs text-muted-foreground">{t("bodyEditor.expectedFormatLabel")}{section.slot.patternHint}</div>
       ) : null}
     </div>
   );
@@ -508,6 +516,7 @@ function ContextReferenceChips(props: {
   preview: PromptPreviewResult | null;
   onContextSelect: (blockId: string) => void;
 }) {
+  const { t } = useTranslation("promptWorkbench");
   const { onContextSelect, preview, prompt } = props;
   const firstBlockByGroup = useMemo(() => {
     const map = new Map<string, string>();
@@ -527,7 +536,7 @@ function ContextReferenceChips(props: {
     <section className="rounded-md border border-[#d8e2de] bg-[#f8fbfa] px-4 py-3">
       <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#25443f]">
         <MapPin className="h-4 w-4 text-[#0f766e]" />
-        上下文引用
+        {t("bodyEditor.contextReferences")}
       </div>
       <div className="flex flex-wrap gap-1.5">
         {prompt.contextRequirements.map((requirement) => {
@@ -574,6 +583,7 @@ export function PromptBodyEditor(props: {
   onKeepSlots: (keys: string[]) => void;
   onContextSelect: (blockId: string) => void;
 }) {
+  const { t } = useTranslation("promptWorkbench");
   const {
     disabled,
     immersive,
@@ -618,9 +628,9 @@ export function PromptBodyEditor(props: {
         <div className="rounded-md border border-dashed bg-background/80 p-5 text-sm text-muted-foreground">
           <div className="mb-2 flex items-center gap-2 font-semibold text-foreground">
             <LockKeyhole className="h-4 w-4 text-primary" />
-            提示词只读
+            {t("bodyEditor.readonlyPromptTitle")}
           </div>
-          该提示词没有声明可编辑槽位。可以查看最终 messages 与上下文注入，但不能直接替换 system prompt 或修改上下文策略。
+          {t("bodyEditor.readonlyPromptBody")}
         </div>
       ) : (
         <>
@@ -628,7 +638,7 @@ export function PromptBodyEditor(props: {
             <section className="space-y-3">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                <h3 className="text-sm font-semibold text-foreground">运行控制</h3>
+                <h3 className="text-sm font-semibold text-foreground">{t("bodyEditor.runControl")}</h3>
               </div>
               <div className="grid gap-3 xl:grid-cols-2">
                 {controlSections.map((section) => (
@@ -648,7 +658,7 @@ export function PromptBodyEditor(props: {
 
           {bodySections.length > 0 ? (
             <section className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground">Prompt 主体槽位</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t("bodyEditor.bodySlots")}</h3>
               <div className="space-y-3">
                 {bodySections.map((section) => (
                   <PromptSlotSection
@@ -667,7 +677,7 @@ export function PromptBodyEditor(props: {
 
           {appendSections.length > 0 ? (
             <section className="space-y-3">
-              <h3 className="text-sm font-semibold text-foreground">自定义补充规则</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t("bodyEditor.customRules")}</h3>
               <div className="space-y-3">
                 {appendSections.map((section) => (
                   <PromptSlotSection
@@ -687,7 +697,7 @@ export function PromptBodyEditor(props: {
       )}
 
       <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-foreground">最终消息预览</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("bodyEditor.finalMessagePreview")}</h3>
         <PromptPreviewPanel preview={preview} />
       </section>
     </div>

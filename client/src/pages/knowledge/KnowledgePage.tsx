@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ApiResponse } from "@ai-novel/shared/types/api";
 import type { KnowledgeDocumentStatus, KnowledgeRecallTestResult } from "@ai-novel/shared/types/knowledge";
@@ -39,6 +40,7 @@ function normalizeTab(raw: string | null): "documents" | "ops" | "settings" {
 }
 
 export default function KnowledgePage() {
+  const { t } = useTranslation("knowledge");
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [keyword, setKeyword] = useState("");
@@ -289,22 +291,22 @@ export default function KnowledgePage() {
   const clearFinishedRagJobsMutation = useMutation({
     mutationFn: clearFinishedRagJobs,
     onSuccess: async (response) => {
-      setRagJobsActionMessage(response.message ?? "已清理已结束任务。");
+      setRagJobsActionMessage(response.message ?? t("page.clearedFinishedJobs"));
       await queryClient.invalidateQueries({ queryKey: ragJobsQueryKey });
     },
     onError: (error) => {
-      setRagJobsActionMessage(error instanceof Error ? error.message : "清理任务失败。");
+      setRagJobsActionMessage(error instanceof Error ? error.message : t("page.clearJobsFailed"));
     },
   });
 
   const deleteRagJobMutation = useMutation({
     mutationFn: (jobId: string) => deleteRagJob(jobId),
     onSuccess: async (response) => {
-      setRagJobsActionMessage(response.message ?? "任务记录已删除。");
+      setRagJobsActionMessage(response.message ?? t("page.jobDeleted"));
       await queryClient.invalidateQueries({ queryKey: ragJobsQueryKey });
     },
     onError: (error) => {
-      setRagJobsActionMessage(error instanceof Error ? error.message : "删除任务失败。");
+      setRagJobsActionMessage(error instanceof Error ? error.message : t("page.deleteJobFailed"));
     },
   });
 
@@ -339,12 +341,12 @@ export default function KnowledgePage() {
   const failedJobs = (ragJobsQuery.data?.data ?? []).filter((item) => item.status === "failed").slice(0, 5);
   const selectedDocument = detailQuery.data?.data;
   const ragHealthNotice = ragHealthQuery.isError
-    ? (ragHealthQuery.error instanceof Error ? ragHealthQuery.error.message : "加载 RAG 健康状态失败。")
+    ? (ragHealthQuery.error instanceof Error ? ragHealthQuery.error.message : t("page.ragHealthLoadFailed"))
     : (ragHealthQuery.data?.message && ragHealthQuery.data.message !== "RAG health check passed."
       ? ragHealthQuery.data.message
       : undefined);
   const recallErrorMessage = recallTestMutation.isError
-    ? (recallTestMutation.error instanceof Error ? recallTestMutation.error.message : "召回测试失败。")
+    ? (recallTestMutation.error instanceof Error ? recallTestMutation.error.message : t("page.recallTestFailed"))
     : null;
 
   useEffect(() => {
@@ -359,11 +361,11 @@ export default function KnowledgePage() {
 
   const handleUpload = async (file: File) => {
     if (!isTxtFile(file)) {
-      throw new Error("仅支持 .txt 文件。");
+      throw new Error(t("page.onlyTxt"));
     }
     const content = await readTextFile(file);
     if (!content) {
-      throw new Error("文件内容为空，或编码格式暂不支持。");
+      throw new Error(t("page.emptyFile"));
     }
     await createKnowledgeDocument({
       title: uploadTitle.trim() || undefined,
@@ -377,11 +379,11 @@ export default function KnowledgePage() {
       return;
     }
     if (!isTxtFile(file)) {
-      throw new Error("仅支持 .txt 文件。");
+      throw new Error(t("page.onlyTxt"));
     }
     const content = await readTextFile(file);
     if (!content) {
-      throw new Error("文件内容为空，或编码格式暂不支持。");
+      throw new Error(t("page.emptyFile"));
     }
     await createKnowledgeDocumentVersion(selectedDocumentId, {
       fileName: file.name,
@@ -457,14 +459,14 @@ export default function KnowledgePage() {
   };
 
   const handleClearFinishedRagJobs = () => {
-    if (!window.confirm("清理已结束任务记录？排队中和执行中的任务会保留。")) {
+    if (!window.confirm(t("page.confirmClearFinished"))) {
       return;
     }
     clearFinishedRagJobsMutation.mutate();
   };
 
   const handleDeleteRagJob = (jobId: string) => {
-    if (!window.confirm("删除这条任务记录？排队中和执行中的任务不能删除。")) {
+    if (!window.confirm(t("page.confirmDeleteJob"))) {
       return;
     }
     deleteRagJobMutation.mutate(jobId);
@@ -475,7 +477,7 @@ export default function KnowledgePage() {
       <div className="flex justify-end">
         <OpenInCreativeHubButton
           bindings={{ knowledgeDocumentIds: selectedDocumentId ? [selectedDocumentId] : [] }}
-          label="发送到创作中枢"
+          label={t("page.sendToCreativeHub")}
         />
       </div>
 
@@ -485,9 +487,9 @@ export default function KnowledgePage() {
         className="space-y-4"
       >
         <TabsList>
-          <TabsTrigger value="documents">文档</TabsTrigger>
-          <TabsTrigger value="ops">运行状态</TabsTrigger>
-          <TabsTrigger value="settings">检索设置</TabsTrigger>
+          <TabsTrigger value="documents">{t("page.tabDocuments")}</TabsTrigger>
+          <TabsTrigger value="ops">{t("page.tabOps")}</TabsTrigger>
+          <TabsTrigger value="settings">{t("page.tabSettings")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="documents">

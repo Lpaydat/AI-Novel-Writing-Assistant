@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import i18n from "@/i18n";
 import type {
   AutoDirectorAction,
   AutoDirectorFollowUpItem,
@@ -92,7 +94,7 @@ function shouldConfirmAction(action: AutoDirectorAction): boolean {
   if (!action.requiresConfirm) {
     return false;
   }
-  return window.confirm(`确认执行“${action.label}”？`);
+  return window.confirm(i18n.t("centerPage.confirmExecuteAction", { ns: "autoDirectorFollowUps", label: action.label }));
 }
 
 function formatActionFeedbackMessage(message: string, fallback: string): string {
@@ -109,6 +111,7 @@ function parseEnumParam<T extends string>(value: string | null, candidates: read
 }
 
 export default function AutoDirectorFollowUpCenterPage() {
+  const { t } = useTranslation("autoDirectorFollowUps");
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -246,7 +249,7 @@ export default function AutoDirectorFollowUpCenterPage() {
     }),
     onSuccess: async (response) => {
       await invalidateFollowUps();
-      toast.success(formatActionFeedbackMessage(response.message ?? "", "操作已提交"));
+      toast.success(formatActionFeedbackMessage(response.message ?? "", t("centerPage.actionSubmitted")));
     },
   });
 
@@ -261,7 +264,7 @@ export default function AutoDirectorFollowUpCenterPage() {
     }),
     onSuccess: async (response) => {
       await invalidateFollowUps();
-      toast.success(formatActionFeedbackMessage(response.message ?? "", "批量操作已提交"));
+      toast.success(formatActionFeedbackMessage(response.message ?? "", t("centerPage.batchActionSubmitted")));
       setSelectedDirectorTaskIds([]);
     },
   });
@@ -273,7 +276,7 @@ export default function AutoDirectorFollowUpCenterPage() {
         queryKeys.autoDirectorFollowUps.detail(directorTaskId),
         response,
       );
-      toast.success("校验结果已刷新。");
+      toast.success(t("centerPage.validationRefreshed"));
     },
   });
 

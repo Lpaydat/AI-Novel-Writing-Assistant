@@ -17,6 +17,32 @@ import zhHome from "@/locales/zh/home.json";
 import enHome from "@/locales/en/home.json";
 import zhCharacters from "@/locales/zh/characters.json";
 import enCharacters from "@/locales/en/characters.json";
+import zhAntiAiRules from "@/locales/zh/antiAiRules.json";
+import enAntiAiRules from "@/locales/en/antiAiRules.json";
+import zhAutoDirectorFollowUps from "@/locales/zh/autoDirectorFollowUps.json";
+import enAutoDirectorFollowUps from "@/locales/en/autoDirectorFollowUps.json";
+import zhChat from "@/locales/zh/chat.json";
+import enChat from "@/locales/en/chat.json";
+import zhComic from "@/locales/zh/comic.json";
+import enComic from "@/locales/en/comic.json";
+import zhGenres from "@/locales/zh/genres.json";
+import enGenres from "@/locales/en/genres.json";
+import zhKnowledge from "@/locales/zh/knowledge.json";
+import enKnowledge from "@/locales/en/knowledge.json";
+import zhStoryModes from "@/locales/zh/storyModes.json";
+import enStoryModes from "@/locales/en/storyModes.json";
+import zhTasks from "@/locales/zh/tasks.json";
+import enTasks from "@/locales/en/tasks.json";
+import zhTitles from "@/locales/zh/titles.json";
+import enTitles from "@/locales/en/titles.json";
+import zhCreativeHub from "@/locales/zh/creativeHub.json";
+import enCreativeHub from "@/locales/en/creativeHub.json";
+import zhDrama from "@/locales/zh/drama.json";
+import enDrama from "@/locales/en/drama.json";
+import zhPromptWorkbench from "@/locales/zh/promptWorkbench.json";
+import enPromptWorkbench from "@/locales/en/promptWorkbench.json";
+import zhWritingFormula from "@/locales/zh/writingFormula.json";
+import enWritingFormula from "@/locales/en/writingFormula.json";
 import { getActiveLocale, type AppLocale } from "./localeHeaders";
 
 export const SUPPORTED_LOCALES = ["zh", "en"] as const;
@@ -27,8 +53,40 @@ export type { AppLocale } from "./localeHeaders";
  * registered here so all locale data stays under the single owned module.
  */
 export const localeResources = {
-  zh: { home: zhHome, characters: zhCharacters },
-  en: { home: enHome, characters: enCharacters },
+  zh: {
+    home: zhHome,
+    characters: zhCharacters,
+    antiAiRules: zhAntiAiRules,
+    autoDirectorFollowUps: zhAutoDirectorFollowUps,
+    chat: zhChat,
+    comic: zhComic,
+    genres: zhGenres,
+    knowledge: zhKnowledge,
+    storyModes: zhStoryModes,
+    tasks: zhTasks,
+    titles: zhTitles,
+    creativeHub: zhCreativeHub,
+    drama: zhDrama,
+    promptWorkbench: zhPromptWorkbench,
+    writingFormula: zhWritingFormula,
+  },
+  en: {
+    home: enHome,
+    characters: enCharacters,
+    antiAiRules: enAntiAiRules,
+    autoDirectorFollowUps: enAutoDirectorFollowUps,
+    chat: enChat,
+    comic: enComic,
+    genres: enGenres,
+    knowledge: enKnowledge,
+    storyModes: enStoryModes,
+    tasks: enTasks,
+    titles: enTitles,
+    creativeHub: enCreativeHub,
+    drama: enDrama,
+    promptWorkbench: enPromptWorkbench,
+    writingFormula: enWritingFormula,
+  },
 } as const;
 
 export const DEFAULT_LOCALE: AppLocale = "zh";
@@ -39,7 +97,23 @@ void i18n.use(initReactI18next).init({
   fallbackLng: DEFAULT_LOCALE,
   supportedLngs: SUPPORTED_LOCALES,
   defaultNS: "home",
-  ns: ["home", "characters"],
+  ns: [
+    "home",
+    "characters",
+    "antiAiRules",
+    "autoDirectorFollowUps",
+    "chat",
+    "comic",
+    "genres",
+    "knowledge",
+    "storyModes",
+    "tasks",
+    "titles",
+    "creativeHub",
+    "drama",
+    "promptWorkbench",
+    "writingFormula",
+  ],
   // Keys are flat strings that intentionally contain dots (e.g.
   // "metric.liveWorkflow.title"). Disable both separators so i18next treats
   // the whole dotted string as the literal key within the `home` namespace.

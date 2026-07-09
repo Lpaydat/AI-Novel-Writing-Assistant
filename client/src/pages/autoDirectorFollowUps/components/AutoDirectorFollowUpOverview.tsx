@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { AutoDirectorFollowUpListResponse, AutoDirectorFollowUpOverview } from "@ai-novel/shared/types/autoDirectorFollowUp";
 import type { AutoDirectorFollowUpSection } from "@ai-novel/shared/types/autoDirectorValidation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,42 +25,43 @@ export function AutoDirectorFollowUpOverviewCards({
   activeSection,
   onSectionChange,
 }: AutoDirectorFollowUpOverviewCardsProps) {
+  const { t } = useTranslation("autoDirectorFollowUps");
   const counters = list?.countersBySection ?? overview?.countersBySection;
   const cards: OverviewCardConfig[] = [
     {
       section: "",
-      label: "全部",
-      description: "查看所有需要跟进的导演任务",
+      label: t("overview.labelAll"),
+      description: t("overview.descAll"),
       count: overview?.totalCount ?? list?.pagination.total ?? 0,
     },
     {
       section: "needs_validation",
-      label: "需校验",
-      description: "先确认任务和资产是否一致",
+      label: t("overview.labelNeedsValidation"),
+      description: t("overview.descNeedsValidation"),
       count: counters?.needs_validation ?? 0,
     },
     {
       section: "exception",
-      label: "异常",
-      description: "失败、恢复或取消的任务",
+      label: t("overview.labelException"),
+      description: t("overview.descException"),
       count: counters?.exception ?? 0,
     },
     {
       section: "pending",
-      label: "待处理",
-      description: "需要确认或继续的节点",
+      label: t("overview.labelPending"),
+      description: t("overview.descPending"),
       count: counters?.pending ?? 0,
     },
     {
       section: "auto_progress",
-      label: "自动推进",
-      description: "正在推进的任务和最近自动通过记录",
+      label: t("overview.labelAutoProgress"),
+      description: t("overview.descAutoProgress"),
       count: counters?.auto_progress ?? 0,
     },
     {
       section: "replaced",
-      label: "已替代",
-      description: "被新任务接管的旧任务",
+      label: t("overview.labelReplaced"),
+      description: t("overview.descReplaced"),
       count: counters?.replaced ?? 0,
     },
   ];
@@ -70,9 +72,9 @@ export function AutoDirectorFollowUpOverviewCards({
         <CardHeader className="pb-3">
           <div className={AUTO_DIRECTOR_MOBILE_CLASSES.followUpOverviewHeader}>
             <div className="min-w-0">
-              <CardTitle className="text-base">导演跟进中心</CardTitle>
+              <CardTitle className="text-base">{t("overview.title")}</CardTitle>
               <div className={`mt-1 text-xs text-muted-foreground ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>
-                今日恢复 {list?.summaryCounters.recoveredToday ?? 0} 项，今日完成 {list?.summaryCounters.completedToday ?? 0} 项
+                {t("overview.summary", { recovered: list?.summaryCounters.recoveredToday ?? 0, completed: list?.summaryCounters.completedToday ?? 0 })}
               </div>
             </div>
             <div className="text-2xl font-semibold leading-none">{overview?.totalCount ?? 0}</div>

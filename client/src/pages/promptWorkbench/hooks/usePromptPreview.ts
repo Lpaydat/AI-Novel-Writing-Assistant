@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
 import {
   previewPrompt,
@@ -307,11 +308,12 @@ export function usePromptPreview(input: UsePromptPreviewInput) {
     slotOverrides,
     templateDraft,
   } = input;
+  const { t } = useTranslation("promptWorkbench");
 
   const previewMutation = useMutation({
     mutationFn: () => {
       if (!prompt) {
-        throw new Error("请选择提示词后再生成预览。");
+        throw new Error(t("error.selectPromptBeforePreview"));
       }
       const executionNovelId = novelId || "novel-1";
       const executionChapterId = chapterId || previewChapter?.id || (novelId ? undefined : "chapter-1");

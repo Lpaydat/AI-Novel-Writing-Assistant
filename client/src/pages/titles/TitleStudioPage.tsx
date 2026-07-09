@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { NOVEL_LIST_PAGE_LIMIT_MAX } from "@ai-novel/shared/types/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { flattenGenreTreeOptions, getGenreTree } from "@/api/genre";
@@ -9,6 +10,7 @@ import TitleFactoryPanel from "./components/TitleFactoryPanel";
 import TitleLibraryPanel from "./components/TitleLibraryPanel";
 
 export default function TitleStudioPage() {
+  const { t } = useTranslation("titles");
   const [tab, setTab] = useState("factory");
   const genreTreeQuery = useQuery({
     queryKey: queryKeys.genres.all,
@@ -28,15 +30,15 @@ export default function TitleStudioPage() {
       <header className="space-y-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-normal text-foreground">标题工坊</h1>
+            <h1 className="text-3xl font-semibold tracking-normal text-foreground">{t("page.title")}</h1>
             <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-              用项目资料、作品简报或参考标题生成候选；看中的标题可以复制，也可以沉淀到标题库里反复使用。
+              {t("page.subtitle")}
             </p>
           </div>
 
           <TabsList className="grid h-10 w-full grid-cols-2 bg-muted/35 p-1 md:w-[300px]">
-            <TabsTrigger value="factory">生成候选</TabsTrigger>
-            <TabsTrigger value="library">标题库</TabsTrigger>
+            <TabsTrigger value="factory">{t("page.tab.factory")}</TabsTrigger>
+            <TabsTrigger value="library">{t("page.tab.library")}</TabsTrigger>
           </TabsList>
         </div>
         <div className="h-px bg-border/60" />

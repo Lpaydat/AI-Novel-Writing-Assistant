@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { StyleBinding } from "@ai-novel/shared/types/styleEngine";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +38,7 @@ interface WritingFormulaWorkbenchPanelProps {
 }
 
 export default function WritingFormulaWorkbenchPanel(props: WritingFormulaWorkbenchPanelProps) {
+  const { t } = useTranslation("writingFormula");
   const {
     selectedProfileId,
     bindingForm,
@@ -57,38 +59,37 @@ export default function WritingFormulaWorkbenchPanel(props: WritingFormulaWorkbe
   return (
     <Card>
       <CardHeader>
-        <CardTitle>当前写法的应用与测试</CardTitle>
+        <CardTitle>{t("workbench.title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="rounded-2xl border bg-slate-50/70 px-4 py-3 text-sm leading-7 text-slate-700">
-          这里只处理两件事：把这套写法绑定到小说/章节/任务，以及先试写一段看看效果。
-          “去 AI 味”已经拆成独立入口，不再和这里混在一起。
+          {t("workbench.intro")}
         </div>
 
         <div className="space-y-4 rounded-2xl border p-4">
           <div className="space-y-1">
-            <div className="text-base font-semibold text-slate-950">绑定到目标</div>
+            <div className="text-base font-semibold text-slate-950">{t("workbench.bindTargetTitle")}</div>
             <div className="text-sm leading-6 text-slate-500">
-              绑定后，这套写法会在对应小说、章节或任务里参与生成。优先级越高，影响越靠前；权重越高，参与程度越强。
+              {t("workbench.bindTargetHint")}
             </div>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
             <label className="space-y-2">
-              <div className="text-sm font-medium text-slate-900">绑定层级</div>
+              <div className="text-sm font-medium text-slate-900">{t("workbench.bindLevelLabel")}</div>
               <SelectControl
                 className="w-full rounded-md border p-2 text-sm"
                 value={bindingForm.targetType}
                 onChange={(event) => onBindingFormChange({ targetType: event.target.value as StyleBinding["targetType"] })}
               >
-                <option value="novel">整本书</option>
-                <option value="chapter">章节</option>
-                <option value="task">本次任务</option>
+                <option value="novel">{t("workbench.targetNovel")}</option>
+                <option value="chapter">{t("workbench.targetChapter")}</option>
+                <option value="task">{t("workbench.targetTask")}</option>
               </SelectControl>
             </label>
 
             <label className="space-y-2">
-              <div className="text-sm font-medium text-slate-900">所属小说</div>
+              <div className="text-sm font-medium text-slate-900">{t("workbench.novelLabel")}</div>
               <SelectControl
                 className="w-full rounded-md border p-2 text-sm"
                 value={bindingForm.novelId}
@@ -100,13 +101,13 @@ export default function WritingFormulaWorkbenchPanel(props: WritingFormulaWorkbe
 
             {bindingForm.targetType === "chapter" ? (
               <label className="space-y-2">
-                <div className="text-sm font-medium text-slate-900">选择章节</div>
+                <div className="text-sm font-medium text-slate-900">{t("workbench.chapterLabel")}</div>
                 <SelectControl
                   className="w-full rounded-md border p-2 text-sm"
                   value={bindingForm.chapterId}
                   onChange={(event) => onBindingFormChange({ chapterId: event.target.value })}
                 >
-                  <option value="">选择章节</option>
+                  <option value="">{t("workbench.chapterLabel")}</option>
                   {chapterOptions.map((chapter) => (
                     <option key={chapter.id} value={chapter.id}>
                       {chapter.order}. {chapter.title}
@@ -118,10 +119,10 @@ export default function WritingFormulaWorkbenchPanel(props: WritingFormulaWorkbe
 
             {bindingForm.targetType === "task" ? (
               <label className="space-y-2">
-                <div className="text-sm font-medium text-slate-900">任务标识</div>
+                <div className="text-sm font-medium text-slate-900">{t("workbench.taskIdLabel")}</div>
                 <input
                   className="w-full rounded-md border p-2 text-sm"
-                  placeholder="例如：chapter-draft-001"
+                  placeholder={t("workbench.taskIdPlaceholder")}
                   value={bindingForm.taskTargetId}
                   onChange={(event) => onBindingFormChange({ taskTargetId: event.target.value })}
                 />
@@ -129,7 +130,7 @@ export default function WritingFormulaWorkbenchPanel(props: WritingFormulaWorkbe
             ) : null}
 
             <label className="space-y-2">
-              <div className="text-sm font-medium text-slate-900">优先级</div>
+              <div className="text-sm font-medium text-slate-900">{t("workbench.priorityLabel")}</div>
               <input
                 className="w-full rounded-md border p-2 text-sm"
                 type="number"
@@ -141,7 +142,7 @@ export default function WritingFormulaWorkbenchPanel(props: WritingFormulaWorkbe
             </label>
 
             <label className="space-y-2">
-              <div className="text-sm font-medium text-slate-900">权重</div>
+              <div className="text-sm font-medium text-slate-900">{t("workbench.weightLabel")}</div>
               <input
                 className="w-full rounded-md border p-2 text-sm"
                 type="number"
@@ -155,7 +156,7 @@ export default function WritingFormulaWorkbenchPanel(props: WritingFormulaWorkbe
           </div>
 
           <Button onClick={onCreateBinding} disabled={createBindingPending || !selectedProfileId}>
-            创建绑定
+            {t("workbench.createBinding")}
           </Button>
 
           <div className="space-y-2">
@@ -163,12 +164,12 @@ export default function WritingFormulaWorkbenchPanel(props: WritingFormulaWorkbe
               bindings.map((binding) => (
                 <div key={binding.id} className="flex items-center justify-between gap-3 rounded-xl border p-3 text-sm">
                   <span>{binding.targetType} / {binding.targetId} / P{binding.priority} / W{binding.weight}</span>
-                  <Button size="sm" variant="ghost" onClick={() => onDeleteBinding(binding.id)}>删除</Button>
+                  <Button size="sm" variant="ghost" onClick={() => onDeleteBinding(binding.id)}>{t("common.delete")}</Button>
                 </div>
               ))
             ) : (
               <div className="rounded-xl border border-dashed px-3 py-3 text-sm leading-6 text-slate-500">
-                这套写法还没有绑定到任何目标。先绑定到小说或章节，后面的生成链路才会自动带上它。
+                {t("workbench.bindingEmpty")}
               </div>
             )}
           </div>
@@ -176,40 +177,40 @@ export default function WritingFormulaWorkbenchPanel(props: WritingFormulaWorkbe
 
         <div className="space-y-4 rounded-2xl border p-4">
           <div className="space-y-1">
-            <div className="text-base font-semibold text-slate-950">先试写一段</div>
+            <div className="text-base font-semibold text-slate-950">{t("workbench.testWriteTitle")}</div>
             <div className="text-sm leading-6 text-slate-500">
-              不确定这套写法到底有没有落地成功时，先生成一段或改写一段，是最直观的验证方式。
+              {t("workbench.testWriteHint")}
             </div>
           </div>
 
           <label className="space-y-2">
-            <div className="text-sm font-medium text-slate-900">试写方式</div>
+            <div className="text-sm font-medium text-slate-900">{t("workbench.testModeLabel")}</div>
             <SelectControl
               className="w-full rounded-md border p-2 text-sm"
               value={testWriteForm.mode}
               onChange={(event) => onTestWriteFormChange({ mode: event.target.value as "generate" | "rewrite" })}
             >
-              <option value="generate">生成正文</option>
-              <option value="rewrite">改写文本</option>
+              <option value="generate">{t("workbench.modeGenerate")}</option>
+              <option value="rewrite">{t("workbench.modeRewrite")}</option>
             </SelectControl>
           </label>
 
           {testWriteForm.mode === "generate" ? (
             <label className="space-y-2">
-              <div className="text-sm font-medium text-slate-900">试写主题</div>
+              <div className="text-sm font-medium text-slate-900">{t("workbench.topicLabel")}</div>
               <input
                 className="w-full rounded-md border p-2 text-sm"
-                placeholder="例如：主角第一次公开翻盘"
+                placeholder={t("workbench.topicPlaceholder")}
                 value={testWriteForm.topic}
                 onChange={(event) => onTestWriteFormChange({ topic: event.target.value })}
               />
             </label>
           ) : (
             <label className="space-y-2">
-              <div className="text-sm font-medium text-slate-900">待改写文本</div>
+              <div className="text-sm font-medium text-slate-900">{t("workbench.sourceTextLabel")}</div>
               <textarea
                 className="min-h-[140px] w-full rounded-md border p-2 text-sm"
-                placeholder="粘贴你想用这套写法改写的正文"
+                placeholder={t("workbench.sourceTextPlaceholder")}
                 value={testWriteForm.sourceText}
                 onChange={(event) => onTestWriteFormChange({ sourceText: event.target.value })}
               />
@@ -217,7 +218,7 @@ export default function WritingFormulaWorkbenchPanel(props: WritingFormulaWorkbe
           )}
 
           <Button onClick={onRunTestWrite} disabled={testWritePending || !selectedProfileId}>
-            执行试写
+            {t("workbench.runTestWrite")}
           </Button>
 
           {testWriteOutput ? (
@@ -226,7 +227,7 @@ export default function WritingFormulaWorkbenchPanel(props: WritingFormulaWorkbe
             </pre>
           ) : (
             <div className="rounded-xl border border-dashed px-3 py-3 text-sm leading-6 text-slate-500">
-              这里会显示试写结果。你可以用它判断这套写法的推进感、对白质感和整体语气是否已经到位。
+              {t("workbench.testWriteEmpty")}
             </div>
           )}
         </div>

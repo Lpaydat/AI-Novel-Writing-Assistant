@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, BookOpenText, FileText, Layers3, Lightbulb, ListVideo, Plus, RefreshCw, Sparkles } from "lucide-react";
@@ -20,22 +21,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/toast";
 import { getNovelList } from "@/api/novel/core";
-import { DRAMA_SOURCE_LABELS, DRAMA_TRACK_OPTIONS, dramaTrackLabel } from "./dramaDisplay";
+import { DRAMA_TRACK_OPTIONS, dramaSourceLabel, dramaTrackLabel } from "./dramaDisplay";
 import SelectControl from "@/components/common/SelectControl";
 
 const WIZARD_STEPS = [
-  { key: "source", label: "来源" },
-  { key: "content", label: "内容" },
-  { key: "settings", label: "规格" },
+  { key: "source", labelKey: "workspace.stepSource" },
+  { key: "content", labelKey: "workspace.stepContent" },
+  { key: "settings", labelKey: "workspace.stepSettings" },
 ] as const;
 
-function statusLabel(status: string): string {
+function statusLabelKey(status: string): string {
   const labels: Record<string, string> = {
-    draft: "素材准备",
-    strategized: "策略已生成",
-    outlined: "分集已生成",
-    scripting: "台本生成中",
-    completed: "已完成",
+    draft: "status.draft",
+    strategized: "status.strategized",
+    outlined: "status.outlined",
+    scripting: "status.scripting",
+    completed: "status.completed",
   };
   return labels[status] ?? status;
 }
@@ -102,6 +103,7 @@ function ProjectCard(props: {
   onStrategy: (project: DramaProject) => void;
   onOutline: (project: DramaProject) => void;
 }) {
+  const { t } = useTranslation("drama");
   const isBusy = props.busyProjectId === props.project.id;
 
   return (
@@ -110,18 +112,18 @@ function ProjectCard(props: {
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <CardTitle className="text-lg leading-6">{props.project.title}</CardTitle>
-            <Badge variant="secondary">{DRAMA_SOURCE_LABELS[props.project.source]}</Badge>
-            <Badge variant="outline">{statusLabel(props.project.status)}</Badge>
+            <Badge variant="secondary">{dramaSourceLabel(props.project.source)}</Badge>
+            <Badge variant="outline">{t(statusLabelKey(props.project.status))}</Badge>
           </div>
           <CardDescription>
-            {dramaTrackLabel(props.project.track)} · {props.project.targetEpisodes} 集
+            {dramaTrackLabel(props.project.track)} · {t("common.episodesCount", { count: props.project.targetEpisodes })}
           </CardDescription>
         </div>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2">
         <Button asChild type="button" size="sm">
           <Link to={`/drama/projects/${props.project.id}`}>
-            打开工作台
+            {t("workspace.openWorkspace")}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
@@ -133,7 +135,7 @@ function ProjectCard(props: {
           onClick={() => props.onAssemble(props.project)}
         >
           <Layers3 className="h-4 w-4" />
-          整理素材
+          {t("common.assembleSource")}
         </Button>
         <Button
           type="button"
@@ -143,7 +145,7 @@ function ProjectCard(props: {
           onClick={() => props.onStrategy(props.project)}
         >
           <Sparkles className="h-4 w-4" />
-          生成策略
+          {t("common.generateStrategy")}
         </Button>
         <Button
           type="button"
@@ -152,7 +154,7 @@ function ProjectCard(props: {
           onClick={() => props.onOutline(props.project)}
         >
           <ListVideo className="h-4 w-4" />
-          生成前 12 集
+          {t("common.generateFirst12")}
         </Button>
       </CardContent>
     </Card>
@@ -160,6 +162,7 @@ function ProjectCard(props: {
 }
 
 export default function DramaWorkspacePage() {
+  const { t } = useTranslation("drama");
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [stepIndex, setStepIndex] = useState(0);
@@ -197,7 +200,7 @@ export default function DramaWorkspacePage() {
     mutationFn: (payload: CreateDramaProjectPayload) => createDramaProject(payload),
     onSuccess: async (response) => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.drama.projects });
-      toast.success("短剧项目已创建。");
+      toast.success(t("workspace.projectCreated"));
       if (response.data?.id) {
         navigate(`/drama/projects/${response.data.id}`);
         return;
@@ -226,7 +229,7 @@ export default function DramaWorkspacePage() {
       if (recommendation) {
         setTrackRecommendation(recommendation);
         setForm((current) => ({ ...current, track: recommendation.recommendedTrack }));
-        toast.success("已推荐适合的短剧赛道。");
+        toast.success(t("workspace.trackRecommended"));
       }
     },
   });
@@ -253,15 +256,15 @@ export default function DramaWorkspacePage() {
     }
     if (stepIndex === 1) {
       if (form.source === "novel_import" && !form.sourceRef.trim()) {
-        toast.error("请选择要改编的小说。");
+        toast.error(t("workspace.errorSelectNovel"));
         return false;
       }
       if (form.source === "original" && !form.inspiration.trim()) {
-        toast.error("请填写原创灵感。");
+        toast.error(t("workspace.errorInspiration"));
         return false;
       }
       if (form.source === "text_import" && !form.rawText.trim()) {
-        toast.error("请粘贴要整理的文本。");
+        toast.error(t("workspace.errorRawText"));
         return false;
       }
     }
@@ -280,19 +283,19 @@ export default function DramaWorkspacePage() {
       return;
     }
     if (!form.title.trim()) {
-      toast.error("请先填写短剧项目名。");
+      toast.error(t("workspace.errorProjectName"));
       return;
     }
     if (form.source === "novel_import" && !form.sourceRef.trim()) {
-      toast.error("请选择要改编的小说。");
+      toast.error(t("workspace.errorSelectNovel"));
       return;
     }
     if (form.source === "original" && !form.inspiration.trim()) {
-      toast.error("请填写原创灵感。");
+      toast.error(t("workspace.errorInspiration"));
       return;
     }
     if (form.source === "text_import" && !form.rawText.trim()) {
-      toast.error("请粘贴要整理的文本。");
+      toast.error(t("workspace.errorRawText"));
       return;
     }
     createMutation.mutate(buildCreatePayload(form));
@@ -312,17 +315,17 @@ export default function DramaWorkspacePage() {
   return (
     <div className="space-y-5">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-normal">短剧工作台</h1>
+        <h1 className="text-2xl font-semibold tracking-normal">{t("common.dramaWorkspace")}</h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          从小说、原创灵感或导入文本整理短剧素材，再生成竖屏付费短剧策略和分集台本。
+          {t("workspace.subtitle")}
         </p>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(320px,420px)_1fr]">
         <Card className="rounded-lg">
           <CardHeader>
-            <CardTitle className="text-lg">新建短剧项目</CardTitle>
-            <CardDescription>按步骤选择来源、补充内容，再创建可进入短剧产线的项目。</CardDescription>
+            <CardTitle className="text-lg">{t("workspace.newProjectTitle")}</CardTitle>
+            <CardDescription>{t("workspace.newProjectDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-2">
@@ -333,7 +336,7 @@ export default function DramaWorkspacePage() {
                   className={`rounded-md border px-3 py-2 text-sm ${stepIndex === index ? "border-primary bg-primary/5 font-medium" : "text-muted-foreground"}`}
                   onClick={() => setStepIndex(index)}
                 >
-                  {index + 1}. {step.label}
+                  {index + 1}. {t(step.labelKey)}
                 </button>
               ))}
             </div>
@@ -341,16 +344,16 @@ export default function DramaWorkspacePage() {
             {stepIndex === 0 ? (
               <div className="grid gap-3">
                 <button type="button" className={`rounded-lg border p-3 text-left ${form.source === "novel_import" ? "border-primary bg-primary/5" : ""}`} onClick={() => chooseSource("novel_import")}>
-                  <div className="flex items-center gap-2 font-medium"><BookOpenText className="h-4 w-4" />导入小说</div>
-                  <p className="mt-1 text-sm text-muted-foreground">从已有小说改编，适合把现有长篇转成竖屏短剧。</p>
+                  <div className="flex items-center gap-2 font-medium"><BookOpenText className="h-4 w-4" />{t("workspace.sourceNovelTitle")}</div>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("workspace.sourceNovelDesc")}</p>
                 </button>
                 <button type="button" className={`rounded-lg border p-3 text-left ${form.source === "original" ? "border-primary bg-primary/5" : ""}`} onClick={() => chooseSource("original")}>
-                  <div className="flex items-center gap-2 font-medium"><Lightbulb className="h-4 w-4" />原创短剧</div>
-                  <p className="mt-1 text-sm text-muted-foreground">从一句灵感开始，系统整理人物、冲突和节拍。</p>
+                  <div className="flex items-center gap-2 font-medium"><Lightbulb className="h-4 w-4" />{t("workspace.sourceOriginalTitle")}</div>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("workspace.sourceOriginalDesc")}</p>
                 </button>
                 <button type="button" className={`rounded-lg border p-3 text-left ${form.source === "text_import" ? "border-primary bg-primary/5" : ""}`} onClick={() => chooseSource("text_import")}>
-                  <div className="flex items-center gap-2 font-medium"><FileText className="h-4 w-4" />粘贴文本</div>
-                  <p className="mt-1 text-sm text-muted-foreground">把外部故事梗概、短篇或素材文本整理成短剧项目。</p>
+                  <div className="flex items-center gap-2 font-medium"><FileText className="h-4 w-4" />{t("workspace.sourceTextTitle")}</div>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("workspace.sourceTextDesc")}</p>
                 </button>
               </div>
             ) : null}
@@ -360,7 +363,7 @@ export default function DramaWorkspacePage() {
                 {form.source === "novel_import" ? (
                   <>
                     <label className="block space-y-1.5 text-sm">
-                      <span className="font-medium">选择小说</span>
+                      <span className="font-medium">{t("workspace.selectNovelLabel")}</span>
                       <SelectControl
                         className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                         value={form.sourceRef}
@@ -375,18 +378,18 @@ export default function DramaWorkspacePage() {
                         }}
                       >
                         <option value="" disabled>
-                          {novelsQuery.isLoading ? "正在加载小说..." : novels.length > 0 ? "请选择要改编的小说" : "暂无可导入小说"}
+                          {novelsQuery.isLoading ? t("workspace.novelLoading") : novels.length > 0 ? t("workspace.novelSelectPrompt") : t("workspace.novelEmpty")}
                         </option>
                         {novels.map((novel) => (
                           <option key={novel.id} value={novel.id}>
-                            {novel.title || "未命名小说"}（{novel._count.chapters} 章）
+                            {novel.title || t("workspace.untitledNovel")}{t("workspace.novelChapters", { count: novel._count.chapters })}
                           </option>
                         ))}
                       </SelectControl>
                     </label>
                     {selectedNovel ? (
                       <div className="rounded-md border p-3 text-sm text-muted-foreground">
-                        已选择 {selectedNovel.title || "未命名小说"}，共 {selectedNovel._count.chapters} 章。创建后会先整理为短剧素材包。
+                        {t("workspace.novelSelectedInfo", { name: selectedNovel.title || t("workspace.untitledNovel"), count: selectedNovel._count.chapters })}
                       </div>
                     ) : null}
                   </>
@@ -394,11 +397,11 @@ export default function DramaWorkspacePage() {
 
                 {form.source === "original" ? (
                   <label className="block space-y-1.5 text-sm">
-                    <span className="font-medium">原创灵感</span>
+                    <span className="font-medium">{t("workspace.inspirationLabel")}</span>
                     <textarea
                       className="min-h-32 w-full rounded-md border bg-background px-3 py-2 text-sm"
                       value={form.inspiration}
-                      placeholder="例如：被退婚的女主发现自己其实是财阀继承人，当众反击所有羞辱她的人。"
+                      placeholder={t("workspace.inspirationPlaceholder")}
                       onChange={(event) => setForm((current) => ({ ...current, inspiration: event.target.value }))}
                     />
                   </label>
@@ -406,11 +409,11 @@ export default function DramaWorkspacePage() {
 
                 {form.source === "text_import" ? (
                   <label className="block space-y-1.5 text-sm">
-                    <span className="font-medium">导入文本</span>
+                    <span className="font-medium">{t("workspace.rawTextLabel")}</span>
                     <textarea
                       className="min-h-40 w-full rounded-md border bg-background px-3 py-2 text-sm"
                       value={form.rawText}
-                      placeholder="粘贴故事梗概、人物设定、短篇正文或改编素材。"
+                      placeholder={t("workspace.rawTextPlaceholder")}
                       onChange={(event) => setForm((current) => ({ ...current, rawText: event.target.value }))}
                     />
                   </label>
@@ -421,7 +424,7 @@ export default function DramaWorkspacePage() {
             {stepIndex === 2 ? (
               <div className="space-y-4">
                 <label className="block space-y-1.5 text-sm">
-                  <span className="font-medium">项目名</span>
+                  <span className="font-medium">{t("workspace.projectNameLabel")}</span>
                   <input
                     className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                     value={form.title}
@@ -430,19 +433,19 @@ export default function DramaWorkspacePage() {
                 </label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="block space-y-1.5 text-sm">
-                    <span className="font-medium">赛道</span>
+                    <span className="font-medium">{t("workspace.trackLabel")}</span>
                     <SelectControl
                       className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                       value={form.track}
                       onChange={(event) => setForm((current) => ({ ...current, track: event.target.value }))}
                     >
                       {DRAMA_TRACK_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
+                        <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
                       ))}
                     </SelectControl>
                   </label>
                   <label className="block space-y-1.5 text-sm">
-                    <span className="font-medium">目标集数</span>
+                    <span className="font-medium">{t("workspace.targetEpisodesLabel")}</span>
                     <input
                       type="number"
                       min="1"
@@ -453,7 +456,7 @@ export default function DramaWorkspacePage() {
                   </label>
                 </div>
                 <label className="block space-y-1.5 text-sm">
-                  <span className="font-medium">题材补充</span>
+                  <span className="font-medium">{t("workspace.themeLabel")}</span>
                   <input
                     className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                     value={form.theme}
@@ -463,8 +466,8 @@ export default function DramaWorkspacePage() {
                 <div className="space-y-3 rounded-lg border p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <div className="text-sm font-medium">赛道推荐</div>
-                      <p className="text-sm text-muted-foreground">根据当前素材推荐更适合的竖屏短剧赛道。</p>
+                      <div className="text-sm font-medium">{t("workspace.trackRecoTitle")}</div>
+                      <p className="text-sm text-muted-foreground">{t("workspace.trackRecoDesc")}</p>
                     </div>
                     <Button
                       type="button"
@@ -474,7 +477,7 @@ export default function DramaWorkspacePage() {
                       onClick={() => trackRecommendationMutation.mutate()}
                     >
                       <Sparkles className="h-4 w-4" />
-                      {trackRecommendationMutation.isPending ? "推荐中..." : "推荐赛道"}
+                      {trackRecommendationMutation.isPending ? t("workspace.recommending") : t("workspace.recommendTrack")}
                     </Button>
                   </div>
                   {trackRecommendation ? (
@@ -492,7 +495,7 @@ export default function DramaWorkspacePage() {
                       ) : null}
                       {trackRecommendation.risks.length > 0 ? (
                         <div className="rounded-md border border-dashed p-2 text-muted-foreground">
-                          {trackRecommendation.risks.join("；")}
+                          {trackRecommendation.risks.join(t("common.semicolonSeparator"))}
                         </div>
                       ) : null}
                     </div>
@@ -504,18 +507,18 @@ export default function DramaWorkspacePage() {
             <div className="flex flex-wrap gap-2">
               {stepIndex > 0 ? (
                 <Button type="button" variant="outline" onClick={() => setStepIndex((current) => Math.max(0, current - 1))}>
-                  上一步
+                  {t("workspace.prevStep")}
                 </Button>
               ) : null}
               {stepIndex < WIZARD_STEPS.length - 1 ? (
                 <Button type="button" onClick={goNext}>
-                  下一步
+                  {t("workspace.nextStep")}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               ) : (
                 <Button type="button" disabled={createMutation.isPending} onClick={handleCreate}>
                   <Plus className="h-4 w-4" />
-                  {createMutation.isPending ? "创建中..." : "创建短剧项目"}
+                  {createMutation.isPending ? t("workspace.creating") : t("workspace.createProject")}
                 </Button>
               )}
             </div>
@@ -525,8 +528,8 @@ export default function DramaWorkspacePage() {
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold tracking-normal">项目</h2>
-              <p className="text-sm text-muted-foreground">先整理素材，再生成策略和分集。</p>
+              <h2 className="text-lg font-semibold tracking-normal">{t("workspace.projectsHeading")}</h2>
+              <p className="text-sm text-muted-foreground">{t("workspace.projectsSubtitle")}</p>
             </div>
             <Button
               type="button"
@@ -536,17 +539,17 @@ export default function DramaWorkspacePage() {
               onClick={() => void projectsQuery.refetch()}
             >
               <RefreshCw className="h-4 w-4" />
-              刷新
+              {t("common.refresh")}
             </Button>
           </div>
 
           {projectsQuery.isLoading ? (
-            <div className="rounded-md border p-4 text-sm text-muted-foreground">正在加载短剧项目...</div>
+            <div className="rounded-md border p-4 text-sm text-muted-foreground">{t("common.loadingProject")}</div>
           ) : null}
 
           {!projectsQuery.isLoading && projects.length === 0 ? (
             <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
-              还没有短剧项目。先从左侧创建一个项目。
+              {t("workspace.emptyProjects")}
             </div>
           ) : null}
 
@@ -556,12 +559,12 @@ export default function DramaWorkspacePage() {
                 key={project.id}
                 project={project}
                 busyProjectId={busyProjectId}
-                onAssemble={(item) => void runProjectAction(item, assembleDramaSourceBundle, "短剧素材已整理。")}
-                onStrategy={(item) => void runProjectAction(item, generateDramaStrategy, "短剧策略已生成。")}
+                onAssemble={(item) => void runProjectAction(item, assembleDramaSourceBundle, t("common.sourceAssembled"))}
+                onStrategy={(item) => void runProjectAction(item, generateDramaStrategy, t("common.strategyGenerated"))}
                 onOutline={(item) => void runProjectAction(
                   item,
                   (projectId) => generateDramaOutline(projectId, { startOrder: 1, count: 12 }),
-                  "前 12 集分集已生成。",
+                  t("common.outlineGenerated"),
                 )}
               />
             ))}

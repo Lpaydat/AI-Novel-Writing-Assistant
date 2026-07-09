@@ -6,10 +6,12 @@ import {
   type ToolCallMessagePartProps,
   useThread,
 } from "@assistant-ui/react";
+import { useTranslation } from "react-i18next";
 import MarkdownViewer from "@/components/common/MarkdownViewer";
 import CreativeHubInlineToolCall from "./CreativeHubInlineToolCall";
 
 function BranchControls() {
+  const { t } = useTranslation("creativeHub");
   const canEdit = useThread((thread) => thread.capabilities.edit);
   if (!canEdit) {
     return null;
@@ -21,7 +23,7 @@ function BranchControls() {
     >
       <BranchPickerPrimitive.Previous asChild>
         <button type="button" className="rounded-full px-1 transition hover:bg-slate-200">
-          上一支
+          {t("message.prevBranch")}
         </button>
       </BranchPickerPrimitive.Previous>
       <span className="tabular-nums">
@@ -29,7 +31,7 @@ function BranchControls() {
       </span>
       <BranchPickerPrimitive.Next asChild>
         <button type="button" className="rounded-full px-1 transition hover:bg-slate-200">
-          下一支
+          {t("message.nextBranch")}
         </button>
       </BranchPickerPrimitive.Next>
     </BranchPickerPrimitive.Root>
@@ -37,6 +39,7 @@ function BranchControls() {
 }
 
 function UserMessageActions() {
+  const { t } = useTranslation("creativeHub");
   const canEdit = useThread((thread) => thread.capabilities.edit);
   if (!canEdit) {
     return null;
@@ -52,7 +55,7 @@ function UserMessageActions() {
           type="button"
           className="rounded-full border border-slate-300 bg-white px-2 py-1 text-[11px] text-slate-600 transition hover:bg-slate-50"
         >
-          编辑
+          {t("message.edit")}
         </button>
       </ActionBarPrimitive.Edit>
     </ActionBarPrimitive.Root>
@@ -60,6 +63,7 @@ function UserMessageActions() {
 }
 
 function AssistantMessageActions() {
+  const { t } = useTranslation("creativeHub");
   const canReload = useThread((thread) => thread.capabilities.reload);
   if (!canReload) {
     return null;
@@ -76,7 +80,7 @@ function AssistantMessageActions() {
           type="button"
           className="rounded-full border border-slate-300 bg-white px-2 py-1 text-[11px] text-slate-600 transition hover:bg-slate-50"
         >
-          重新生成
+          {t("message.regenerate")}
         </button>
       </ActionBarPrimitive.Reload>
     </ActionBarPrimitive.Root>
@@ -106,6 +110,7 @@ export function CreativeHubUserMessage() {
 }
 
 export function CreativeHubAssistantMessage() {
+  const { t } = useTranslation("creativeHub");
   return (
     <MessagePrimitive.If hasContent>
       <MessagePrimitive.Root className="mr-auto max-w-[88%]">
@@ -119,7 +124,7 @@ export function CreativeHubAssistantMessage() {
               ),
               Reasoning: ({ text }: { text: string }) => (
                 <div className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs">
-                  <div className="mb-1 text-[11px] text-amber-700">推理过程</div>
+                  <div className="mb-1 text-[11px] text-amber-700">{t("message.reasoning")}</div>
                   <MarkdownViewer content={text} />
                 </div>
               ),
@@ -137,11 +142,12 @@ export function CreativeHubAssistantMessage() {
 }
 
 export function CreativeHubEditComposer() {
+  const { t } = useTranslation("creativeHub");
   return (
     <ComposerPrimitive.Root className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 shadow-sm">
       <ComposerPrimitive.Input
         className="min-h-[88px] w-full resize-none rounded-xl border border-amber-200 bg-white p-3 text-sm outline-none transition focus:border-amber-400"
-        placeholder="编辑这条消息后生成新的分支"
+        placeholder={t("message.editPlaceholder")}
         submitMode="enter"
       />
       <div className="mt-3 flex gap-2">
@@ -150,7 +156,7 @@ export function CreativeHubEditComposer() {
             type="button"
             className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
           >
-            取消
+            {t("common.cancel")}
           </button>
         </ComposerPrimitive.Cancel>
         <ComposerPrimitive.Send asChild>
@@ -158,7 +164,7 @@ export function CreativeHubEditComposer() {
             type="button"
             className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
           >
-            发送新分支
+            {t("message.sendNewBranch")}
           </button>
         </ComposerPrimitive.Send>
       </div>

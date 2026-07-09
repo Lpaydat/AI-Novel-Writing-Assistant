@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   activatePromptTemplateVersion,
@@ -51,6 +52,7 @@ export function usePromptTemplateEditor(input: {
   enabled: boolean;
 }) {
   const { chapterId, enabled, entrypoint, novelId, prompt } = input;
+  const { t } = useTranslation("promptWorkbench");
   const queryClient = useQueryClient();
   const [systemContent, setSystemContent] = useState("");
   const [humanContent, setHumanContent] = useState("");
@@ -156,8 +158,8 @@ export function usePromptTemplateEditor(input: {
   const loadVersionToDraft = useCallback((version: PromptTemplateVersionView) => {
     setSystemContent(getMessageContent(version.template, "system"));
     setHumanContent(getMessageContent(version.template, "human"));
-    setNotes(`基于 v${version.versionNo} 调整`);
-  }, []);
+    setNotes(t("advanced.versionNotePrefill", { version: version.versionNo }));
+  }, [t]);
 
   const insertToken = useCallback((token: string) => {
     const role = focusedRole;

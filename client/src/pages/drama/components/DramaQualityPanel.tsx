@@ -1,4 +1,5 @@
 import { AlertTriangle, CheckCircle2, RefreshCw, Search, ShieldCheck } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { DramaEpisode, DramaProjectDetail } from "@/api/drama";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,24 +49,24 @@ function safeJson<T>(input: string | null | undefined, fallback: T): T {
   }
 }
 
-function statusLabel(status?: QualityStatus): string {
+function statusLabelKey(status?: QualityStatus): string {
   const labels: Record<QualityStatus, string> = {
-    approved: "已通过",
-    repairable: "建议修复",
-    continue_with_warning: "可继续",
-    blocked: "需处理",
+    approved: "quality.statusApproved",
+    repairable: "quality.statusRepairable",
+    continue_with_warning: "quality.statusWarning",
+    blocked: "quality.statusBlocked",
   };
-  return status ? labels[status] : "未检查";
+  return status ? labels[status] : "quality.statusUnchecked";
 }
 
-function severityLabel(severity?: QualityFlag["severity"]): string {
+function severityLabelKey(severity?: QualityFlag["severity"]): string {
   const labels: Record<NonNullable<QualityFlag["severity"]>, string> = {
-    low: "轻微",
-    medium: "中等",
-    high: "重要",
-    critical: "严重",
+    low: "quality.severityLow",
+    medium: "quality.severityMedium",
+    high: "quality.severityHigh",
+    critical: "quality.severityCritical",
   };
-  return severity ? labels[severity] : "提示";
+  return severity ? labels[severity] : "quality.severityDefault";
 }
 
 function qualityVariant(status?: QualityStatus): "default" | "secondary" | "destructive" | "outline" {
@@ -75,13 +76,13 @@ function qualityVariant(status?: QualityStatus): "default" | "secondary" | "dest
   return "outline";
 }
 
-function complianceLabel(level?: ComplianceLevel): string {
+function complianceLabelKey(level?: ComplianceLevel): string {
   const labels: Record<ComplianceLevel, string> = {
-    pass: "合规通过",
-    warn: "合规提醒",
-    block: "合规需修复",
+    pass: "quality.compliancePass",
+    warn: "quality.complianceWarn",
+    block: "quality.complianceBlock",
   };
-  return level ? labels[level] : "未预检";
+  return level ? labels[level] : "quality.complianceNone";
 }
 
 function complianceVariant(level?: ComplianceLevel): "default" | "secondary" | "destructive" | "outline" {
@@ -121,6 +122,7 @@ export function DramaQualityPanel(props: {
   onComplianceAll: () => void;
   onRepair: (order: number) => void;
 }) {
+  const { t } = useTranslation("drama");
   const items = buildQualityItems(props.project);
   const summary = summarize(items);
   const problemItems = items.filter((item) =>
@@ -142,7 +144,7 @@ export function DramaQualityPanel(props: {
   if ((props.project.episodes?.length ?? 0) === 0) {
     return (
       <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-        还没有分集大纲。生成分集和台本后，这里会汇总每集质量检查结果。
+        {t("quality.emptyEpisodes")}
       </div>
     );
   }
@@ -151,39 +153,39 @@ export function DramaQualityPanel(props: {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="text-sm font-medium">质量与合规</div>
-          <div className="text-xs text-muted-foreground">先检查台本质量，再确认平台合规风险。</div>
+          <div className="text-sm font-medium">{t("quality.title")}</div>
+          <div className="text-xs text-muted-foreground">{t("quality.subtitle")}</div>
         </div>
         <Button type="button" variant="outline" disabled={props.busy || scriptedCount === 0} onClick={props.onComplianceAll}>
           <ShieldCheck className="h-4 w-4" />
-          检查全部台本合规
+          {t("quality.checkAllCompliance")}
         </Button>
       </div>
 
       <div className="grid gap-3 md:grid-cols-6">
         <div className="rounded-md border p-3 text-sm">
-          <div className="text-xs text-muted-foreground">已检查</div>
+          <div className="text-xs text-muted-foreground">{t("quality.statChecked")}</div>
           <div className="mt-1 text-lg font-semibold">{summary.checked.length}</div>
         </div>
         <div className="rounded-md border p-3 text-sm">
-          <div className="text-xs text-muted-foreground">建议修复</div>
+          <div className="text-xs text-muted-foreground">{t("quality.statNeedsRepair")}</div>
           <div className="mt-1 text-lg font-semibold">{summary.needsRepair.length}</div>
         </div>
         <div className="rounded-md border p-3 text-sm">
-          <div className="text-xs text-muted-foreground">可继续</div>
+          <div className="text-xs text-muted-foreground">{t("quality.statWarning")}</div>
           <div className="mt-1 text-lg font-semibold">{summary.warning.length}</div>
         </div>
         <div className="rounded-md border p-3 text-sm">
-          <div className="text-xs text-muted-foreground">已通过</div>
+          <div className="text-xs text-muted-foreground">{t("quality.statApproved")}</div>
           <div className="mt-1 text-lg font-semibold">{summary.approved.length}</div>
         </div>
         <div className="rounded-md border p-3 text-sm">
-          <div className="text-xs text-muted-foreground">合规风险</div>
+          <div className="text-xs text-muted-foreground">{t("quality.statComplianceRisk")}</div>
           <div className="mt-1 text-lg font-semibold">{summary.complianceRisk.length}</div>
         </div>
         <div className="rounded-md border p-3 text-sm">
-          <div className="text-xs text-muted-foreground">平均分</div>
-          <div className="mt-1 text-lg font-semibold">{summary.average ?? "待检查"}</div>
+          <div className="text-xs text-muted-foreground">{t("quality.statAverage")}</div>
+          <div className="mt-1 text-lg font-semibold">{summary.average ?? t("quality.pendingCheck")}</div>
         </div>
       </div>
 
@@ -191,7 +193,7 @@ export function DramaQualityPanel(props: {
         <Card className="rounded-lg">
           <CardContent className="flex items-center gap-2 pt-6 text-sm text-muted-foreground">
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-            当前没有待处理的质量问题。
+            {t("quality.noProblems")}
           </CardContent>
         </Card>
       ) : null}
@@ -203,23 +205,23 @@ export function DramaQualityPanel(props: {
               <CardHeader className="gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <CardTitle className="text-base">第 {item.episode.order} 集：{item.episode.title}</CardTitle>
-                    <Badge variant={qualityVariant(item.quality?.status)}>{statusLabel(item.quality?.status)}</Badge>
+                    <CardTitle className="text-base">{t("common.episodeTitle", { order: item.episode.order, title: item.episode.title })}</CardTitle>
+                    <Badge variant={qualityVariant(item.quality?.status)}>{t(statusLabelKey(item.quality?.status))}</Badge>
                     {item.quality?.compliance ? (
                       <Badge variant={complianceVariant(item.quality.compliance.level)}>
-                        {complianceLabel(item.quality.compliance.level)}
+                        {t(complianceLabelKey(item.quality.compliance.level))}
                       </Badge>
                     ) : null}
                     {item.quality?.score?.overall != null ? (
-                      <Badge variant="outline">综合 {item.quality.score.overall}</Badge>
+                      <Badge variant="outline">{t("project.overallScore", { score: item.quality.score.overall })}</Badge>
                     ) : null}
                   </div>
-                  <CardDescription>{item.quality?.repairPlan?.instruction || "查看问题后决定是否修复。"}</CardDescription>
+                  <CardDescription>{item.quality?.repairPlan?.instruction || t("quality.repairPlanFallback")}</CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button type="button" size="sm" variant="outline" onClick={() => openEpisode(item.episode.order)}>
                     <Search className="h-4 w-4" />
-                    查看台本
+                    {t("quality.viewScript")}
                   </Button>
                   <Button
                     type="button"
@@ -229,7 +231,7 @@ export function DramaQualityPanel(props: {
                     onClick={() => props.onReview(item.episode.order)}
                   >
                     <CheckCircle2 className="h-4 w-4" />
-                    重新检查
+                    {t("quality.recheck")}
                   </Button>
                   <Button
                     type="button"
@@ -238,7 +240,7 @@ export function DramaQualityPanel(props: {
                     onClick={() => props.onRepair(item.episode.order)}
                   >
                     <RefreshCw className="h-4 w-4" />
-                    修复
+                    {t("common.repair")}
                   </Button>
                 </div>
               </CardHeader>
@@ -247,9 +249,9 @@ export function DramaQualityPanel(props: {
                   <div key={`${item.episode.id}-${flag.code ?? index}`} className="rounded-md border p-3 text-sm">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant={flag.severity === "critical" ? "destructive" : "outline"}>
-                        {severityLabel(flag.severity)}
+                        {t(severityLabelKey(flag.severity))}
                       </Badge>
-                      <span className="font-medium">{flag.code || "质量提示"}</span>
+                      <span className="font-medium">{flag.code || t("common.qualityFlagFallback")}</span>
                     </div>
                     <p className="mt-2 text-muted-foreground">{flag.evidence}</p>
                     <p className="mt-1">{flag.suggestion}</p>
@@ -257,7 +259,7 @@ export function DramaQualityPanel(props: {
                 )) : (
                   <div className="rounded-md border p-3 text-sm text-muted-foreground">
                     <AlertTriangle className="mr-2 inline h-4 w-4" />
-                    这集需要处理，但没有结构化问题明细。
+                    {t("quality.noStructuredDetail")}
                   </div>
                 )}
               </CardContent>
@@ -269,13 +271,13 @@ export function DramaQualityPanel(props: {
       {uncheckedItems.length > 0 ? (
         <Card className="rounded-lg">
           <CardHeader>
-            <CardTitle className="text-base">待检查台本</CardTitle>
-            <CardDescription>这些集已有台本，还没有质量检查结果。</CardDescription>
+            <CardTitle className="text-base">{t("quality.uncheckedScriptsTitle")}</CardTitle>
+            <CardDescription>{t("quality.uncheckedScriptsDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2 md:grid-cols-2">
             {uncheckedItems.map((item) => (
               <div key={item.episode.id} className="flex items-center justify-between gap-2 rounded-md border p-3 text-sm">
-                <span>第 {item.episode.order} 集：{item.episode.title}</span>
+                <span>{t("common.episodeTitle", { order: item.episode.order, title: item.episode.title })}</span>
                 <Button
                   type="button"
                   size="sm"
@@ -284,7 +286,7 @@ export function DramaQualityPanel(props: {
                   onClick={() => props.onReview(item.episode.order)}
                 >
                   <CheckCircle2 className="h-4 w-4" />
-                  检查
+                  {t("quality.check")}
                 </Button>
               </div>
             ))}

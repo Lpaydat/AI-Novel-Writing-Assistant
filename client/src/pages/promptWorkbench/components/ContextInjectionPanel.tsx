@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowDownUp, LockKeyhole, Plus, Search } from "lucide-react";
 import type { PromptPreviewResult, PromptTemplateReferenceCatalog } from "@/api/promptWorkbench";
 import { Badge } from "@/components/ui/badge";
@@ -114,6 +115,7 @@ export function ContextInjectionPanel(props: {
   referenceCatalog?: PromptTemplateReferenceCatalog | null;
   onInsertToken?: (token: string) => void;
 }) {
+  const { t } = useTranslation("promptWorkbench");
   const { onInsertToken, onSelectBlock, preview, referenceCatalog, selectedBlockId } = props;
   const [query, setQuery] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("status");
@@ -137,13 +139,13 @@ export function ContextInjectionPanel(props: {
       <div className="shrink-0 border-b border-[#d8e2de] bg-[#fbfdfb] px-4 py-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-[#25443f]">上下文注入</h3>
+            <h3 className="text-sm font-semibold text-[#25443f]">{t("context.title")}</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              查看本次预览使用的资料块、裁剪和摘要状态
+              {t("context.subtitle")}
             </p>
           </div>
           <span className="rounded-md bg-[#eaf7f2] px-2 py-1 text-xs font-medium text-[#0f766e]">
-            {visibleBlocks.length} 块
+            {t("context.blockCount", { count: visibleBlocks.length })}
           </span>
         </div>
 
@@ -153,7 +155,7 @@ export function ContextInjectionPanel(props: {
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="搜索 group、来源或内容"
+              placeholder={t("context.searchPlaceholder")}
               className="h-9 border-[#cbdad6] bg-white pl-9 shadow-sm"
             />
           </div>
@@ -164,10 +166,10 @@ export function ContextInjectionPanel(props: {
               onChange={(event) => setSortMode(event.target.value as SortMode)}
               className="h-9 w-full rounded-md border border-[#cbdad6] bg-white pl-9 pr-3 text-sm shadow-sm"
             >
-              <option value="status">按状态</option>
-              <option value="priority">按优先级</option>
-              <option value="tokens">按 Token</option>
-              <option value="group">按分组</option>
+              <option value="status">{t("context.sortStatus")}</option>
+              <option value="priority">{t("context.sortPriority")}</option>
+              <option value="tokens">{t("context.sortTokens")}</option>
+              <option value="group">{t("context.sortGroup")}</option>
             </SelectControl>
           </div>
         </div>
@@ -175,14 +177,14 @@ export function ContextInjectionPanel(props: {
 
       {!preview ? (
         <div className="m-4 rounded-md border border-dashed border-[#cbdad6] bg-white/70 p-4 text-sm text-muted-foreground">
-          生成预览后，这里会显示已注入、被裁剪和被摘要的上下文块。
+          {t("context.emptyPreview")}
         </div>
       ) : (
         <>
           <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto p-3">
             {visibleBlocks.length === 0 ? (
               <div className="rounded-md border border-dashed border-[#cbdad6] bg-white/70 p-4 text-sm text-muted-foreground">
-                没有匹配的上下文块。
+                {t("context.noMatch")}
               </div>
             ) : (
               visibleBlocks.map((block) => (
@@ -223,13 +225,13 @@ export function ContextInjectionPanel(props: {
                     </div>
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
-                    <span>{block.required ? "必需" : "可选"}</span>
+                    <span>{block.required ? t("common.required") : t("common.optional")}</span>
                     <span>·</span>
                     <span>P{block.priority}</span>
                     {block.locked ? (
                       <>
                         <span>·</span>
-                        <span>锁定</span>
+                        <span>{t("context.locked")}</span>
                       </>
                     ) : null}
                   </div>
@@ -260,7 +262,7 @@ export function ContextInjectionPanel(props: {
                       className="w-full border-[#b8d9d0] text-[#0f5f59]"
                     >
                       <Plus className="mr-1.5 h-3.5 w-3.5" />
-                      插入到模板
+                      {t("context.insertToModel")}
                     </Button>
                   </div>
                 ) : null}

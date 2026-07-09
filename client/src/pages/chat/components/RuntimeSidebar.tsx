@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { AgentStep } from "@ai-novel/shared/types/agent";
 import KnowledgeDocumentPicker from "@/components/knowledge/KnowledgeDocumentPicker";
 import { Button } from "@/components/ui/button";
@@ -118,6 +119,7 @@ export default function RuntimeSidebar({
   safePreview,
   stepTitle,
 }: RuntimeSidebarProps) {
+  const { t } = useTranslation("chat");
   const [activeTab, setActiveTab] = useState<PanelTab>("console");
 
   useEffect(() => {
@@ -129,7 +131,7 @@ export default function RuntimeSidebar({
   return (
     <Card className="sticky top-4 flex h-[calc(100vh-8rem)] flex-col border-slate-200 shadow-sm">
       <CardHeader className="border-b border-slate-200 pb-3">
-        <CardTitle className="text-base">运行面板</CardTitle>
+        <CardTitle className="text-base">{t("sidebar.title")}</CardTitle>
       </CardHeader>
 
       <CardContent className="flex-1 space-y-3 overflow-y-auto p-3 text-sm">
@@ -141,7 +143,7 @@ export default function RuntimeSidebar({
             }`}
             onClick={() => setActiveTab("console")}
           >
-            控制台
+            {t("sidebar.tabConsole")}
             {approvalCards.length > 0 ? ` · ${approvalCards.length}` : ""}
           </button>
           <button
@@ -151,40 +153,40 @@ export default function RuntimeSidebar({
             }`}
             onClick={() => setActiveTab("trace")}
           >
-            轨迹
+            {t("sidebar.tabTrace")}
           </button>
         </div>
 
         {activeTab === "console" ? (
           <div className="space-y-3">
             <div className="rounded-xl border border-slate-200 bg-white p-3">
-              <div className="mb-2 text-xs font-medium tracking-wide text-slate-500">会话上下文</div>
+              <div className="mb-2 text-xs font-medium tracking-wide text-slate-500">{t("sidebar.sessionContext")}</div>
               <div className="grid gap-2">
                 <div className="grid gap-1">
-                  <label className="text-[11px] text-slate-500">对话模式</label>
+                  <label className="text-[11px] text-slate-500">{t("sidebar.chatMode")}</label>
                   <SelectControl
                     className="w-full rounded-lg border border-slate-300 bg-white p-2"
                     value={chatMode}
                     onChange={(event) => onChatModeChange(event.target.value as ChatMode)}
                   >
-                    <option value="standard">标准模式</option>
-                    <option value="agent">智能代理</option>
+                    <option value="standard">{t("sidebar.chatModeStandard")}</option>
+                    <option value="agent">{t("sidebar.chatModeAgent")}</option>
                   </SelectControl>
                 </div>
                 <div className="grid gap-1">
-                  <label className="text-[11px] text-slate-500">上下文模式</label>
+                  <label className="text-[11px] text-slate-500">{t("sidebar.contextMode")}</label>
                   <SelectControl
                     className="w-full rounded-lg border border-slate-300 bg-white p-2"
                     value={contextMode}
                     onChange={(event) => onContextModeChange(event.target.value as ContextMode)}
                   >
-                    <option value="global">全局</option>
-                    <option value="novel">小说</option>
+                    <option value="global">{t("sidebar.contextGlobal")}</option>
+                    <option value="novel">{t("sidebar.contextNovel")}</option>
                   </SelectControl>
                 </div>
                 {runHistoryIds.length > 0 ? (
                   <div className="grid gap-1">
-                    <label className="text-[11px] text-slate-500">会话运行</label>
+                    <label className="text-[11px] text-slate-500">{t("sidebar.sessionRun")}</label>
                     <SelectControl
                       className="w-full rounded-lg border border-slate-300 bg-white p-2"
                       value={currentRunId}
@@ -200,13 +202,13 @@ export default function RuntimeSidebar({
                 ) : null}
                 {contextMode === "novel" ? (
                   <div className="grid gap-1">
-                    <label className="text-[11px] text-slate-500">小说</label>
+                    <label className="text-[11px] text-slate-500">{t("sidebar.novel")}</label>
                     <SelectControl
                       className="w-full rounded-lg border border-slate-300 bg-white p-2"
                       value={novelId}
                       onChange={(event) => onNovelChange(event.target.value)}
                     >
-                      <option value="">请选择小说</option>
+                      <option value="">{t("sidebar.selectNovel")}</option>
                       {novels.map((novel) => (
                         <option key={novel.id} value={novel.id}>
                           {novel.title}
@@ -220,10 +222,10 @@ export default function RuntimeSidebar({
 
             <div className="rounded-xl border border-slate-200 bg-white p-3">
               <div className="mb-2 flex items-center justify-between">
-                <div className="text-xs font-medium tracking-wide text-slate-500">审批</div>
+                <div className="text-xs font-medium tracking-wide text-slate-500">{t("sidebar.approval")}</div>
                 {approvalCards.length > 0 ? (
                   <div className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-amber-200">
-                    {approvalCards.length} 项待处理
+                    {t("sidebar.pendingCount", { count: approvalCards.length })}
                   </div>
                 ) : null}
               </div>
@@ -232,7 +234,7 @@ export default function RuntimeSidebar({
                 <div className="space-y-3">
                   {approvalCards.map((item, index) => (
                     <div key={item.approvalId} className="rounded-xl border border-amber-200 bg-amber-50/60 p-3">
-                      <div className="text-sm font-semibold text-slate-900">审批项 {index + 1}</div>
+                      <div className="text-sm font-semibold text-slate-900">{t("sidebar.approvalItem", { index: index + 1 })}</div>
                       <div className="mt-1 text-xs text-slate-500">{item.targetType}:{item.targetId}</div>
                       <div className="mt-2 rounded-lg bg-white p-2 text-sm text-slate-800">{item.summary}</div>
                     </div>
@@ -241,27 +243,27 @@ export default function RuntimeSidebar({
                     className="min-h-[88px] w-full rounded-lg border border-slate-300 bg-slate-50 p-2"
                     value={approvalNote}
                     onChange={(event) => onApprovalNoteChange(event.target.value)}
-                    placeholder="审批备注（可选）"
+                    placeholder={t("sidebar.approvalNotePlaceholder")}
                   />
                   <div className="flex gap-2">
                     <Button size="sm" className="flex-1" onClick={() => onSubmitApproval("approve")} disabled={isStreaming}>
-                      同意并继续
+                      {t("sidebar.approveAndContinue")}
                     </Button>
                     <Button size="sm" variant="destructive" className="flex-1" onClick={() => onSubmitApproval("reject")} disabled={isStreaming}>
-                      拒绝
+                      {t("sidebar.reject")}
                     </Button>
                   </div>
                 </div>
               ) : (
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
-                  当前没有待处理审批。
+                  {t("sidebar.noPendingApproval")}
                 </div>
               )}
 
               {approvalHistory.length > 0 ? (
                 <details className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-2">
                   <summary className="cursor-pointer px-1 py-1 text-xs font-medium text-slate-700">
-                    审批历史
+                    {t("sidebar.approvalHistory")}
                   </summary>
                   <div className="mt-2 space-y-2">
                     {approvalHistory.map((item) => (
@@ -277,24 +279,24 @@ export default function RuntimeSidebar({
 
             <details className="rounded-xl border border-slate-200 bg-white">
               <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-slate-700">
-                运行配置
+                {t("sidebar.runConfig")}
               </summary>
               <div className="space-y-3 border-t border-slate-200 p-3">
                 <div>
-                  <div className="mb-2 text-xs font-medium tracking-wide text-slate-500">模型</div>
+                  <div className="mb-2 text-xs font-medium tracking-wide text-slate-500">{t("sidebar.model")}</div>
                   <div className="space-y-2">
                     <div className="rounded-lg bg-slate-50 px-2 py-1.5 text-xs">
-                      <span className="text-slate-500">提供方: </span>
+                      <span className="text-slate-500">{t("sidebar.provider")}</span>
                       <span className="font-medium text-slate-800">{provider}</span>
                     </div>
                     <div className="rounded-lg bg-slate-50 px-2 py-1.5 text-xs">
-                      <span className="text-slate-500">模型: </span>
+                      <span className="text-slate-500">{t("sidebar.modelLabel")}</span>
                       <span className="font-medium text-slate-800">{model}</span>
                     </div>
                   </div>
                   <div className="mt-3 space-y-2">
                     <div className="grid gap-1">
-                      <label className="text-[11px] text-slate-500">温度</label>
+                      <label className="text-[11px] text-slate-500">{t("sidebar.temperature")}</label>
                       <input
                         type="number"
                         min={0}
@@ -306,7 +308,7 @@ export default function RuntimeSidebar({
                       />
                     </div>
                     <div className="grid gap-1">
-                      <label className="text-[11px] text-slate-500">最大 Token</label>
+                      <label className="text-[11px] text-slate-500">{t("sidebar.maxTokens")}</label>
                       <input
                         type="number"
                         min={128}
@@ -327,12 +329,12 @@ export default function RuntimeSidebar({
                 </div>
 
                 <div>
-                  <div className="mb-2 text-xs font-medium tracking-wide text-slate-500">系统提示词</div>
+                  <div className="mb-2 text-xs font-medium tracking-wide text-slate-500">{t("sidebar.systemPrompt")}</div>
                   <textarea
                     className="min-h-[110px] w-full rounded-lg border border-slate-300 p-2"
                     value={systemPrompt}
                     onChange={(event) => onSystemPromptChange(event.target.value)}
-                    placeholder="覆盖默认系统提示词。"
+                    placeholder={t("sidebar.systemPromptPlaceholder")}
                   />
                 </div>
 
@@ -343,15 +345,15 @@ export default function RuntimeSidebar({
                       checked={enableRag}
                       onChange={(event) => onEnableRagChange(event.target.checked)}
                     />
-                    启用知识检索（RAG）
+                    {t("sidebar.enableRag")}
                   </label>
                   <KnowledgeDocumentPicker
                     selectedIds={knowledgeDocumentIds}
                     onChange={onKnowledgeDocumentIdsChange}
-                    title="知识文档"
+                    title={t("sidebar.knowledgeDocs")}
                     description={enableRag
-                      ? "留空将自动解析，也可手动选择文档限制检索范围。"
-                      : "RAG 当前已禁用，请先在上方启用后再使用文档检索。"}
+                      ? t("sidebar.knowledgeDescAuto")
+                      : t("sidebar.knowledgeDescDisabled")}
                     allowAuto
                     queryStatus="enabled"
                   />
@@ -363,9 +365,9 @@ export default function RuntimeSidebar({
           <div className="space-y-3">
             {replayableSteps.length > 0 ? (
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                <div className="text-xs font-medium text-slate-600">重放控制</div>
+                <div className="text-xs font-medium text-slate-600">{t("sidebar.replayControl")}</div>
                 <div className="mt-1 text-[11px] text-slate-500">
-                  仅显示后续仍有工具调用的步骤。
+                  {t("sidebar.replayHint")}
                 </div>
                 <div className="mt-2 flex flex-col gap-2">
                   <SelectControl
@@ -381,17 +383,17 @@ export default function RuntimeSidebar({
                   </SelectControl>
                   <div className="flex gap-2">
                     <Button size="sm" variant="secondary" className="flex-1" onClick={() => onReplay("continue")} disabled={isStreaming}>
-                      从这里继续
+                      {t("sidebar.replayContinue")}
                     </Button>
                     <Button size="sm" variant="secondary" className="flex-1" onClick={() => onReplay("dry_run")} disabled={isStreaming}>
-                      干运行
+                      {t("sidebar.replayDryRun")}
                     </Button>
                   </div>
                 </div>
               </div>
             ) : persistedSteps.length > 0 ? (
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">
-                当前所选运行没有可继续重放的步骤。
+                {t("sidebar.noReplayableSteps")}
               </div>
             ) : null}
 
@@ -417,26 +419,26 @@ export default function RuntimeSidebar({
                     </summary>
                     <div className="mt-2 space-y-2">
                       <div>
-                        <div className="mb-1 text-[11px] font-medium text-slate-500">输入</div>
+                        <div className="mb-1 text-[11px] font-medium text-slate-500">{t("sidebar.input")}</div>
                         <pre className="overflow-auto whitespace-pre-wrap rounded-lg bg-white p-2">{safePreview(item.step.inputJson)}</pre>
                       </div>
                       <div>
-                        <div className="mb-1 text-[11px] font-medium text-slate-500">输出</div>
+                        <div className="mb-1 text-[11px] font-medium text-slate-500">{t("sidebar.output")}</div>
                         <pre className="overflow-auto whitespace-pre-wrap rounded-lg bg-white p-2">{safePreview(item.step.outputJson)}</pre>
                       </div>
-                      {item.step.error ? <div className="text-red-600">错误: {item.step.error}</div> : null}
+                      {item.step.error ? <div className="text-red-600">{t("sidebar.stepError", { error: item.step.error })}</div> : null}
                     </div>
                   </details>
                 ) : (
                   <div key={item.key} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
-                    <div className="mb-1 text-[11px] text-slate-400">事件 {index + 1}</div>
+                    <div className="mb-1 text-[11px] text-slate-400">{t("sidebar.eventLabel", { index: index + 1 })}</div>
                     <div className="text-slate-700">{item.text}</div>
                   </div>
                 )
               ))}
               {!hasLiveEvents && persistedSteps.length === 0 ? (
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">
-                  暂无运行事件。
+                  {t("sidebar.noEvents")}
                 </div>
               ) : null}
             </div>

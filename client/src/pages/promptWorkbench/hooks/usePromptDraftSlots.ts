@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { getNovelList } from "@/api/novel/core";
 import {
@@ -77,24 +78,25 @@ function getSectionSource(input: {
   scope: PromptSlotOverrideScope;
   globalOverride?: PromptSlotOverrideEntry;
   novelOverride?: PromptSlotOverrideEntry;
+  t: (key: string) => string;
 }): Pick<PromptEditorSection, "source" | "sourceLabel"> {
-  const { globalOverride, novelOverride, scope } = input;
+  const { globalOverride, novelOverride, scope, t } = input;
   if (scope === "novel") {
     if (isOfficialDefaultEntry(novelOverride)) {
-      return { source: "novel_official_default", sourceLabel: "本书使用官方默认" };
+      return { source: "novel_official_default", sourceLabel: t("slotSource.novelOfficialDefault") };
     }
     if (novelOverride) {
-      return { source: "novel", sourceLabel: "本书覆盖" };
+      return { source: "novel", sourceLabel: t("slotSource.novelOverride") };
     }
     if (globalOverride && !isOfficialDefaultEntry(globalOverride)) {
-      return { source: "global", sourceLabel: "全局覆盖" };
+      return { source: "global", sourceLabel: t("slotSource.globalOverride") };
     }
-    return { source: "official", sourceLabel: "官方默认" };
+    return { source: "official", sourceLabel: t("slotSource.official") };
   }
   if (globalOverride && !isOfficialDefaultEntry(globalOverride)) {
-    return { source: "global", sourceLabel: "全局覆盖" };
+    return { source: "global", sourceLabel: t("slotSource.globalOverride") };
   }
-  return { source: "official", sourceLabel: "官方默认" };
+  return { source: "official", sourceLabel: t("slotSource.official") };
 }
 
 export function buildPromptEditorSections(input: {
@@ -103,8 +105,9 @@ export function buildPromptEditorSections(input: {
   drafts: PromptSlotDrafts;
   globalSlotMap: Record<string, PromptSlotOverrideEntry>;
   novelSlotMap: Record<string, PromptSlotOverrideEntry>;
+  t: (key: string) => string;
 }): PromptEditorSection[] {
-  const { drafts, globalSlotMap, novelSlotMap, prompt, scope } = input;
+  const { drafts, globalSlotMap, novelSlotMap, prompt, scope, t } = input;
   if (!prompt) {
     return [];
   }
@@ -125,6 +128,7 @@ export function buildPromptEditorSections(input: {
       scope,
       globalOverride,
       novelOverride,
+      t,
     });
     return {
       id: slot.key,
@@ -151,6 +155,7 @@ export function buildPromptEditorSections(input: {
 }
 
 export function usePromptDraftSlots(prompt: PromptCatalogItem | null) {
+  const { t } = useTranslation("promptWorkbench");
   const [scope, setScopeState] = useState<PromptSlotOverrideScope>("global");
   const [selectedNovelId, setSelectedNovelIdState] = useState("");
   const [drafts, setDrafts] = useState<PromptSlotDrafts>({});
@@ -221,7 +226,7 @@ export function usePromptDraftSlots(prompt: PromptCatalogItem | null) {
   useEffect(() => {
     if (saveMutation.isError) {
       const error = saveMutation.error;
-      setSaveError(error instanceof Error ? error.message : "保存失败，请重试。");
+      setSaveError(error instanceof Error ? error.message : t("error.saveFailedRetry"));
     }
   }, [saveMutation.error, saveMutation.isError]);
 
@@ -238,8 +243,9 @@ export function usePromptDraftSlots(prompt: PromptCatalogItem | null) {
       drafts,
       globalSlotMap,
       novelSlotMap,
+      t,
     }),
-    [drafts, globalSlotMap, novelSlotMap, prompt, scope],
+    [drafts, globalSlotMap, novelSlotMap, prompt, scope, t],
   );
 
   const reconcile: PromptSlotReconcileResult | null = reconcileQuery.data?.data ?? null;

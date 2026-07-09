@@ -1,5 +1,7 @@
+import { useTranslation } from "react-i18next";
 import type { AutoDirectorFollowUpItem, AutoDirectorMutationActionCode } from "@ai-novel/shared/types/autoDirectorFollowUp";
 import type { AutoDirectorFollowUpSection } from "@ai-novel/shared/types/autoDirectorValidation";
+import i18n from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AUTO_DIRECTOR_MOBILE_CLASSES } from "@/mobile/autoDirector";
@@ -14,12 +16,12 @@ interface AutoDirectorFollowUpBatchBarProps {
 
 function formatBatchActionLabel(actionCode: AutoDirectorMutationActionCode | null): string {
   if (actionCode === "continue_auto_execution") {
-    return "批量低风险继续";
+    return i18n.t("batchBar.continueLowRisk", { ns: "autoDirectorFollowUps" });
   }
   if (actionCode === "retry_with_task_model") {
-    return "批量重试异常任务";
+    return i18n.t("batchBar.retryException", { ns: "autoDirectorFollowUps" });
   }
-  return "当前所选项没有共同批量动作";
+  return i18n.t("batchBar.noCommonAction", { ns: "autoDirectorFollowUps" });
 }
 
 function getSelectedSection(items: AutoDirectorFollowUpItem[]): AutoDirectorFollowUpSection | null {
@@ -34,6 +36,7 @@ export function AutoDirectorFollowUpBatchBar({
   onClear,
   onExecute,
 }: AutoDirectorFollowUpBatchBarProps) {
+  const { t } = useTranslation("autoDirectorFollowUps");
   if (selectedItems.length === 0) {
     return null;
   }
@@ -43,19 +46,19 @@ export function AutoDirectorFollowUpBatchBar({
     <Card className={AUTO_DIRECTOR_MOBILE_CLASSES.followUpBatchBar}>
       <CardContent className="flex flex-col gap-3 pt-6 md:flex-row md:items-center md:justify-between">
         <div className={`min-w-0 text-sm ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>
-          已选择 {selectedItems.length} 项
+          {t("batchBar.selectedCount", { count: selectedItems.length })}
           <div className="text-xs text-muted-foreground">
             {selectedSection === "pending" || selectedSection === "exception"
               ? formatBatchActionLabel(batchActionCode)
-              : "该分区不提供批量动作"}
+              : t("batchBar.noBatchForSection")}
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2 md:flex">
           <Button variant="outline" size="sm" className="w-full md:w-auto" onClick={onClear} disabled={loading}>
-            清空
+            {t("batchBar.clear")}
           </Button>
           <Button size="sm" className="w-full md:w-auto" onClick={() => void onExecute()} disabled={!batchActionCode || loading}>
-            执行批量动作
+            {t("batchBar.execute")}
           </Button>
         </div>
       </CardContent>

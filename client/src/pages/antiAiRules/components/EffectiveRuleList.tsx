@@ -1,4 +1,5 @@
 import type { AntiAiEffectiveRuleItem } from "@ai-novel/shared/types/styleEngine";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { severityLabels, typeLabels } from "../antiAiRulesPage.shared";
 
@@ -9,6 +10,7 @@ interface EffectiveRuleListProps {
 }
 
 export default function EffectiveRuleList(props: EffectiveRuleListProps) {
+  const { t } = useTranslation("antiAiRules");
   return (
     <div className="space-y-2">
       <div className="text-sm font-medium text-foreground">{props.title}</div>
@@ -19,12 +21,12 @@ export default function EffectiveRuleList(props: EffectiveRuleListProps) {
               <div className="flex flex-wrap items-center gap-2">
                 <div className="font-medium text-foreground">{item.rule.name}</div>
                 <Badge variant={item.source === "global_baseline" ? "default" : "secondary"}>
-                  {item.source === "global_baseline" ? "全局默认" : "写法规则"}
+                  {item.source === "global_baseline" ? t("effectiveList.sourceGlobal") : t("effectiveList.sourceStyle")}
                 </Badge>
                 <Badge variant="outline">{typeLabels[item.rule.type]} / {severityLabels[item.rule.severity]}</Badge>
               </div>
               <div className="mt-2 text-xs leading-5 text-muted-foreground">
-                {item.sourceLabel}{item.weight !== 1 ? `，强度 ${item.weight}` : ""}
+                {item.sourceLabel}{item.weight !== 1 ? t("effectiveList.strength", { weight: item.weight }) : ""}
               </div>
               {item.rule.promptInstruction ? (
                 <div className="mt-2 text-sm leading-6 text-muted-foreground">{item.rule.promptInstruction}</div>

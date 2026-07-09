@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Upload, FileText, X } from "lucide-react";
 import type { KnowledgeDocumentStatus, KnowledgeDocumentSummary } from "@ai-novel/shared/types/knowledge";
@@ -16,10 +17,6 @@ import {
   getRagJobProgressPercent,
   getRagJobProgressWidth,
 } from "./knowledgeRagUi";
-
-function formatDocumentKind(kind: KnowledgeDocumentSummary["kind"]): string {
-  return kind === "analysis_published" ? "拆书发布" : "上传文档";
-}
 
 interface KnowledgeDocumentsTabProps {
   uploadTitle: string;
@@ -54,6 +51,7 @@ export default function KnowledgeDocumentsTab({
   onReindexDocument,
   onUpdateStatus,
 }: KnowledgeDocumentsTabProps) {
+  const { t } = useTranslation("knowledge");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -95,15 +93,15 @@ export default function KnowledgeDocumentsTab({
     if (!open) setSelectedFile(null);
   };
   const statusOptions = [
-    { value: "", label: "全部未归档" },
-    { value: "enabled", label: "仅启用" },
-    { value: "disabled", label: "仅停用" },
-    { value: "archived", label: "仅归档" },
+    { value: "", label: t("documentsTab.filterAllNonArchived") },
+    { value: "enabled", label: t("documentsTab.filterEnabledOnly") },
+    { value: "disabled", label: t("documentsTab.filterDisabledOnly") },
+    { value: "archived", label: t("documentsTab.filterArchivedOnly") },
   ] as const;
 
   const confirmArchiveDocument = (document: KnowledgeDocumentSummary) => {
     const confirmed = window.confirm(
-      `确认归档“${document.title}”吗？归档会移出默认检索和资料选择，原文与版本会保留，可在“仅归档”中恢复启用。`,
+      t("documentsTab.archiveConfirm", { title: document.title }),
     );
     if (!confirmed) {
       return;
@@ -130,9 +128,9 @@ export default function KnowledgeDocumentsTab({
           <div className="min-w-0 space-y-1">
             <div className="font-medium">{document.title}</div>
             <div className="text-xs text-muted-foreground">
-              {document.fileName} | 版本数 {document.versionCount} | 当前 v{document.activeVersionNumber}
+              {document.fileName} | {t("documentsTab.versionCountLabel", { versions: document.versionCount })} | {t("documentsTab.currentVersionLabel", { version: document.activeVersionNumber })}
             </div>
-            <div className="text-xs text-muted-foreground">拆书项目 {document.bookAnalysisCount}</div>
+            <div className="text-xs text-muted-foreground">{t("documentsTab.bookAnalysisCount", { analyses: document.bookAnalysisCount })}</div>
             {documentJob?.progress && (documentJob.status === "queued" || documentJob.status === "running") ? (
               <div className="mt-2 rounded-md border border-dashed p-2">
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -152,12 +150,12 @@ export default function KnowledgeDocumentsTab({
               </div>
             ) : null}
             {document.latestIndexStatus === "failed" && document.latestIndexError ? (
-              <div className="text-xs text-destructive">失败原因：{document.latestIndexError}</div>
+              <div className="text-xs text-destructive">{t("documentsTab.failureReasonLabel")}{document.latestIndexError}</div>
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2">
             <Badge variant={document.kind === "analysis_published" ? "secondary" : "outline"}>
-              {formatDocumentKind(document.kind)}
+              {document.kind === "analysis_published" ? t("documentsTab.kindAnalysisPublished") : t("documentsTab.kindUploaded")}
             </Badge>
             <Badge variant="outline">{formatStatus(document.status)}</Badge>
             <Badge variant="outline">{formatStatus(displayIndexStatus)}</Badge>
@@ -165,7 +163,7 @@ export default function KnowledgeDocumentsTab({
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
           <Button size="sm" variant="secondary" onClick={() => onSelectDocument(document.id)}>
-            查看版本
+            {t("documentsTab.viewVersions")}
           </Button>
           {document.status === "archived" ? (
             <Button
@@ -173,29 +171,29 @@ export default function KnowledgeDocumentsTab({
               variant="outline"
               onClick={() => onUpdateStatus(document.id, "enabled")}
             >
-              恢复启用
+              {t("documentsTab.restore")}
             </Button>
           ) : (
             <>
               <OpenInCreativeHubButton
                 bindings={{ knowledgeDocumentIds: [document.id] }}
-                label="在创作中枢中继续"
+                label={t("documentsTab.continueInCreativeHub")}
               />
               <Button asChild size="sm" variant="outline">
-                <Link to={`/book-analysis?documentId=${document.id}`}>新建拆书</Link>
+                <Link to={`/book-analysis?documentId=${document.id}`}>{t("documentsTab.newBookAnalysis")}</Link>
               </Button>
               {document.kind === "analysis_published" && document.sourceAnalysisId ? (
                 <Button asChild size="sm" variant="outline">
-                  <Link to={`/book-analysis?analysisId=${document.sourceAnalysisId}`}>查看来源拆书</Link>
+                  <Link to={`/book-analysis?analysisId=${document.sourceAnalysisId}`}>{t("documentsTab.viewSourceAnalysis")}</Link>
                 </Button>
               ) : null}
               {document.latestIndexStatus === "succeeded" ? (
                 <Button size="sm" variant="outline" onClick={() => onOpenRecallTest(document.id)}>
-                  召回测试
+                  {t("documentsTab.recallTest")}
                 </Button>
               ) : null}
               <Button size="sm" variant="outline" onClick={() => onReindexDocument(document.id)}>
-                重建索引
+                {t("documentsTab.reindex")}
               </Button>
               {document.status === "enabled" ? (
                 <Button
@@ -203,7 +201,7 @@ export default function KnowledgeDocumentsTab({
                   variant="outline"
                   onClick={() => onUpdateStatus(document.id, "disabled")}
                 >
-                  停用
+                  {t("documentsTab.disable")}
                 </Button>
               ) : document.status === "disabled" ? (
                 <Button
@@ -211,7 +209,7 @@ export default function KnowledgeDocumentsTab({
                   variant="outline"
                   onClick={() => onUpdateStatus(document.id, "enabled")}
                 >
-                  启用
+                  {t("documentsTab.enable")}
                 </Button>
               ) : null}
               <Button
@@ -219,7 +217,7 @@ export default function KnowledgeDocumentsTab({
                 variant="outline"
                 onClick={() => confirmArchiveDocument(document)}
               >
-                归档
+                {t("documentsTab.archive")}
               </Button>
             </>
           )}
@@ -232,10 +230,10 @@ export default function KnowledgeDocumentsTab({
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3">
-          <CardTitle>文档列表</CardTitle>
+          <CardTitle>{t("documentsTab.listTitle")}</CardTitle>
           <Button type="button" size="sm" onClick={() => setUploadDialogOpen(true)}>
             <Upload className="mr-2 h-4 w-4" />
-            上传文档
+            {t("documentsTab.uploadDocument")}
           </Button>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -243,13 +241,13 @@ export default function KnowledgeDocumentsTab({
             <Input
               value={keyword}
               onChange={(event) => onKeywordChange(event.target.value)}
-              placeholder="按标题或文件名搜索"
+              placeholder={t("documentsTab.searchPlaceholder")}
             />
             <SelectField
               value={status}
               onValueChange={(value) => onStatusChange(value as KnowledgeDocumentStatus | "")}
               options={statusOptions.map((option) => ({ ...option }))}
-              placeholder="筛选状态"
+              placeholder={t("documentsTab.filterStatusPlaceholder")}
               className="space-y-0"
               triggerClassName="h-10"
             />
@@ -258,7 +256,7 @@ export default function KnowledgeDocumentsTab({
             {documents.map(renderDocumentRow)}
             {documents.length === 0 ? (
               <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-                当前没有符合条件的知识文档。
+                {t("documentsTab.emptyList")}
               </div>
             ) : null}
           </div>
@@ -268,17 +266,17 @@ export default function KnowledgeDocumentsTab({
       <Dialog open={uploadDialogOpen} onOpenChange={handleDialogOpenChange}>
         <AppDialogContent
           className="max-w-lg"
-          title="上传文档"
-          description="添加可用于检索、拆书和创作参考的文本资料。"
+          title={t("documentsTab.uploadDocument")}
+          description={t("documentsTab.uploadDialogDescription")}
         >
           <div className="space-y-4">
             <Input
               value={uploadTitle}
               onChange={(event) => onUploadTitleChange(event.target.value)}
-              placeholder="可选标题，留空则使用文件名"
+              placeholder={t("documentsTab.optionalTitlePlaceholder")}
             />
 
-            {/* 拖拽上传区域 */}
+            {/* Drag-and-drop upload area */}
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -331,9 +329,9 @@ export default function KnowledgeDocumentsTab({
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-medium">
-                      {dragOver ? "松开鼠标上传" : "拖拽文件到此处，或点击选择"}
+                      {dragOver ? t("documentsTab.dropHere") : t("documentsTab.dragHint")}
                     </p>
-                    <p className="text-xs text-muted-foreground">仅支持 .txt 文本文件</p>
+                    <p className="text-xs text-muted-foreground">{t("documentsTab.txtOnly")}</p>
                   </div>
                 </>
               )}
@@ -341,7 +339,7 @@ export default function KnowledgeDocumentsTab({
 
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground leading-5">
-                同名标题会追加为新版本并设为当前版本
+                {t("documentsTab.sameTitleHint")}
               </p>
               <Button
                 type="button"
@@ -349,7 +347,7 @@ export default function KnowledgeDocumentsTab({
                 disabled={!selectedFile || uploadBusy}
                 onClick={() => void handleConfirmUpload()}
               >
-                {uploadBusy ? "上传中…" : "确认上传"}
+                {uploadBusy ? t("documentsTab.uploading") : t("documentsTab.confirmUpload")}
               </Button>
             </div>
           </div>

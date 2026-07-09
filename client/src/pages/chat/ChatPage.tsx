@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import type { SSEFrame } from "@ai-novel/shared/types/api";
 import type { AgentStep } from "@ai-novel/shared/types/agent";
 import { useSearchParams } from "react-router-dom";
 import { getAgentRunDetail, replayAgentRunFromStep } from "@/api/agentRuns";
 import { getNovelList } from "@/api/novel";
 import { queryKeys } from "@/api/queryKeys";
+import i18n from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSSE } from "@/hooks/useSSE";
@@ -23,61 +25,65 @@ type ApprovalRequiredEvent = Extract<SSEFrame, { type: "approval_required" }>;
 type RunStatusEvent = Extract<SSEFrame, { type: "run_status" }>;
 
 function toRunStatusLabel(status: string): string {
-  if (status === "queued") return "排队中";
-  if (status === "running") return "运行中";
-  if (status === "waiting_approval") return "待审批";
-  if (status === "succeeded") return "已完成";
-  if (status === "failed") return "失败";
-  if (status === "cancelled") return "已取消";
+  if (status === "queued") return i18n.t("runStatus.queued", { ns: "chat" });
+  if (status === "running") return i18n.t("runStatus.running", { ns: "chat" });
+  if (status === "waiting_approval") return i18n.t("runStatus.waitingApproval", { ns: "chat" });
+  if (status === "succeeded") return i18n.t("runStatus.succeeded", { ns: "chat" });
+  if (status === "failed") return i18n.t("runStatus.failed", { ns: "chat" });
+  if (status === "cancelled") return i18n.t("runStatus.cancelled", { ns: "chat" });
   return status;
 }
 
 function toApprovalActionLabel(action: string): string {
-  if (action === "approved") return "已通过";
-  if (action === "rejected") return "已拒绝";
+  if (action === "approved") return i18n.t("approvalAction.approved", { ns: "chat" });
+  if (action === "rejected") return i18n.t("approvalAction.rejected", { ns: "chat" });
   return action;
 }
 
 function toStepTypeLabel(stepType: string): string {
-  if (stepType === "planning") return "规划";
-  if (stepType === "tool_call") return "工具调用";
-  if (stepType === "tool_result") return "工具结果";
-  if (stepType === "approval") return "审批";
-  if (stepType === "completion") return "收尾";
-  if (stepType === "analysis") return "分析";
-  if (stepType === "review") return "审校";
-  if (stepType === "repair") return "修复";
-  if (stepType === "writing") return "写作";
-  if (stepType === "context") return "上下文";
+  if (stepType === "planning") return i18n.t("stepType.planning", { ns: "chat" });
+  if (stepType === "tool_call") return i18n.t("stepType.tool_call", { ns: "chat" });
+  if (stepType === "tool_result") return i18n.t("stepType.tool_result", { ns: "chat" });
+  if (stepType === "approval") return i18n.t("stepType.approval", { ns: "chat" });
+  if (stepType === "completion") return i18n.t("stepType.completion", { ns: "chat" });
+  if (stepType === "analysis") return i18n.t("stepType.analysis", { ns: "chat" });
+  if (stepType === "review") return i18n.t("stepType.review", { ns: "chat" });
+  if (stepType === "repair") return i18n.t("stepType.repair", { ns: "chat" });
+  if (stepType === "writing") return i18n.t("stepType.writing", { ns: "chat" });
+  if (stepType === "context") return i18n.t("stepType.context", { ns: "chat" });
   return stepType;
 }
 
 function toAgentNameLabel(name: string): string {
   const normalized = name.toLowerCase();
-  if (normalized === "planner") return "规划器";
-  if (normalized === "writer") return "写作器";
-  if (normalized === "reviewer") return "审校器";
-  if (normalized === "continuity") return "连续性检查";
-  if (normalized === "repair") return "修复器";
+  if (normalized === "planner") return i18n.t("agentName.planner", { ns: "chat" });
+  if (normalized === "writer") return i18n.t("agentName.writer", { ns: "chat" });
+  if (normalized === "reviewer") return i18n.t("agentName.reviewer", { ns: "chat" });
+  if (normalized === "continuity") return i18n.t("agentName.continuity", { ns: "chat" });
+  if (normalized === "repair") return i18n.t("agentName.repair", { ns: "chat" });
   return name;
 }
 
 function formatEvent(event: RuntimeEvent): string {
   if (event.type === "tool_call") {
-    return `调用工具 ${event.toolName}: ${event.inputSummary}`;
+    return i18n.t("event.toolCall", { ns: "chat", toolName: event.toolName, summary: event.inputSummary });
   }
   if (event.type === "tool_result") {
-    return `${event.toolName} ${event.success ? "成功" : "失败"}: ${event.outputSummary}`;
+    return i18n.t(event.success ? "event.toolResultSuccess" : "event.toolResultFailed", {
+      ns: "chat",
+      toolName: event.toolName,
+      summary: event.outputSummary,
+    });
   }
   if (event.type === "approval_required") {
-    return `等待审批: ${event.summary}`;
+    return i18n.t("event.approvalRequired", { ns: "chat", summary: event.summary });
   }
-  return `审批结果: ${toApprovalActionLabel(event.action)}${event.note ? ` (${event.note})` : ""}`;
+  return `${i18n.t("event.approvalResolved", { ns: "chat", action: toApprovalActionLabel(event.action) })}${event.note ? ` (${event.note})` : ""}`;
 }
 
 function safePreview(json: string | null | undefined): string {
   if (!json?.trim()) {
-    return "无";
+    return i18n.t("preview.empty", { ns: "chat" });
   }
   try {
     const parsed = JSON.parse(json) as unknown;
@@ -92,6 +98,7 @@ function stepTitle(step: AgentStep): string {
 }
 
 export default function ChatPage() {
+  const { t } = useTranslation("chat");
   const [searchParams, setSearchParams] = useSearchParams();
   const runIdFromUrl = searchParams.get("runId")?.trim() ?? "";
   const novelIdFromUrl = searchParams.get("novelId")?.trim() ?? "";
@@ -123,7 +130,7 @@ export default function ChatPage() {
     if (!chatStore.hydrated || chatStore.currentSessionId || chatStore.sessions.length > 0) {
       return;
     }
-    void chatStore.createSession("新对话");
+    void chatStore.createSession(t("session.new"));
   }, [chatStore, chatStore.currentSessionId, chatStore.hydrated, chatStore.sessions.length]);
 
   useEffect(() => {
@@ -256,7 +263,7 @@ export default function ChatPage() {
     if (chatStore.currentSessionId) {
       return chatStore.currentSessionId;
     }
-    return chatStore.createSession("新对话");
+    return chatStore.createSession(t("session.new"));
   }, [chatStore]);
 
   const buildPayloadMessages = (
@@ -265,7 +272,7 @@ export default function ChatPage() {
     if (sessionMessages.length > 0) {
       return sessionMessages;
     }
-    return [{ role: "user" as const, content: "继续当前任务。" }];
+    return [{ role: "user" as const, content: t("payload.continueTask") }];
   };
 
   const onRuntimeEvent = useCallback((event: RuntimeEvent) => {
@@ -307,7 +314,7 @@ export default function ChatPage() {
         }
         : null);
     if (!runId || !pending) {
-      setLocalError("当前没有可处理的审批项。");
+      setLocalError(t("error.noApproval"));
       return;
     }
     setLocalError("");
@@ -316,7 +323,7 @@ export default function ChatPage() {
       type: "run_status",
       runId,
       status: "running",
-      message: action === "approve" ? "审批已提交，继续执行中" : "审批已提交，处理中",
+      message: action === "approve" ? t("runMessage.approveSubmitted") : t("runMessage.rejectSubmitted"),
     });
     const sessionMessages = buildPayloadMessages(
       (currentSession?.messages ?? [])
@@ -349,7 +356,7 @@ export default function ChatPage() {
 
   const triggerReplay = async (mode: "continue" | "dry_run") => {
     if (!currentRunId || !effectiveReplayStepId) {
-      setLocalError("当前运行没有可重放的步骤。");
+      setLocalError(t("error.noReplaySteps"));
       return;
     }
     setLocalError("");
@@ -360,7 +367,7 @@ export default function ChatPage() {
       });
       const newRunId = response.data?.run.id;
       if (!newRunId) {
-        setLocalError(response.error ?? "重放失败。");
+        setLocalError(response.error ?? t("error.replayFailed"));
         return;
       }
       if (chatStore.currentSessionId) {
@@ -374,10 +381,10 @@ export default function ChatPage() {
     } catch (error) {
       const message = error instanceof Error
         ? error.message
-        : "重放失败。";
+        : t("error.replayFailed");
       setLocalError(
         message === "No replayable tool steps after source step."
-          ? "所选步骤之后没有可重放的工具步骤，请选择更早的步骤。"
+          ? t("error.noToolStepsAfter")
           : message,
       );
       return;
@@ -440,15 +447,15 @@ export default function ChatPage() {
     : (persistedRunState ?? scopedLatestRun);
   const headerRunLabel = headerRunState ? toRunStatusLabel(headerRunState.status) : "";
   const headerRunMessage = headerRunState?.status === "waiting_approval"
-    ? "当前运行等待审批"
+    ? t("header.waitingApproval")
     : headerRunState?.status === "running"
-      ? (headerRunState.message?.trim() || "当前运行中")
+      ? (headerRunState.message?.trim() || t("header.running"))
       : headerRunState?.status === "succeeded"
-        ? "当前运行已完成"
+        ? t("header.succeeded")
         : headerRunState?.status === "failed"
-          ? (headerRunState.message?.trim() || "当前运行失败")
+          ? (headerRunState.message?.trim() || t("header.failed"))
           : headerRunState?.status === "cancelled"
-            ? "当前运行已取消"
+            ? t("header.cancelled")
             : "";
 
   const liveEvents = [...runtimeEvents, ...approvalSse.events];
@@ -468,11 +475,11 @@ export default function ChatPage() {
     <div className="grid min-h-[70vh] gap-4 lg:grid-cols-[240px_minmax(0,1fr)_360px]">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">会话列表</CardTitle>
+          <CardTitle className="text-base">{t("session.listTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Button className="w-full" onClick={() => void chatStore.createSession("新对话")}>
-            新建对话
+          <Button className="w-full" onClick={() => void chatStore.createSession(t("session.new"))}>
+            {t("session.newButton")}
           </Button>
           <div className="space-y-1">
             {chatStore.sessions.map((session) => (
@@ -487,7 +494,7 @@ export default function ChatPage() {
                 <div>{session.title}</div>
                 {session.latestRunId ? (
                   <div className="text-[11px] text-muted-foreground">
-                    运行: {session.latestRunId.slice(0, 8)} · {session.runIds?.length ?? 1}条
+                    {t("session.runInfo", { runId: session.latestRunId.slice(0, 8), count: session.runIds?.length ?? 1 })}
                   </div>
                 ) : null}
               </button>
@@ -499,7 +506,7 @@ export default function ChatPage() {
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
           <div className="space-y-1">
-            <CardTitle className="text-base">对话消息</CardTitle>
+            <CardTitle className="text-base">{t("chat.messagesTitle")}</CardTitle>
             {headerRunMessage ? (
               <div className="text-xs text-slate-500">{headerRunMessage}</div>
             ) : null}

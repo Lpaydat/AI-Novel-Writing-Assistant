@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   DirectorPolicyMode,
@@ -16,37 +17,38 @@ interface TaskCenterRuntimePolicyCardProps {
   snapshot: DirectorRuntimeSnapshot | null | undefined;
 }
 
-const POLICY_OPTIONS: Array<{ value: DirectorPolicyMode; label: string; description: string }> = [
+const POLICY_OPTIONS: Array<{ value: DirectorPolicyMode; labelKey: string; descriptionKey: string }> = [
   {
     value: "suggest_only",
-    label: "只给建议",
-    description: "只分析和给出建议，不自动写入规划或正文。",
+    labelKey: "policy.suggestOnly.label",
+    descriptionKey: "policy.suggestOnly.description",
   },
   {
     value: "run_next_step",
-    label: "推进下一步",
-    description: "只执行当前最小步骤，完成后停下来让你检查。",
+    labelKey: "policy.runNextStep.label",
+    descriptionKey: "policy.runNextStep.description",
   },
   {
     value: "run_until_gate",
-    label: "推进到检查点",
-    description: "连续推进到下一个需要确认的节点。",
+    labelKey: "policy.runUntilGate.label",
+    descriptionKey: "policy.runUntilGate.description",
   },
   {
     value: "auto_safe_scope",
-    label: "安全范围自动推进",
-    description: "仅在系统判断风险较低的范围内继续自动处理。",
+    labelKey: "policy.autoSafeScope.label",
+    descriptionKey: "policy.autoSafeScope.description",
   },
 ];
 
-function formatPolicyMode(mode: DirectorPolicyMode): string {
-  return POLICY_OPTIONS.find((item) => item.value === mode)?.label ?? mode;
+function formatPolicyModeKey(mode: DirectorPolicyMode): string {
+  return POLICY_OPTIONS.find((item) => item.value === mode)?.labelKey ?? mode;
 }
 
 export default function TaskCenterRuntimePolicyCard({
   taskId,
   snapshot,
 }: TaskCenterRuntimePolicyCardProps) {
+  const { t } = useTranslation("tasks");
   const queryClient = useQueryClient();
   const currentMode = snapshot?.policy.mode ?? "run_until_gate";
   const [selectedMode, setSelectedMode] = useState<DirectorPolicyMode>(currentMode);
@@ -64,10 +66,10 @@ export default function TaskCenterRuntimePolicyCard({
     }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.directorRuntime(taskId) });
-      toast.success("导演推进方式已更新");
+      toast.success(t("policy.toast.updated"));
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "更新导演推进方式失败");
+      toast.error(error instanceof Error ? error.message : t("policy.toast.updateFailed"));
     },
   });
 
@@ -85,12 +87,12 @@ export default function TaskCenterRuntimePolicyCard({
     <div className="rounded-md border bg-muted/20 p-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="font-medium">导演推进方式</div>
+          <div className="font-medium">{t("policy.title")}</div>
           <div className="mt-1 text-sm leading-6 text-muted-foreground">
-            选择系统接下来怎么推进这个导演任务。
+            {t("policy.subtitle")}
           </div>
         </div>
-        <Badge variant="outline">{formatPolicyMode(snapshot.policy.mode)}</Badge>
+        <Badge variant="outline">{t(formatPolicyModeKey(snapshot.policy.mode))}</Badge>
       </div>
       <div className="mt-3 space-y-2">
         <SelectControl
@@ -99,10 +101,10 @@ export default function TaskCenterRuntimePolicyCard({
           onChange={(event) => setSelectedMode(event.target.value as DirectorPolicyMode)}
         >
           {POLICY_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>{option.label}</option>
+            <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
           ))}
         </SelectControl>
-        <div className="text-xs leading-5 text-muted-foreground">{selectedOption.description}</div>
+        <div className="text-xs leading-5 text-muted-foreground">{t(selectedOption.descriptionKey)}</div>
       </div>
       <div className="mt-3 space-y-2 rounded-md border bg-background/70 p-3">
         <label className="flex items-start gap-2 text-sm">
@@ -113,9 +115,9 @@ export default function TaskCenterRuntimePolicyCard({
             onChange={(event) => setAllowExpensiveReview(event.target.checked)}
           />
           <span>
-            <span className="block font-medium">允许执行更完整的审校</span>
+            <span className="block font-medium">{t("policy.allowExpensiveReview.label")}</span>
             <span className="block text-xs leading-5 text-muted-foreground">
-              用于章节质量检查、近期章节复盘等步骤，系统会在执行前记录策略。
+              {t("policy.allowExpensiveReview.description")}
             </span>
           </span>
         </label>
@@ -127,9 +129,9 @@ export default function TaskCenterRuntimePolicyCard({
             onChange={(event) => setMayOverwriteUserContent(event.target.checked)}
           />
           <span>
-            <span className="block font-medium">允许改写受保护的内容</span>
+            <span className="block font-medium">{t("policy.mayOverwriteUserContent.label")}</span>
             <span className="block text-xs leading-5 text-muted-foreground">
-              仅在你确认要让系统处理已编辑正文或关键设定时开启。
+              {t("policy.mayOverwriteUserContent.description")}
             </span>
           </span>
         </label>
@@ -147,7 +149,7 @@ export default function TaskCenterRuntimePolicyCard({
             )
           }
         >
-          {mutation.isPending ? "保存中..." : "保存推进方式"}
+          {mutation.isPending ? t("policy.saving") : t("policy.save")}
         </Button>
       </div>
     </div>

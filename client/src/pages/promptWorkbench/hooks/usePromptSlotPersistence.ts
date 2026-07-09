@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   applyOfficialSlots,
@@ -33,6 +34,7 @@ export function buildReconcileParamsKey(
 }
 
 export function usePromptSlotPersistence(input: UsePromptSlotPersistenceInput) {
+  const { t } = useTranslation("promptWorkbench");
   const queryClient = useQueryClient();
   const {
     activeNovelId,
@@ -59,7 +61,7 @@ export function usePromptSlotPersistence(input: UsePromptSlotPersistenceInput) {
   const saveMutation = useMutation({
     mutationFn: (updates: Record<string, unknown>) => {
       if (!prompt) {
-        throw new Error("请选择提示词后再保存。");
+        throw new Error(t("error.selectPromptBeforeSave"));
       }
       return saveSlotOverride({
         scope,
@@ -78,7 +80,7 @@ export function usePromptSlotPersistence(input: UsePromptSlotPersistenceInput) {
   const resetMutation = useMutation({
     mutationFn: (slotKeys: string[]) => {
       if (!prompt) {
-        throw new Error("请选择提示词后再重置。");
+        throw new Error(t("error.selectPromptBeforeReset"));
       }
       return deleteSlotOverride({
         scope,
@@ -97,7 +99,7 @@ export function usePromptSlotPersistence(input: UsePromptSlotPersistenceInput) {
   const adoptMutation = useMutation({
     mutationFn: (slotKeys: string[]) => {
       if (!prompt) {
-        throw new Error("请选择提示词后再处理更新。");
+        throw new Error(t("error.selectPromptBeforeUpdate"));
       }
       return applyOfficialSlots({
         promptId: prompt.id,
@@ -115,7 +117,7 @@ export function usePromptSlotPersistence(input: UsePromptSlotPersistenceInput) {
   const keepMutation = useMutation({
     mutationFn: (slotKeys: string[]) => {
       if (!prompt) {
-        throw new Error("请选择提示词后再处理更新。");
+        throw new Error(t("error.selectPromptBeforeUpdate"));
       }
       return keepMySlots({
         promptId: prompt.id,

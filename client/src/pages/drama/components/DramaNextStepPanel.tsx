@@ -8,6 +8,7 @@ import {
   Video,
   Wand2,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { DramaEpisode, DramaProjectDetail, DramaShot, DramaVideoPrompt } from "@/api/drama";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,9 +28,9 @@ type NextStepKind =
 
 interface NextStep {
   kind: NextStepKind;
-  title: string;
-  description: string;
-  button: string;
+  titleKey: string;
+  descriptionKey: string;
+  buttonKey: string;
   tab: "source" | "strategy" | "episodes" | "visual" | "export";
   icon: "source" | "strategy" | "outline" | "script" | "review" | "repair" | "video" | "export";
   episodeOrder?: number;
@@ -93,9 +94,9 @@ function buildNextStep(project: DramaProjectDetail): NextStep {
   if (!project.sourceBundle) {
     return {
       kind: "source",
-      title: "下一步：整理来源素材",
-      description: "先把小说、灵感或导入文本整理成短剧可用的梗概、节拍、角色和硬事实。",
-      button: "整理素材",
+      titleKey: "nextStep.sourceTitle",
+      descriptionKey: "nextStep.sourceDesc",
+      buttonKey: "common.assembleSource",
       tab: "source",
       icon: "source",
     };
@@ -103,9 +104,9 @@ function buildNextStep(project: DramaProjectDetail): NextStep {
   if (!project.strategy) {
     return {
       kind: "strategy",
-      title: "下一步：生成短剧策略",
-      description: "根据素材和赛道生成受众定位、主爽点线、付费卡点和改编边界。",
-      button: "生成策略",
+      titleKey: "nextStep.strategyTitle",
+      descriptionKey: "nextStep.strategyDesc",
+      buttonKey: "common.generateStrategy",
       tab: "strategy",
       icon: "strategy",
     };
@@ -113,9 +114,9 @@ function buildNextStep(project: DramaProjectDetail): NextStep {
   if (episodes.length === 0) {
     return {
       kind: "outline",
-      title: "下一步：生成前 12 集分集",
-      description: "先生成一段可检查的分集大纲，确认钩子、冲突和付费卡点方向。",
-      button: "生成前 12 集",
+      titleKey: "nextStep.outlineTitle",
+      descriptionKey: "nextStep.outlineDesc",
+      buttonKey: "common.generateFirst12",
       tab: "episodes",
       icon: "outline",
     };
@@ -123,9 +124,9 @@ function buildNextStep(project: DramaProjectDetail): NextStep {
   if (unscripted) {
     return {
       kind: "script",
-      title: `下一步：生成第 ${unscripted.order} 集台本`,
-      description: "把本集大纲写成可拍摄、对白密集、开场有钩子、结尾有卡点的短剧台本。",
-      button: "生成台本",
+      titleKey: "nextStep.scriptTitle",
+      descriptionKey: "nextStep.scriptDesc",
+      buttonKey: "common.generateScript",
       tab: "episodes",
       icon: "script",
       episodeOrder: unscripted.order,
@@ -134,9 +135,9 @@ function buildNextStep(project: DramaProjectDetail): NextStep {
   if (repairable) {
     return {
       kind: "repair",
-      title: `下一步：修复第 ${repairable.order} 集质量问题`,
-      description: "这集已有质量建议，先按建议修复，避免问题进入分镜和视频提示词。",
-      button: "修复台本",
+      titleKey: "nextStep.repairTitle",
+      descriptionKey: "nextStep.repairDesc",
+      buttonKey: "nextStep.repairButton",
       tab: "episodes",
       icon: "repair",
       episodeOrder: repairable.order,
@@ -145,9 +146,9 @@ function buildNextStep(project: DramaProjectDetail): NextStep {
   if (unreviewed) {
     return {
       kind: "review",
-      title: `下一步：检查第 ${unreviewed.order} 集质量`,
-      description: "检查黄金 3 秒、信息密度、付费卡点、时长、事实一致和角色一致。",
-      button: "质量检查",
+      titleKey: "nextStep.reviewTitle",
+      descriptionKey: "nextStep.reviewDesc",
+      buttonKey: "common.qualityCheck",
       tab: "episodes",
       icon: "review",
       episodeOrder: unreviewed.order,
@@ -156,9 +157,9 @@ function buildNextStep(project: DramaProjectDetail): NextStep {
   if (unstagedStoryboard) {
     return {
       kind: "storyboard",
-      title: `下一步：生成第 ${unstagedStoryboard.order} 集分镜`,
-      description: "把已通过检查的台本拆成可拍摄镜头，保留角色视觉锚点和动作重点。",
-      button: "生成分镜",
+      titleKey: "nextStep.storyboardTitle",
+      descriptionKey: "nextStep.storyboardDesc",
+      buttonKey: "common.generateStoryboard",
       tab: "visual",
       icon: "video",
       episodeOrder: unstagedStoryboard.order,
@@ -167,9 +168,9 @@ function buildNextStep(project: DramaProjectDetail): NextStep {
   if (shotWithoutPrompt) {
     return {
       kind: "videoPrompt",
-      title: `下一步：生成第 ${shotWithoutPrompt.episode.order} 集视频提示词`,
-      description: "把一个分镜镜头转换成竖屏视频生成提示词，保留角色、动作和镜头语言。",
-      button: "生成视频提示词",
+      titleKey: "nextStep.videoPromptTitle",
+      descriptionKey: "nextStep.videoPromptDesc",
+      buttonKey: "nextStep.videoPromptButton",
       tab: "visual",
       icon: "video",
       episodeOrder: shotWithoutPrompt.episode.order,
@@ -179,9 +180,9 @@ function buildNextStep(project: DramaProjectDetail): NextStep {
   if (promptWithoutTask) {
     return {
       kind: "providerTask",
-      title: "下一步：创建视频生成任务",
-      description: "把已生成的视频提示词提交给当前 provider，后续可在分镜视频页刷新状态。",
-      button: "创建视频任务",
+      titleKey: "nextStep.providerTaskTitle",
+      descriptionKey: "nextStep.providerTaskDesc",
+      buttonKey: "common.createVideoTask",
       tab: "visual",
       icon: "video",
       videoPrompt: promptWithoutTask,
@@ -189,9 +190,9 @@ function buildNextStep(project: DramaProjectDetail): NextStep {
   }
   return {
     kind: "export",
-    title: "下一步：导出短剧资料",
-    description: "导出当前角色、分集、台本、质量结果和后续生产资料，方便继续编辑或交付。",
-    button: "导出 Markdown",
+    titleKey: "nextStep.exportTitle",
+    descriptionKey: "nextStep.exportDesc",
+    buttonKey: "common.exportMarkdown",
     tab: "export",
     icon: "export",
   };
@@ -225,6 +226,7 @@ export function DramaNextStepPanel(props: {
   onCreateProviderTask: (prompt: DramaVideoPrompt) => void;
   onExportMarkdown: () => void;
 }) {
+  const { t } = useTranslation("drama");
   const step = buildNextStep(props.project);
   const runStep = () => {
     props.onSetTab(step.tab);
@@ -248,21 +250,21 @@ export function DramaNextStepPanel(props: {
       <CardHeader className="gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <CardTitle className="text-lg">{step.title}</CardTitle>
-            <Badge variant="outline">{props.project.targetEpisodes} 集项目</Badge>
+            <CardTitle className="text-lg">{t(step.titleKey, { order: step.episodeOrder })}</CardTitle>
+            <Badge variant="outline">{t("nextStep.episodesProject", { count: props.project.targetEpisodes })}</Badge>
           </div>
-          <CardDescription>{step.description}</CardDescription>
+          <CardDescription>{t(step.descriptionKey)}</CardDescription>
         </div>
         <Button type="button" disabled={props.busy} onClick={runStep}>
           <StepIcon icon={step.icon} />
-          {props.busy ? "处理中..." : step.button}
+          {props.busy ? t("nextStep.processing") : t(step.buttonKey)}
         </Button>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-        <span>已整理素材：{props.project.sourceBundle ? "是" : "否"}</span>
-        <span>策略：{props.project.strategy ? "已生成" : "未生成"}</span>
-        <span>分集：{props.project.episodes?.length ?? 0} 集</span>
-        <span>当前视频提示词：{(props.project.videoPrompts ?? []).filter(isActiveVideoPrompt).length} 条</span>
+        <span>{t("nextStep.sourceReadyLabel", { value: props.project.sourceBundle ? t("common.yes") : t("common.no") })}</span>
+        <span>{t("nextStep.strategyStatus", { value: props.project.strategy ? t("common.generated") : t("common.notGenerated") })}</span>
+        <span>{t("nextStep.episodesStat", { count: props.project.episodes?.length ?? 0 })}</span>
+        <span>{t("nextStep.videoPromptsStat", { count: (props.project.videoPrompts ?? []).filter(isActiveVideoPrompt).length })}</span>
       </CardContent>
     </Card>
   );

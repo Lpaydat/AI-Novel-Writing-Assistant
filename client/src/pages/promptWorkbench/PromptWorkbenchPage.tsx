@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { getNovelChapters } from "@/api/novel/chapters";
 import { queryKeys } from "@/api/queryKeys";
@@ -19,6 +20,7 @@ import { usePromptTemplateEditor } from "./hooks/usePromptTemplateEditor";
 type PromptEditMode = "slots" | "advanced";
 
 export default function PromptWorkbenchPage() {
+  const { t } = useTranslation("promptWorkbench");
   const [keyword, setKeyword] = useState("");
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [entrypoint, setEntrypoint] = useState("manual_test");
@@ -192,27 +194,27 @@ export default function PromptWorkbenchPage() {
               <div className="space-y-4">
                 <div className="flex flex-col gap-3 rounded-md border border-[#d7e4e0] bg-white/80 p-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <div className="text-sm font-semibold text-[#25443f]">编辑模式</div>
+                    <div className="text-sm font-semibold text-[#25443f]">{t("page.editMode")}</div>
                     <div className="text-xs text-muted-foreground">
-                      安全槽位适合稳定调整，高级模板适合本书正文写作自定义。
+                      {t("page.editModeHint")}
                     </div>
                   </div>
                   <Tabs value={activeEditMode} onValueChange={(value) => setEditMode(value as PromptEditMode)}>
                     <TabsList className="h-10">
-                      <TabsTrigger value="slots" className="px-4">安全槽位</TabsTrigger>
+                      <TabsTrigger value="slots" className="px-4">{t("page.slotsMode")}</TabsTrigger>
                       <TabsTrigger
                         value="advanced"
                         className="px-4"
                         disabled={!advancedTemplateSupported}
                       >
-                        高级模板
+                        {t("page.advancedMode")}
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>
                 </div>
                 {slotState.isNovelScopeDisabled ? (
                   <div className="rounded-md bg-muted/[0.35] px-4 py-3 text-sm text-muted-foreground">
-                    选择小说后可设置本书独立的槽位覆盖；未选择小说时仅能查看继承值和生成通用预览。
+                    {t("page.novelScopeHint")}
                   </div>
                 ) : null}
                 {isAdvancedMode ? (
@@ -268,8 +270,8 @@ export default function PromptWorkbenchPage() {
                 previewDisabled={!selectedPrompt || previewState.previewMutation.isPending}
                 resetDisabled={effectiveResetDisabled}
                 officialVersionDisabled={effectiveOfficialDisabled}
-                officialVersionLabel={isAdvancedMode ? "恢复官方模板" : "官方版本"}
-                saveLabel={isAdvancedMode ? "保存为新版本" : "保存覆盖"}
+                officialVersionLabel={isAdvancedMode ? t("advanced.restoreOfficialTemplate") : t("runBar.officialVersion")}
+                saveLabel={isAdvancedMode ? t("advanced.saveAsNewVersion") : t("runBar.saveOverride")}
                 onGeneratePreview={previewState.generatePreview}
                 onOpenOfficialVersion={
                   isAdvancedMode
@@ -288,7 +290,7 @@ export default function PromptWorkbenchPage() {
         ) : (
           <div className="flex h-full items-center justify-center p-8">
             <div className="rounded-md border border-dashed bg-background/80 p-6 text-sm text-muted-foreground">
-              请选择一个提示词。
+              {t("page.selectPromptPlaceholder")}
             </div>
           </div>
         )}

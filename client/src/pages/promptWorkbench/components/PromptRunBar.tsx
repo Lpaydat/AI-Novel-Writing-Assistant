@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Eye, RotateCcw, Save, ShieldCheck } from "lucide-react";
 import type { PromptCatalogItem } from "@/api/promptWorkbench";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ interface PromptRunBarProps {
 }
 
 export function PromptRunBar(props: PromptRunBarProps) {
+  const { t } = useTranslation("promptWorkbench");
   const {
     dirtyCount,
     estimatedTokens,
@@ -36,15 +38,15 @@ export function PromptRunBar(props: PromptRunBarProps) {
     onReset,
     onSave,
     officialVersionDisabled,
-    officialVersionLabel = "官方版本",
     previewDisabled,
     prompt,
     resetDisabled,
     saveDisabled,
     saveError,
-    saveLabel = "保存覆盖",
-    savePendingLabel = "保存中...",
   } = props;
+  const officialVersionLabel = props.officialVersionLabel ?? t("runBar.officialVersion");
+  const saveLabel = props.saveLabel ?? t("runBar.saveOverride");
+  const savePendingLabel = props.savePendingLabel ?? t("runBar.saving");
   const maxBudget = prompt?.contextPolicy.maxTokensBudget ?? null;
 
   return (
@@ -52,23 +54,23 @@ export function PromptRunBar(props: PromptRunBarProps) {
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
           <div className="rounded-md bg-[#f2f8f6] px-3 py-2">
-            <span className="text-xs text-muted-foreground">上下文估算</span>
+            <span className="text-xs text-muted-foreground">{t("runBar.contextEstimate")}</span>
             <div className="font-semibold text-[#25443f]">
               {estimatedTokens ?? "--"}
               {maxBudget ? <span className="ml-1 text-xs font-normal text-muted-foreground">/ {maxBudget}</span> : null}
             </div>
           </div>
           <div className="rounded-md bg-[#f4f7ff] px-3 py-2">
-            <span className="text-xs text-muted-foreground">模型配置</span>
-            <div className="font-semibold text-[#344d7a]">按提示词路由</div>
+            <span className="text-xs text-muted-foreground">{t("runBar.modelConfig")}</span>
+            <div className="font-semibold text-[#344d7a]">{t("runBar.routeByPrompt")}</div>
           </div>
           <div className="rounded-md bg-[#fff7e8] px-3 py-2">
-            <span className="text-xs text-muted-foreground">保存状态</span>
+            <span className="text-xs text-muted-foreground">{t("runBar.saveStatus")}</span>
             <div className={cn(
               "font-semibold",
               saveError ? "text-destructive" : isSaveSuccess ? "text-[#0f766e]" : "text-[#7a5620]",
             )}>
-              {saveError ? "保存失败" : isSaveSuccess ? "已保存" : dirtyCount > 0 ? `${dirtyCount} 个未保存` : "无未保存修改"}
+              {saveError ? t("runBar.saveFailed") : isSaveSuccess ? t("runBar.saved") : dirtyCount > 0 ? t("runBar.unsavedCount", { count: dirtyCount }) : t("runBar.noUnsaved")}
             </div>
           </div>
           {saveError ? <div className="text-xs text-destructive">{saveError}</div> : null}
@@ -93,7 +95,7 @@ export function PromptRunBar(props: PromptRunBarProps) {
             className="border-[#b8d9d0] bg-white text-[#0f5f59] hover:bg-[#eaf7f2] hover:text-[#0f5f59]"
           >
             <Eye className="mr-2 h-4 w-4" />
-            {isPreviewPending ? "预览中..." : "生成预览"}
+            {isPreviewPending ? t("runBar.previewing") : t("runBar.generatePreview")}
           </Button>
           <Button
             type="button"
@@ -112,7 +114,7 @@ export function PromptRunBar(props: PromptRunBarProps) {
             className="text-[#52606d] hover:bg-[#eef4ff] hover:text-[#344d7a]"
           >
             <RotateCcw className="mr-2 h-4 w-4" />
-            重置修改
+            {t("runBar.resetChanges")}
           </Button>
         </div>
       </div>

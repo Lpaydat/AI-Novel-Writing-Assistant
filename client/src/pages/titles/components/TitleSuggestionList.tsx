@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { TitleFactorySuggestion } from "@ai-novel/shared/types/title";
 import { BookmarkPlus, Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,17 +18,22 @@ interface TitleSuggestionListProps {
 export default function TitleSuggestionList({
   suggestions,
   selectedTitle = "",
-  primaryActionLabel = "复制标题",
+  primaryActionLabel,
   onPrimaryAction,
   onCopy,
   onSave,
   savingTitle = "",
-  emptyMessage = "还没有生成任何标题。",
+  emptyMessage,
 }: TitleSuggestionListProps) {
+  const { t } = useTranslation("titles");
+  const copyTitleLabel = t("suggestion.copyTitle");
+  const resolvedPrimaryLabel = primaryActionLabel ?? copyTitleLabel;
+  const resolvedEmptyMessage = emptyMessage ?? t("suggestion.empty");
+
   if (suggestions.length === 0) {
     return (
       <div className="py-10 text-center text-sm text-muted-foreground">
-        {emptyMessage}
+        {resolvedEmptyMessage}
       </div>
     );
   }
@@ -36,11 +42,11 @@ export default function TitleSuggestionList({
     <div className="divide-y divide-border/55">
       {suggestions.map((suggestion) => {
         const isSelected = selectedTitle === suggestion.title;
-        const showSecondaryCopy = Boolean(onCopy && primaryActionLabel !== "复制标题");
+        const showSecondaryCopy = Boolean(onCopy && resolvedPrimaryLabel !== copyTitleLabel);
         const metadata = [
           getTitleStyleLabel(suggestion.style),
           suggestion.angle,
-          isSelected ? "当前选中" : null,
+          isSelected ? t("suggestion.selected") : null,
         ].filter((item): item is string => Boolean(item));
         return (
           <div
@@ -51,7 +57,7 @@ export default function TitleSuggestionList({
           >
             <div className="grid gap-3 lg:grid-cols-[64px_minmax(0,1fr)_auto] lg:items-start">
               <div className="text-xs leading-5 text-muted-foreground">
-                <div className="font-medium text-foreground">预估</div>
+                <div className="font-medium text-foreground">{t("suggestion.estimate")}</div>
                 <div className="text-lg font-semibold tabular-nums text-foreground">{suggestion.clickRate}</div>
               </div>
 
@@ -70,14 +76,14 @@ export default function TitleSuggestionList({
               <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                 {onPrimaryAction ? (
                   <Button type="button" size="sm" className="gap-1.5" onClick={() => onPrimaryAction(suggestion)}>
-                    {primaryActionLabel === "复制标题" ? <Copy className="h-3.5 w-3.5" /> : null}
-                    {primaryActionLabel}
+                    {resolvedPrimaryLabel === copyTitleLabel ? <Copy className="h-3.5 w-3.5" /> : null}
+                    {resolvedPrimaryLabel}
                   </Button>
                 ) : null}
                 {showSecondaryCopy ? (
                   <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => onCopy?.(suggestion)}>
                     <Copy className="h-3.5 w-3.5" />
-                    复制
+                    {t("suggestion.copy")}
                   </Button>
                 ) : null}
                 {onSave ? (
@@ -92,12 +98,12 @@ export default function TitleSuggestionList({
                     {savingTitle === suggestion.title ? (
                       <>
                         <Check className="h-3.5 w-3.5" />
-                        保存中
+                        {t("suggestion.saving")}
                       </>
                     ) : (
                       <>
                         <BookmarkPlus className="h-3.5 w-3.5" />
-                        入库
+                        {t("suggestion.save")}
                       </>
                     )}
                   </Button>

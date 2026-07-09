@@ -20,6 +20,7 @@ import type {
   CreativeHubTurnSummary,
 } from "@ai-novel/shared/types/creativeHub";
 import type { CreativeHubStreamFrame } from "@ai-novel/shared/types/api";
+import i18n from "@/i18n";
 import { toast } from "@/components/ui/toast";
 import { streamCreativeHubRun } from "@/api/creativeHub";
 import {
@@ -138,7 +139,7 @@ async function requireCheckpointIdForBranch(
   if (checkpointId || parentMessages.length === 0) {
     return checkpointId;
   }
-  const message = "未能匹配到对应的历史检查点，当前消息无法生成新分支。";
+  const message = i18n.t("runtime.checkpointMismatch", { ns: "creativeHub" });
   toast.error(message);
   throw new Error(message);
 }
@@ -189,7 +190,7 @@ export function useCreativeHubRuntime({
     () =>
       async function* streamCallback(messages, config) {
         if (!isThreadReady) {
-          throw new Error("创作中枢线程尚未初始化。");
+          throw new Error(i18n.t("runtime.threadNotInitialized", { ns: "creativeHub" }));
         }
         const streamSessionId = streamSessionRef.current;
         const streamThreadId = threadId;
