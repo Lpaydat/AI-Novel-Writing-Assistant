@@ -230,11 +230,11 @@ export class NovelExportService {
     const novel = await this.getTxtNovelRecord(novelId);
     const hasChapterContent = novel.chapters.some((chapter) => (chapter.content ?? "").trim().length > 0);
     if (!hasChapterContent) {
-      throw new AppError("当前小说还没有可诊断的章节正文。", 400);
+      throw new AppError(serverT("export.noDiagnosableChapters"), 400);
     }
 
     return this.knowledgeService.createDocument({
-      title: `${novel.title}（诊断稿）`,
+      title: serverT("export.diagnosisTitle", undefined, { title: novel.title }),
       fileName: `${safeFileNamePart(novel.title)}-diagnosis-${buildExportTimestamp()}.txt`,
       content: buildTxtContent(novel),
     });

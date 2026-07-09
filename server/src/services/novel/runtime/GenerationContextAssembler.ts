@@ -48,6 +48,7 @@ import {
   loadPendingCharacterHardFactReviews,
 } from "./context/pendingReviewContext";
 import { buildSyntheticCharacterResourceIssues } from "./context/syntheticCharacterResourceIssues";
+import type { Locale } from "../../../i18n/serverMessages";
 
 export { buildBlockingPendingReviewProposalWhere } from "./context/pendingReviewContext";
 
@@ -231,6 +232,10 @@ export class GenerationContextAssembler {
     if (!novel || !chapter) {
       throw new Error("Novel or chapter not found.");
     }
+
+    // Novel-scoped guidance locale (chapter production runs without an HTTP
+    // request context, so serverT can't read Accept-Language — pass novel.language).
+    const guidanceLocale: Locale = novel.language === "en" ? "en" : "zh";
 
     // 懒规划 JIT：全书 autopilot 路径在 ensureChapterPlan 之前确保 task sheet 就绪。
     // JIT 生成时会注入已发生事实（factLedger），解决 task sheet 与实际前文脱节问题。
@@ -466,7 +471,7 @@ export class GenerationContextAssembler {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       })),
-      buildSyntheticCharacterResourceIssues(characterResourceContext, { novelId, chapterId }),
+      buildSyntheticCharacterResourceIssues(characterResourceContext, { novelId, chapterId, locale: guidanceLocale }),
     );
     const runtimeContinuation = {
       enabled: continuationPack.enabled,

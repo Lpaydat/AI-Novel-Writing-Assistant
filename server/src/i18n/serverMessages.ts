@@ -74,6 +74,14 @@ export const SERVER_MESSAGES = {
     zh: "TXT 导出仅支持整本书正文导出。",
     en: "TXT export only supports exporting the full book body.",
   },
+  "export.noDiagnosableChapters": {
+    zh: "当前小说还没有可诊断的章节正文。",
+    en: "This novel has no diagnosable chapter body yet.",
+  },
+  "export.diagnosisTitle": {
+    zh: "{{title}}（诊断稿）",
+    en: "{{title}} (Diagnosis Draft)",
+  },
 
   // --- S2: chapter-production SSE progress (novel-scoped) ---
   "chapter.sse.bodyFinalizing": {
@@ -113,6 +121,22 @@ export const SERVER_MESSAGES = {
   "chapter.guidance.signalFix": {
     zh: "优先采用 patch_first：只修补当前章节的资源归属、消耗或知情关系，不重写整段剧情。",
     en: "Prefer patch_first: only patch the current chapter's resource ownership, consumption, or knowledge relations; do not rewrite the whole passage.",
+  },
+  "chapter.guidance.resourceHighRiskCommitted": {
+    zh: "{{name}} 已入账但带有高风险信号，本章使用时不要改写其持有、可见性或消耗状态。",
+    en: "{{name}} is committed but carries a high-risk signal; do not rewrite its possession, visibility, or consumption state when using it in this chapter.",
+  },
+  "chapter.guidance.resourceHighRiskCommittedFix": {
+    zh: "将 {{name}} 的使用写成可回收的小修补，避免把高风险资源写成新的不可逆事实。",
+    en: "Write {{name}}'s use as a reversible small fix; avoid turning a high-risk resource into a new irreversible fact.",
+  },
+  "chapter.guidance.resourcePendingProposal": {
+    zh: "{{summary}} 仍在待确认状态，确认前不要把这条资源变更写成已发生事实。",
+    en: "{{summary}} is still pending confirmation; do not write this resource change as an already-happened fact before confirming.",
+  },
+  "chapter.guidance.resourcePendingProposalFix": {
+    zh: "先在任务中心确认或忽略这条资源变更；正文生成只应依据已入账资源。",
+    en: "Confirm or dismiss this resource change in the task center first; body generation should rely only on committed resources.",
   },
 
   // --- P3: Creative Hub chat.ts approved-exception route-handler prompt ---

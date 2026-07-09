@@ -1,12 +1,15 @@
 import type { GenerationContextPackage } from "@ai-novel/shared/types/chapterRuntime";
+import { serverT, type Locale } from "../../../../i18n/serverMessages";
 
 export function buildSyntheticCharacterResourceIssues(
   context: GenerationContextPackage["characterResourceContext"],
   input: {
     novelId: string;
     chapterId: string;
+    locale?: Locale;
   },
 ): GenerationContextPackage["openAuditIssues"] {
+  const locale: Locale = input.locale ?? "zh";
   if (!context) {
     return [];
   }
@@ -17,9 +20,9 @@ export function buildSyntheticCharacterResourceIssues(
     auditType: "continuity" as const,
     severity: item.status === "destroyed" || item.status === "lost" ? "high" as const : "medium" as const,
     code: "character_resource_unavailable",
-    description: `${item.name} 当前为 ${item.status}，本章不能直接当作可用资源使用。`,
+    description: serverT("chapter.guidance.resourceBlocked", locale, { name: item.name, status: item.status }),
     evidence: item.evidence[0]?.summary ?? item.summary,
-    fixSuggestion: `优先做局部修复：补出重新获得、替代资源或不能使用的行动限制，避免无铺垫复用 ${item.name}。`,
+    fixSuggestion: serverT("chapter.guidance.resourceBlockedFix", locale, { name: item.name }),
     status: "open" as const,
     createdAt: now,
     updatedAt: now,
@@ -30,9 +33,9 @@ export function buildSyntheticCharacterResourceIssues(
     auditType: "continuity" as const,
     severity: "medium" as const,
     code: "character_resource_high_risk_committed",
-    description: `${item.name} 已入账但带有高风险信号，本章使用时不要改写其持有、可见性或消耗状态。`,
+    description: serverT("chapter.guidance.resourceHighRiskCommitted", locale, { name: item.name }),
     evidence: item.evidence[0]?.summary ?? item.summary,
-    fixSuggestion: `将 ${item.name} 的使用写成可回收的小修补，避免把高风险资源写成新的不可逆事实。`,
+    fixSuggestion: serverT("chapter.guidance.resourceHighRiskCommittedFix", locale, { name: item.name }),
     status: "open" as const,
     createdAt: now,
     updatedAt: now,
@@ -43,9 +46,9 @@ export function buildSyntheticCharacterResourceIssues(
     auditType: "continuity" as const,
     severity: proposal.riskLevel === "high" ? "high" as const : "medium" as const,
     code: "character_resource_pending_proposal",
-    description: `${proposal.summary} 仍在待确认状态，确认前不要把这条资源变更写成已发生事实。`,
+    description: serverT("chapter.guidance.resourcePendingProposal", locale, { summary: proposal.summary }),
     evidence: proposal.evidence[0] ?? proposal.summary,
-    fixSuggestion: "先在任务中心确认或忽略这条资源变更；正文生成只应依据已入账资源。",
+    fixSuggestion: serverT("chapter.guidance.resourcePendingProposalFix", locale),
     status: "open" as const,
     createdAt: now,
     updatedAt: now,
@@ -61,7 +64,7 @@ export function buildSyntheticCharacterResourceIssues(
       code: signal.code || "character_resource_risk",
       description: signal.summary,
       evidence: signal.summary,
-      fixSuggestion: "优先采用 patch_first：只修补当前章节的资源归属、消耗或知情关系，不重写整段剧情。",
+      fixSuggestion: serverT("chapter.guidance.signalFix", locale),
       status: "open" as const,
       createdAt: now,
       updatedAt: now,
