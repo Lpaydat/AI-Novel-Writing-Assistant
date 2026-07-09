@@ -15,6 +15,8 @@ import { initReactI18next } from "react-i18next";
 
 import zhHome from "@/locales/zh/home.json";
 import enHome from "@/locales/en/home.json";
+import zhCharacters from "@/locales/zh/characters.json";
+import enCharacters from "@/locales/en/characters.json";
 import { getActiveLocale, type AppLocale } from "./localeHeaders";
 
 export const SUPPORTED_LOCALES = ["zh", "en"] as const;
@@ -25,8 +27,8 @@ export type { AppLocale } from "./localeHeaders";
  * registered here so all locale data stays under the single owned module.
  */
 export const localeResources = {
-  zh: { home: zhHome },
-  en: { home: enHome },
+  zh: { home: zhHome, characters: zhCharacters },
+  en: { home: enHome, characters: enCharacters },
 } as const;
 
 export const DEFAULT_LOCALE: AppLocale = "zh";
@@ -37,7 +39,7 @@ void i18n.use(initReactI18next).init({
   fallbackLng: DEFAULT_LOCALE,
   supportedLngs: SUPPORTED_LOCALES,
   defaultNS: "home",
-  ns: ["home"],
+  ns: ["home", "characters"],
   // Keys are flat strings that intentionally contain dots (e.g.
   // "metric.liveWorkflow.title"). Disable both separators so i18next treats
   // the whole dotted string as the literal key within the `home` namespace.
