@@ -1,4 +1,5 @@
 import type { DocumentChapter } from "@ai-novel/shared/types/knowledge";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 
 interface BookAnalysisChapterNavigatorProps {
@@ -12,6 +13,7 @@ export default function BookAnalysisChapterNavigator({
   currentChapterIndex,
   onSelectChapter,
 }: BookAnalysisChapterNavigatorProps) {
+  const { t } = useTranslation("bookAnalysisComponents");
   const currentPosition = chapters.findIndex((chapter) => chapter.chapterIndex === currentChapterIndex);
   const canGoPrev = currentPosition > 0;
   const canGoNext = currentPosition >= 0 && currentPosition < chapters.length - 1;
@@ -27,7 +29,7 @@ export default function BookAnalysisChapterNavigator({
             disabled={!canGoPrev}
             onClick={() => onSelectChapter(chapters[currentPosition - 1].chapterIndex)}
           >
-            上一章
+            {t("chapterNavigator.prev")}
           </Button>
           <Button
             type="button"
@@ -36,7 +38,7 @@ export default function BookAnalysisChapterNavigator({
             disabled={!canGoNext}
             onClick={() => onSelectChapter(chapters[currentPosition + 1].chapterIndex)}
           >
-            下一章
+            {t("chapterNavigator.next")}
           </Button>
         </div>
       </div>
@@ -58,7 +60,7 @@ export default function BookAnalysisChapterNavigator({
                 title={chapter.title}
               >
                 <div className="font-medium">{chapter.chapterIndex + 1}. {chapter.title}</div>
-                <div className="mt-0.5 text-[11px] text-muted-foreground">{chapter.charCount} 字</div>
+                <div className="mt-0.5 text-[11px] text-muted-foreground">{t("chapterNavigator.charCount", { count: chapter.charCount })}</div>
               </button>
             );
           })}

@@ -4,7 +4,7 @@ import { FlaskConical, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { severityLabels, typeLabels } from "../antiAiRulesPage.shared";
+import { severityLabelKeys, typeLabelKeys } from "../antiAiRulesPage.shared";
 
 interface AntiAiRuleEffectTestCardProps {
   content: string;
@@ -106,8 +106,8 @@ export default function AntiAiRuleEffectTestCard(props: AntiAiRuleEffectTestCard
                   <div key={`${item.ruleId}-${index}`} className="rounded-md border bg-muted/20 p-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <div className="font-medium text-foreground">{item.ruleName}</div>
-                      <Badge variant="outline">{typeLabels[item.ruleType as keyof typeof typeLabels] ?? item.ruleType}</Badge>
-                      <Badge variant="outline">{severityLabels[item.severity]}</Badge>
+                      <Badge variant="outline">{typeLabelKeys[item.ruleType as keyof typeof typeLabelKeys] ? t(typeLabelKeys[item.ruleType as keyof typeof typeLabelKeys]) : item.ruleType}</Badge>
+                      <Badge variant="outline">{t(severityLabelKeys[item.severity])}</Badge>
                     </div>
                     <div className="mt-2 text-xs leading-5 text-muted-foreground">{item.reason}</div>
                     <div className="mt-2 whitespace-pre-wrap rounded-md border bg-background px-3 py-2 text-xs leading-5 text-foreground">

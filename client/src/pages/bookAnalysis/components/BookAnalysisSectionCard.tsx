@@ -4,6 +4,7 @@ import {
 } from "@ai-novel/shared/types/bookAnalysis";
 import type { DocumentChapter } from "@ai-novel/shared/types/knowledge";
 import { LocateFixed } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import MarkdownViewer from "@/components/common/MarkdownViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,13 +72,14 @@ export default function BookAnalysisSectionCard(props: BookAnalysisSectionCardPr
     onCancelOptimizePreview,
     onSave,
   } = props;
+  const { t } = useTranslation("bookAnalysisComponents");
   const canRegenerate = canOperate && !draft.frozen && !isRegenerating;
   const canOptimize = canOperate && !draft.frozen && !isOptimizing && draft.optimizeInstruction.trim().length > 0;
   const hasContent = draft.editedContent.trim().length > 0;
   const contentBlock = hasContent ? (
     <MarkdownViewer content={draft.editedContent} />
   ) : (
-    <div className="text-sm text-muted-foreground">当前小节还没有可展示的内容。</div>
+    <div className="text-sm text-muted-foreground">{t("sectionCard.emptyContent")}</div>
   );
 
   return (
@@ -87,7 +89,7 @@ export default function BookAnalysisSectionCard(props: BookAnalysisSectionCardPr
           <div className="flex items-center gap-2">
             <CardTitle>{section.title}</CardTitle>
             <Badge variant="outline">{formatStatus(section.status)}</Badge>
-            {draft.frozen ? <Badge variant="secondary">已冻结</Badge> : null}
+            {draft.frozen ? <Badge variant="secondary">{t("sectionCard.frozen")}</Badge> : null}
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -96,10 +98,10 @@ export default function BookAnalysisSectionCard(props: BookAnalysisSectionCardPr
               disabled={!canRegenerate}
               onClick={() => onRegenerate(section)}
             >
-              重新生成
+              {t("sectionCard.regenerate")}
             </Button>
             <Button size="sm" disabled={!canOperate || isSaving} onClick={() => onSave(section)}>
-              保存
+              {t("sectionCard.save")}
             </Button>
           </div>
         </div>
@@ -115,8 +117,8 @@ export default function BookAnalysisSectionCard(props: BookAnalysisSectionCardPr
         {evidenceItems.length > 0 ? (
           <div className="space-y-2 rounded-md border bg-muted/10 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="text-sm font-medium">本节证据</div>
-              <Badge variant="outline">{evidenceItems.length} 条</Badge>
+              <div className="text-sm font-medium">{t("sectionCard.evidenceTitle")}</div>
+              <Badge variant="outline">{t("sectionCard.evidenceCount", { count: evidenceItems.length })}</Badge>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {evidenceItems.map((item) => {
@@ -145,7 +147,7 @@ export default function BookAnalysisSectionCard(props: BookAnalysisSectionCardPr
                     {item.chapterIndex !== undefined && item.excerptOffsetRange ? (
                       <span className="ml-2 inline-flex items-center gap-1 rounded border px-1 text-[11px] text-muted-foreground">
                         <LocateFixed className="h-3 w-3" />
-                        原文
+                        {t("sectionCard.sourceText")}
                       </span>
                     ) : null}
                   </button>
@@ -164,14 +166,14 @@ export default function BookAnalysisSectionCard(props: BookAnalysisSectionCardPr
                     </div>
                   </div>
                   {selectedEvidence.chapterIndex !== undefined ? (
-                    <Badge variant="outline">第 {selectedEvidence.chapterIndex + 1} 章</Badge>
+                    <Badge variant="outline">{t("sectionCard.chapterLabel", { index: selectedEvidence.chapterIndex + 1 })}</Badge>
                   ) : null}
                 </div>
                 <div className="mt-2 whitespace-pre-wrap text-muted-foreground">{selectedEvidence.excerpt}</div>
                 {!isDualPane && selectedEvidenceChapter && selectedEvidence.excerptOffsetRange ? (
                   <div className="mt-3">
                     <div className="mb-2 text-xs font-medium text-muted-foreground">
-                      原文定位：{selectedEvidenceChapter.title}
+                      {t("sectionCard.sourceLocate", { title: selectedEvidenceChapter.title })}
                     </div>
                     <HighlightedChapterExcerpt
                       chapterContent={selectedChapterContent}
@@ -180,9 +182,9 @@ export default function BookAnalysisSectionCard(props: BookAnalysisSectionCardPr
                     />
                   </div>
                 ) : isDualPane && selectedEvidenceChapter && selectedEvidence.excerptOffsetRange ? (
-                  <div className="mt-2 text-xs text-muted-foreground">已在左侧原文章节中定位这条证据。</div>
+                  <div className="mt-2 text-xs text-muted-foreground">{t("sectionCard.locatedInLeft")}</div>
                 ) : (
-                  <div className="mt-2 text-xs text-muted-foreground">这条证据暂无可跳转的章节定位。</div>
+                  <div className="mt-2 text-xs text-muted-foreground">{t("sectionCard.noLocation")}</div>
                 )}
               </div>
             ) : null}
@@ -191,14 +193,14 @@ export default function BookAnalysisSectionCard(props: BookAnalysisSectionCardPr
 
         {readingMode === "full" ? (
           <div className="space-y-2">
-            <div className="text-sm font-medium">分析正文</div>
+            <div className="text-sm font-medium">{t("sectionCard.analysisBody")}</div>
             <div className="min-h-[220px] rounded-md border bg-muted/20 p-4">
               {contentBlock}
             </div>
           </div>
         ) : (
           <details className="rounded-md border p-3">
-            <summary className="cursor-pointer text-sm font-medium">查看完整正文</summary>
+            <summary className="cursor-pointer text-sm font-medium">{t("sectionCard.viewFull")}</summary>
             <div className="mt-3 min-h-[180px] rounded-md border bg-muted/20 p-4">
               {contentBlock}
             </div>
@@ -206,7 +208,7 @@ export default function BookAnalysisSectionCard(props: BookAnalysisSectionCardPr
         )}
 
         <details className="rounded-md border p-3">
-          <summary className="cursor-pointer text-sm font-medium">编辑与优化</summary>
+          <summary className="cursor-pointer text-sm font-medium">{t("sectionCard.editOptimize")}</summary>
           <div className="mt-3 space-y-4">
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -214,42 +216,42 @@ export default function BookAnalysisSectionCard(props: BookAnalysisSectionCardPr
                 checked={draft.frozen}
                 onChange={(event) => onDraftChange(section, { frozen: event.target.checked })}
               />
-              冻结此小节，自动重跑时不覆盖其内容。
+              {t("sectionCard.freezeLabel")}
             </label>
 
             {draft.frozen ? (
               <div className="rounded-md border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900">
-                当前已冻结：请先取消冻结，才能使用“重新生成”或“AI 优化”。
+                {t("sectionCard.frozenHint")}
               </div>
             ) : null}
 
             <div className="space-y-2">
-              <div className="text-sm font-medium">本节特别关注</div>
+              <div className="text-sm font-medium">{t("sectionCard.focusLabel")}</div>
               <textarea
                 className="min-h-[90px] w-full rounded-md border bg-background p-3 text-sm"
                 value={draft.focusInstruction}
                 onChange={(event) => onDraftChange(section, { focusInstruction: event.target.value })}
-                placeholder="例如：只看阶段推进里的转折证据，或重点检查人物高光是否能复用。"
+                placeholder={t("sectionCard.focusPlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
-              <div className="text-sm font-medium">编辑正文</div>
+              <div className="text-sm font-medium">{t("sectionCard.editBody")}</div>
               <textarea
                 className="min-h-[220px] w-full rounded-md border bg-background p-3 text-sm"
                 value={draft.editedContent}
                 onChange={(event) => onDraftChange(section, { editedContent: event.target.value })}
-                placeholder="在此直接编辑当前小节草稿。"
+                placeholder={t("sectionCard.editBodyPlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
-              <div className="text-sm font-medium">AI 优化 / 修正</div>
+              <div className="text-sm font-medium">{t("sectionCard.aiOptimize")}</div>
               <textarea
                 className="min-h-[90px] w-full rounded-md border bg-background p-2 text-sm"
                 value={draft.optimizeInstruction}
                 onChange={(event) => onDraftChange(section, { optimizeInstruction: event.target.value })}
-                placeholder="输入优化或修正提示词，例如：压缩冗余、突出冲突、保持同样事实。"
+                placeholder={t("sectionCard.optimizePlaceholder")}
               />
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -258,35 +260,35 @@ export default function BookAnalysisSectionCard(props: BookAnalysisSectionCardPr
                   disabled={!canOptimize}
                   onClick={() => onOptimize(section)}
                 >
-                  {isOptimizing ? "生成预览中..." : "生成优化预览"}
+                  {isOptimizing ? t("sectionCard.generatingPreview") : t("sectionCard.generatePreview")}
                 </Button>
               </div>
             </div>
 
             {draft.optimizePreview.trim() ? (
               <div className="space-y-2">
-                <div className="text-xs font-medium text-muted-foreground">优化预览</div>
+                <div className="text-xs font-medium text-muted-foreground">{t("sectionCard.optimizePreviewLabel")}</div>
                 <div className="max-h-[320px] overflow-auto rounded-md border bg-muted/20 p-4">
                   <MarkdownViewer content={draft.optimizePreview} />
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm" onClick={() => onApplyOptimizePreview(section)}>
-                    应用到当前草稿
+                    {t("sectionCard.applyToDraft")}
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => onCancelOptimizePreview(section)}>
-                    取消预览
+                    {t("sectionCard.cancelPreview")}
                   </Button>
                 </div>
               </div>
             ) : null}
 
             <div className="space-y-2">
-              <div className="text-sm font-medium">备注</div>
+              <div className="text-sm font-medium">{t("sectionCard.notesLabel")}</div>
               <textarea
                 className="min-h-[120px] w-full rounded-md border bg-background p-3 text-sm"
                 value={draft.notes}
                 onChange={(event) => onDraftChange(section, { notes: event.target.value })}
-                placeholder="添加备注、假设或后续行动。"
+                placeholder={t("sectionCard.notesPlaceholder")}
               />
             </div>
           </div>

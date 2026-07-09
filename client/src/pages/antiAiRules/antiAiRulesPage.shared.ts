@@ -30,16 +30,18 @@ export const emptyForm: RuleFormState = {
   autoRewrite: false,
 };
 
-export const typeLabels: Record<AntiAiRule["type"], string> = {
-  forbidden: "禁用",
-  risk: "风险",
-  encourage: "鼓励",
+// Locale-aware: values are `antiAiRules` namespace translation keys, resolved
+// with t() at React call sites (module-load i18n.t would freeze the locale).
+export const typeLabelKeys: Record<AntiAiRule["type"], string> = {
+  forbidden: "shared.typeForbidden",
+  risk: "shared.typeRisk",
+  encourage: "shared.typeEncourage",
 };
 
-export const severityLabels: Record<AntiAiRule["severity"], string> = {
-  low: "低",
-  medium: "中",
-  high: "高",
+export const severityLabelKeys: Record<AntiAiRule["severity"], string> = {
+  low: "shared.severityLow",
+  medium: "shared.severityMedium",
+  high: "shared.severityHigh",
 };
 
 export function ruleToForm(rule: AntiAiRule): RuleFormState {

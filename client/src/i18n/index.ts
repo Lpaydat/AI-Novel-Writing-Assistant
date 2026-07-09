@@ -43,6 +43,28 @@ import zhPromptWorkbench from "@/locales/zh/promptWorkbench.json";
 import enPromptWorkbench from "@/locales/en/promptWorkbench.json";
 import zhWritingFormula from "@/locales/zh/writingFormula.json";
 import enWritingFormula from "@/locales/en/writingFormula.json";
+import zhBookAnalysis from "@/locales/zh/bookAnalysis.json";
+import enBookAnalysis from "@/locales/en/bookAnalysis.json";
+import zhBookAnalysisComponents from "@/locales/zh/bookAnalysisComponents.json";
+import enBookAnalysisComponents from "@/locales/en/bookAnalysisComponents.json";
+import zhSettings from "@/locales/zh/settings.json";
+import enSettings from "@/locales/en/settings.json";
+import zhSettingsComponents from "@/locales/zh/settingsComponents.json";
+import enSettingsComponents from "@/locales/en/settingsComponents.json";
+import zhWorlds from "@/locales/zh/worlds.json";
+import enWorlds from "@/locales/en/worlds.json";
+import zhNovelsHooks from "@/locales/zh/novelsHooks.json";
+import enNovelsHooks from "@/locales/en/novelsHooks.json";
+import zhNovelsAutoDirector from "@/locales/zh/novelsAutoDirector.json";
+import enNovelsAutoDirector from "@/locales/en/novelsAutoDirector.json";
+import zhNovelsMobile from "@/locales/zh/novelsMobile.json";
+import enNovelsMobile from "@/locales/en/novelsMobile.json";
+import zhNovelsList from "@/locales/zh/novelsList.json";
+import enNovelsList from "@/locales/en/novelsList.json";
+import zhNovelsChapterEditor from "@/locales/zh/novelsChapterEditor.json";
+import enNovelsChapterEditor from "@/locales/en/novelsChapterEditor.json";
+import zhNovelsChapterInsights from "@/locales/zh/novelsChapterInsights.json";
+import enNovelsChapterInsights from "@/locales/en/novelsChapterInsights.json";
 import { getActiveLocale, type AppLocale } from "./localeHeaders";
 
 export const SUPPORTED_LOCALES = ["zh", "en"] as const;
@@ -69,6 +91,17 @@ export const localeResources = {
     drama: zhDrama,
     promptWorkbench: zhPromptWorkbench,
     writingFormula: zhWritingFormula,
+    bookAnalysis: zhBookAnalysis,
+    bookAnalysisComponents: zhBookAnalysisComponents,
+    settings: zhSettings,
+    settingsComponents: zhSettingsComponents,
+    worlds: zhWorlds,
+    novelsHooks: zhNovelsHooks,
+    novelsAutoDirector: zhNovelsAutoDirector,
+    novelsMobile: zhNovelsMobile,
+    novelsList: zhNovelsList,
+    novelsChapterEditor: zhNovelsChapterEditor,
+    novelsChapterInsights: zhNovelsChapterInsights,
   },
   en: {
     home: enHome,
@@ -86,6 +119,17 @@ export const localeResources = {
     drama: enDrama,
     promptWorkbench: enPromptWorkbench,
     writingFormula: enWritingFormula,
+    bookAnalysis: enBookAnalysis,
+    bookAnalysisComponents: enBookAnalysisComponents,
+    settings: enSettings,
+    settingsComponents: enSettingsComponents,
+    worlds: enWorlds,
+    novelsHooks: enNovelsHooks,
+    novelsAutoDirector: enNovelsAutoDirector,
+    novelsMobile: enNovelsMobile,
+    novelsList: enNovelsList,
+    novelsChapterEditor: enNovelsChapterEditor,
+    novelsChapterInsights: enNovelsChapterInsights,
   },
 } as const;
 
@@ -113,6 +157,17 @@ void i18n.use(initReactI18next).init({
     "drama",
     "promptWorkbench",
     "writingFormula",
+    "bookAnalysis",
+    "bookAnalysisComponents",
+    "settings",
+    "settingsComponents",
+    "worlds",
+    "novelsHooks",
+    "novelsAutoDirector",
+    "novelsMobile",
+    "novelsList",
+    "novelsChapterEditor",
+    "novelsChapterInsights",
   ],
   // Keys are flat strings that intentionally contain dots (e.g.
   // "metric.liveWorkflow.title"). Disable both separators so i18next treats

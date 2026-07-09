@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { RefObject } from "react";
 import type {
   BookAnalysisDetail,
@@ -108,6 +109,7 @@ export default function BookAnalysisDetailPanel(props: BookAnalysisDetailPanelPr
     onDraftChange,
     getSectionDraft,
   } = props;
+  const { t } = useTranslation("bookAnalysisComponents");
   const [selectedEvidenceKey, setSelectedEvidenceKey] = useState("");
   const [readingMode, setReadingMode] = useState<"summary" | "full">("full");
   const [activeSectionKey, setActiveSectionKey] = useState<BookAnalysisSectionKey | "">("");
@@ -204,8 +206,8 @@ export default function BookAnalysisDetailPanel(props: BookAnalysisDetailPanelPr
       {selectedAnalysis.lastError ? (
         <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
           {budgetExceeded
-            ? `预算用尽，任务已停止。累计用量 ${formatTokenCount(usedTokens)} / ${formatTokenCount(budgetTokens)} tokens。建议先扩容预算后续跑。`
-            : `最近错误：${selectedAnalysis.lastError}`}
+            ? t("detailPanel.budgetExhausted", { used: formatTokenCount(usedTokens), limit: formatTokenCount(budgetTokens) })
+            : t("detailPanel.lastError", { error: selectedAnalysis.lastError })}
         </div>
       ) : null}
 
@@ -224,19 +226,19 @@ export default function BookAnalysisDetailPanel(props: BookAnalysisDetailPanelPr
             <summary className="cursor-pointer list-none">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="text-sm font-medium">分析信息与发布</div>
+                  <div className="text-sm font-medium">{t("detailPanel.infoPublishTitle")}</div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    完成 {sectionStats.succeeded}/{sectionStats.total}，生成 {sectionStats.active} 项
-                    {sectionStats.frozen > 0 ? `，冻结 ${sectionStats.frozen} 项` : ""}
+                    {t("detailPanel.sectionStats", { succeeded: sectionStats.succeeded, total: sectionStats.total, active: sectionStats.active })}
+                    {sectionStats.frozen > 0 ? t("detailPanel.frozenSuffix", { frozen: sectionStats.frozen }) : ""}
                   </div>
                 </div>
-                <Badge variant="outline">展开</Badge>
+                <Badge variant="outline">{t("detailPanel.expand")}</Badge>
               </div>
             </summary>
             <div className="mt-3 space-y-3">
               {!selectedAnalysis.isCurrentVersion ? (
                 <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-                  该分析基于旧版源文档，当前激活文档版本为 v{selectedAnalysis.currentDocumentVersionNumber}。
+                  {t("detailPanel.oldVersionWarning", { version: selectedAnalysis.currentDocumentVersionNumber })}
                 </div>
               ) : null}
               {styleProfileFeedback ? (
@@ -245,14 +247,14 @@ export default function BookAnalysisDetailPanel(props: BookAnalysisDetailPanelPr
                 </div>
               ) : null}
               <div className="rounded-md border p-3 text-sm">
-                <div className="mb-2 font-medium">发布到小说知识库</div>
+                <div className="mb-2 font-medium">{t("detailPanel.publishToKb")}</div>
                 <div className="flex flex-wrap items-center gap-2">
                   <SelectControl
                     className="h-9 min-w-[220px] rounded-md border bg-background px-2 text-sm"
                     value={selectedNovelId}
                     onChange={(event) => onSelectedNovelChange(event.target.value)}
                   >
-                    <option value="">选择目标小说</option>
+                    <option value="">{t("detailPanel.selectTargetNovel")}</option>
                     {novelOptions.map((novel) => (
                       <option key={novel.id} value={novel.id}>
                         {novel.title}
@@ -264,32 +266,32 @@ export default function BookAnalysisDetailPanel(props: BookAnalysisDetailPanelPr
                     onClick={onPublish}
                     disabled={!selectedNovelId || pending.publish || selectedAnalysis.status === "archived"}
                   >
-                    发布并绑定
+                    {t("detailPanel.publishBind")}
                   </Button>
                 </div>
                 {publishFeedback ? <div className="mt-2 text-xs text-muted-foreground">{publishFeedback}</div> : null}
                 {lastPublishResult ? (
-                  <div className="mt-1 text-xs text-muted-foreground">发布时间：{formatDate(lastPublishResult.publishedAt)}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{t("detailPanel.publishedAt", { time: formatDate(lastPublishResult.publishedAt) })}</div>
                 ) : null}
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="rounded-md border p-3 text-sm">
-                  <div className="font-medium">概要</div>
+                  <div className="font-medium">{t("detailPanel.summary")}</div>
                   <div className="mt-2 whitespace-pre-wrap text-muted-foreground">
-                    {selectedAnalysis.summary?.trim() || "生成总览后会在此显示概要内容。"}
+                    {selectedAnalysis.summary?.trim() || t("detailPanel.summaryEmpty")}
                   </div>
                 </div>
                 <div className="rounded-md border p-3 text-sm">
-                  <div className="font-medium">运行元信息</div>
+                  <div className="font-medium">{t("detailPanel.runMeta")}</div>
                   <div className="mt-2 space-y-1 text-muted-foreground">
-                    <div>提供商：{selectedAnalysis.provider ?? "deepseek"}</div>
-                    <div>模型：{selectedAnalysis.model || "默认"}</div>
-                    <div>温度：{selectedAnalysis.temperature ?? "默认"}</div>
-                    <div>最大 Tokens：{selectedAnalysis.maxTokens ?? "默认"}</div>
+                    <div>{t("detailPanel.provider", { provider: selectedAnalysis.provider ?? "deepseek" })}</div>
+                    <div>{t("detailPanel.model", { model: selectedAnalysis.model || t("detailPanel.default") })}</div>
+                    <div>{t("detailPanel.temperature", { temperature: selectedAnalysis.temperature ?? t("detailPanel.default") })}</div>
+                    <div>{t("detailPanel.maxTokens", { maxTokens: selectedAnalysis.maxTokens ?? t("detailPanel.default") })}</div>
                     <div>
-                      预算用量：{budgetTokens
-                        ? `${formatTokenCount(usedTokens)} / ${formatTokenCount(budgetTokens)} tokens`
-                        : "不限"}
+                      {budgetTokens
+                        ? t("detailPanel.budgetUsageWithLimit", { used: formatTokenCount(usedTokens), limit: formatTokenCount(budgetTokens) })
+                        : t("detailPanel.budgetUsageUnlimited")}
                     </div>
                     {budgetTokens ? (
                       <div className="h-1.5 overflow-hidden rounded-full bg-muted">
@@ -299,12 +301,12 @@ export default function BookAnalysisDetailPanel(props: BookAnalysisDetailPanelPr
                         />
                       </div>
                     ) : null}
-                    <div>原文范围：{selectedAnalysis.sourceRange?.label ?? "全文"}</div>
-                    <div>当前阶段：{formatStage(selectedAnalysis.currentStage)}</div>
-                    <div>当前 section：{selectedAnalysis.currentItemLabel ?? "暂无"}</div>
-                    <div>最近心跳：{formatDate(selectedAnalysis.heartbeatAt)}</div>
-                    <div>最近运行：{formatDate(selectedAnalysis.lastRunAt)}</div>
-                    <div>创建时间：{formatDate(selectedAnalysis.createdAt)}</div>
+                    <div>{t("detailPanel.sourceRange", { range: selectedAnalysis.sourceRange?.label ?? t("detailPanel.fullText") })}</div>
+                    <div>{t("detailPanel.currentStage", { stage: formatStage(selectedAnalysis.currentStage) })}</div>
+                    <div>{t("detailPanel.currentSection", { section: selectedAnalysis.currentItemLabel ?? t("detailPanel.none") })}</div>
+                    <div>{t("detailPanel.heartbeat", { time: formatDate(selectedAnalysis.heartbeatAt) })}</div>
+                    <div>{t("detailPanel.lastRun", { time: formatDate(selectedAnalysis.lastRunAt) })}</div>
+                    <div>{t("detailPanel.createdAt", { time: formatDate(selectedAnalysis.createdAt) })}</div>
                   </div>
                 </div>
               </div>
@@ -314,10 +316,10 @@ export default function BookAnalysisDetailPanel(props: BookAnalysisDetailPanelPr
           <section className="rounded-md border bg-background">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b p-3">
               <div className="flex flex-wrap items-center gap-2">
-                <div className="text-base font-semibold">拆书内容</div>
-                <Badge variant="outline">完成 {sectionStats.succeeded}/{sectionStats.total}</Badge>
-                <Badge variant="outline">生成 {sectionStats.active} 项</Badge>
-                {sectionStats.frozen > 0 ? <Badge variant="secondary">冻结 {sectionStats.frozen} 项</Badge> : null}
+                <div className="text-base font-semibold">{t("detailPanel.contentTitle")}</div>
+                <Badge variant="outline">{t("detailPanel.completeBadge", { succeeded: sectionStats.succeeded, total: sectionStats.total })}</Badge>
+                <Badge variant="outline">{t("detailPanel.activeBadge", { active: sectionStats.active })}</Badge>
+                {sectionStats.frozen > 0 ? <Badge variant="secondary">{t("detailPanel.frozenBadge", { frozen: sectionStats.frozen })}</Badge> : null}
               </div>
               <div className="flex rounded-md border bg-background p-1">
                 <Button
@@ -325,14 +327,14 @@ export default function BookAnalysisDetailPanel(props: BookAnalysisDetailPanelPr
                   variant={readingMode === "summary" ? "default" : "ghost"}
                   onClick={() => setReadingMode("summary")}
                 >
-                  重点速览
+                  {t("detailPanel.readingSummary")}
                 </Button>
                 <Button
                   size="sm"
                   variant={readingMode === "full" ? "default" : "ghost"}
                   onClick={() => setReadingMode("full")}
                 >
-                  完整阅读
+                  {t("detailPanel.readingFull")}
                 </Button>
               </div>
             </div>
@@ -347,7 +349,7 @@ export default function BookAnalysisDetailPanel(props: BookAnalysisDetailPanelPr
                     <TabsTrigger key={section.sectionKey} value={section.sectionKey} className="gap-2">
                       <span>{section.title}</span>
                       <span className="text-xs text-muted-foreground">
-                        {section.frozen ? "冻结" : formatStatus(section.status)}
+                        {section.frozen ? t("detailPanel.frozen") : formatStatus(section.status)}
                       </span>
                     </TabsTrigger>
                   ))}

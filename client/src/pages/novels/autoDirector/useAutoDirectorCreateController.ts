@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { buildStyleIntentSummary } from "@ai-novel/shared/types/styleEngine";
@@ -94,6 +95,7 @@ export function useAutoDirectorCreateController(input: UseAutoDirectorCreateCont
     onBasicFormChange,
     onConfirmed,
   } = input;
+  const { t } = useTranslation("novelsAutoDirector");
   const navigate = useNavigate();
   const llm = useLLMStore();
   const queryClient = useQueryClient();
@@ -223,7 +225,7 @@ export function useAutoDirectorCreateController(input: UseAutoDirectorCreateCont
       setIdeaInspirations(response.data?.ideas ?? []);
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "生成起始想法失败，请稍后重试。");
+      toast.error(error instanceof Error ? error.message : t("controller.generateIdeaFailed"));
     },
   });
 
@@ -301,7 +303,7 @@ export function useAutoDirectorCreateController(input: UseAutoDirectorCreateCont
   const ensureWorkflowTask = async () => {
     const nextIdea = requestIdea;
     if (!nextIdea) {
-      throw new Error("请先补充起始想法，再继续生成或确认书级方向。");
+      throw new Error(t("controller.needIdeaFirst"));
     }
     if (workflowTaskId) {
       return workflowTaskId;
@@ -347,7 +349,7 @@ export function useAutoDirectorCreateController(input: UseAutoDirectorCreateCont
 
   const buildCandidateRequestPayload = (currentWorkflowTaskId: string) => {
     if (!requestIdea) {
-      throw new Error("请先补充起始想法，再继续生成或确认书级方向。");
+      throw new Error(t("controller.needIdeaFirst"));
     }
     return buildAutoDirectorRequestPayload(
       directorBasicForm,
@@ -388,7 +390,7 @@ export function useAutoDirectorCreateController(input: UseAutoDirectorCreateCont
     mutationFn: async (payload: { candidate: DirectorCandidate; workflowTaskId?: string }) => {
       const currentWorkflowTaskId = payload.workflowTaskId || await ensureWorkflowTask();
       if (!requestIdea) {
-        throw new Error("请先补充起始想法，再继续生成或确认书级方向。");
+        throw new Error(t("controller.needIdeaFirst"));
       }
       const autoExecutionPlan = buildAutoExecutionPlanForRunMode();
       const response = await confirmDirectorCandidate({
@@ -412,8 +414,8 @@ export function useAutoDirectorCreateController(input: UseAutoDirectorCreateCont
     onSuccess: async ({ command, workflowTaskId: nextWorkflowTaskId }) => {
       if (!command) {
         setDialogMode("execution_failed");
-        setExecutionError("确认方案失败，未返回导演命令。");
-        toast.error("确认方案失败，未返回导演命令。");
+        setExecutionError(t("controller.confirmNoCommand"));
+        toast.error(t("controller.confirmNoCommand"));
         return;
       }
       if (nextWorkflowTaskId) {
@@ -429,11 +431,11 @@ export function useAutoDirectorCreateController(input: UseAutoDirectorCreateCont
           queryKey: queryKeys.tasks.detail("novel_workflow", nextWorkflowTaskId),
         });
       }
-      toast.success("系统收到书级方向，会创建小说项目并继续推进规划。");
+      toast.success(t("controller.confirmSuccess"));
     },
     onError: async (error, payload) => {
       setDialogMode("execution_failed");
-      setExecutionError(error instanceof Error ? error.message : "导演任务执行失败。");
+      setExecutionError(error instanceof Error ? error.message : t("controller.executeFailed"));
       setExecutionRequested(false);
       if (payload.workflowTaskId) {
         await queryClient.invalidateQueries({
@@ -450,7 +452,7 @@ export function useAutoDirectorCreateController(input: UseAutoDirectorCreateCont
     mutationFn: async () => {
       const taskId = directorTask?.id || workflowTaskId;
       if (!taskId) {
-        throw new Error("当前没有可继续的自动导演任务。");
+        throw new Error(t("controller.noResumableTask"));
       }
       return continueNovelWorkflow(taskId, { continuationMode: "resume" });
     },
@@ -479,10 +481,10 @@ export function useAutoDirectorCreateController(input: UseAutoDirectorCreateCont
       await Promise.allSettled(invalidations);
       setDialogMode("execution_progress");
       setExecutionError("");
-      toast.success("已确认，AI 会继续推进。");
+      toast.success(t("controller.continueConfirmed"));
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "继续自动导演失败。");
+      toast.error(error instanceof Error ? error.message : t("controller.continueFailed"));
     },
   });
 
@@ -512,7 +514,7 @@ export function useAutoDirectorCreateController(input: UseAutoDirectorCreateCont
       queryClient.invalidateQueries({ queryKey: queryKeys.novels.all }),
       queryClient.invalidateQueries({ queryKey: ["tasks"] }),
     ]);
-    toast.success("自动导演创建小说项目，并继续推进规划。");
+    toast.success(t("controller.projectCreated"));
     onConfirmed({
       novelId: confirmedNovelId,
       workflowTaskId: directorTask.id,
@@ -545,7 +547,7 @@ export function useAutoDirectorCreateController(input: UseAutoDirectorCreateCont
       });
     } catch (error) {
       confirmSubmitLockedRef.current = false;
-      const message = error instanceof Error ? error.message : "创建导演主任务失败。";
+      const message = error instanceof Error ? error.message : t("controller.createMainTaskFailed");
       setDialogMode("candidate_selection");
       setExecutionRequested(false);
       setExecutionError(message);
@@ -554,7 +556,7 @@ export function useAutoDirectorCreateController(input: UseAutoDirectorCreateCont
   };
 
   const handleBackgroundContinue = () => {
-    toast.success("导演任务会继续在后台运行，可在 AI 驾驶舱查看进度。");
+    toast.success(t("controller.backgroundContinue"));
     navigate("/");
   };
 

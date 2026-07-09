@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowRight, CheckCircle2, CircleAlert, CircleDashed, Loader2 } from "lucide-react";
 import type {
   APIKeyStatus,
@@ -10,6 +11,7 @@ import type {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import i18n from "@/i18n";
 import { AUTO_DIRECTOR_MOBILE_CLASSES } from "@/mobile/autoDirector";
 
 export type SettingsReadinessItem = {
@@ -35,13 +37,13 @@ function getReadinessIcon(state: SettingsReadinessItem["state"]) {
 function getReadinessBadge(state: SettingsReadinessItem["state"]) {
   switch (state) {
     case "ready":
-      return "可用";
+      return i18n.t("readiness.badgeReady", { ns: "settingsComponents" });
     case "checking":
-      return "检查中";
+      return i18n.t("readiness.badgeChecking", { ns: "settingsComponents" });
     case "optional":
-      return "可选增强";
+      return i18n.t("readiness.badgeOptional", { ns: "settingsComponents" });
     case "warning":
-      return "需要处理";
+      return i18n.t("readiness.badgeWarning", { ns: "settingsComponents" });
   }
 }
 
@@ -79,37 +81,37 @@ export function buildSettingsReadinessItems(input: {
   return [
     {
       key: "model",
-      title: "正文模型",
+      title: i18n.t("readiness.itemModelTitle", { ns: "settingsComponents" }),
       state: runnableProviders.length > 0 ? "ready" : "warning",
       description: runnableProviders.length > 0
-        ? `已可使用 ${runnableProviders[0].name} 进行正文与规划生成。`
-        : "先配置一个可用模型，就可以开始开书和生成章节。",
+        ? i18n.t("readiness.itemModelReady", { ns: "settingsComponents", name: runnableProviders[0].name })
+        : i18n.t("readiness.itemModelWarning", { ns: "settingsComponents" }),
     },
     {
       key: "routes",
-      title: "模型路由",
+      title: i18n.t("readiness.itemRoutesTitle", { ns: "settingsComponents" }),
       state: isModelRoutesChecking ? "checking" : hasRoutes && failedRouteCount === 0 ? "ready" : "warning",
       description: isModelRoutesChecking
-        ? "正在检查开书、拆章、正文生成和审核任务的模型兼容性。"
+        ? i18n.t("readiness.itemRoutesChecking", { ns: "settingsComponents" })
         : hasRoutes && failedRouteCount === 0
-          ? "创作任务已有可用路由，后续流程会按任务选择模型。"
-          : "部分创作任务还需要补齐或修复模型路由。",
+          ? i18n.t("readiness.itemRoutesReady", { ns: "settingsComponents" })
+          : i18n.t("readiness.itemRoutesWarning", { ns: "settingsComponents" }),
     },
     {
       key: "rag",
-      title: "知识库增强",
+      title: i18n.t("readiness.itemRagTitle", { ns: "settingsComponents" }),
       state: ragSettings?.enabled && currentRagProvider?.isConfigured && currentRagProvider?.isActive ? "ready" : "optional",
       description: ragSettings?.enabled && currentRagProvider?.isConfigured && currentRagProvider?.isActive
-        ? "知识库检索已启用，可帮助长篇写作保持资料和设定连续。"
-        : "不配置也可以开始创作；启用后会增强设定、资料和上下文召回。",
+        ? i18n.t("readiness.itemRagReady", { ns: "settingsComponents" })
+        : i18n.t("readiness.itemRagOptional", { ns: "settingsComponents" }),
     },
     {
       key: "style",
-      title: "写法引擎",
+      title: i18n.t("readiness.itemStyleTitle", { ns: "settingsComponents" }),
       state: !isStyleSettingsLoaded ? "checking" : styleReady ? "ready" : "warning",
       description: styleReady
-        ? "写法提取等待时间在可用范围内，可用于学习样本文风。"
-        : "请确认写法提取等待时间在可用范围内。",
+        ? i18n.t("readiness.itemStyleReady", { ns: "settingsComponents" })
+        : i18n.t("readiness.itemStyleWarning", { ns: "settingsComponents" }),
     },
   ];
 }
@@ -117,6 +119,7 @@ export function buildSettingsReadinessItems(input: {
 export default function SettingsReadinessCard(props: {
   items: SettingsReadinessItem[];
 }) {
+  const { t } = useTranslation("settingsComponents");
   const { items } = props;
   const modelItem = items.find((item) => item.key === "model");
   const routesItem = items.find((item) => item.key === "routes");
@@ -125,18 +128,18 @@ export default function SettingsReadinessCard(props: {
   const blockingCount = items.filter((item) => item.key !== "rag" && item.state === "warning").length;
   const canStart = hasModel && hasHealthyRoutes && blockingCount === 0;
   const primaryAction = !hasModel
-    ? { label: "配置正文模型", to: "#settings-provider-section" }
+    ? { label: t("readiness.actionConfigModel"), to: "#settings-provider-section" }
     : !hasHealthyRoutes
-      ? { label: "检查模型路由", to: "/settings/model-routes" }
-      : { label: "开始创建小说", to: "/novels/create" };
+      ? { label: t("readiness.actionCheckRoutes"), to: "/settings/model-routes" }
+      : { label: t("readiness.actionStartNovel"), to: "/novels/create" };
 
   return (
     <Card className="min-w-0 overflow-hidden border-primary/20 bg-primary/5">
       <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 space-y-1">
-          <CardTitle>创作可用性检查</CardTitle>
+          <CardTitle>{t("readiness.title")}</CardTitle>
           <CardDescription className={AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}>
-            先确认开始写小说必需的模型和路由是否可用；知识库属于增强项，可以稍后再补。
+            {t("readiness.description")}
           </CardDescription>
         </div>
         <Button asChild className={AUTO_DIRECTOR_MOBILE_CLASSES.fullWidthAction}>
@@ -167,8 +170,8 @@ export default function SettingsReadinessCard(props: {
         </div>
         <div className={`text-sm ${canStart ? "text-emerald-700" : "text-muted-foreground"} ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>
           {canStart
-            ? "基础创作链路已经可用，可以开始创建或继续推进小说。"
-            : "先处理标记为“需要处理”的项目，完成后再进入自动导演或章节生产会更稳。"}
+            ? t("readiness.canStart")
+            : t("readiness.cannotStart")}
         </div>
       </CardContent>
     </Card>

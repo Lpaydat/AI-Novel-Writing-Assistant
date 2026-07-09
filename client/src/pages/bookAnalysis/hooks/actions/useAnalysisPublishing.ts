@@ -4,6 +4,7 @@ import type {
   BookAnalysisDetail,
   BookAnalysisPublishResult,
 } from "@ai-novel/shared/types/bookAnalysis";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { publishBookAnalysis } from "@/api/bookAnalysis";
 import { queryKeys } from "@/api/queryKeys";
@@ -19,6 +20,7 @@ export function useAnalysisPublishing(input: {
   llmConfig: LLMConfigState;
   refreshAnalysisData: (analysisId: string) => Promise<void>;
 }) {
+  const { t } = useTranslation("bookAnalysis");
   const {
     selectedAnalysis,
     selectedAnalysisId,
@@ -42,14 +44,18 @@ export function useAnalysisPublishing(input: {
       }
       setLastPublishResult(published);
       setPublishFeedback(
-        `发布完成：文档 ${published.knowledgeDocumentId}，版本 v${published.knowledgeDocumentVersionNumber}，绑定 ${published.bindingCount} 项`,
+        t("publish.successFeedback", {
+          documentId: published.knowledgeDocumentId,
+          versionNumber: published.knowledgeDocumentVersionNumber,
+          bindingCount: published.bindingCount,
+        }),
       );
       await queryClient.invalidateQueries({ queryKey: queryKeys.knowledge.documents("book-analysis-source") });
       await queryClient.invalidateQueries({ queryKey: queryKeys.novelsKnowledge.bindings(payload.novelId) });
       await refreshAnalysisData(payload.id);
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : "发布失败。";
+      const message = error instanceof Error ? error.message : t("publish.error");
       setLastPublishResult(null);
       setPublishFeedback(message);
     },
@@ -63,7 +69,7 @@ export function useAnalysisPublishing(input: {
       temperature: llmConfig.temperature,
     }),
     onMutate: () => {
-      setStyleProfileFeedback("正在根据拆书里的“文风与技法”生成写法资产，完成后会自动跳转到写法引擎。");
+      setStyleProfileFeedback(t("styleProfile.generating"));
     },
     onSuccess: async (response) => {
       const createdProfile = response.data;
@@ -71,12 +77,12 @@ export function useAnalysisPublishing(input: {
         return;
       }
       setStyleProfileFeedback("");
-      toast.success("已从拆书生成写法，正在打开写法引擎。");
+      toast.success(t("styleProfile.success"));
       await queryClient.invalidateQueries({ queryKey: queryKeys.styleEngine.profiles });
       navigate(`/style-engine?profileId=${createdProfile.id}&source=book-analysis`);
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : "从拆书生成写法失败。";
+      const message = error instanceof Error ? error.message : t("styleProfile.error");
       setStyleProfileFeedback(message);
     },
   });

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { DocumentChapter } from "@ai-novel/shared/types/knowledge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -130,6 +131,7 @@ export default function BookAnalysisSourceRangePicker({
   onRangeChange,
   onRequestChapters,
 }: BookAnalysisSourceRangePickerProps) {
+  const { t } = useTranslation("bookAnalysisComponents");
   const [mode, setMode] = useState<RangeMode>(selectedRange ? "chapter" : "full");
   const sortedChapters = useMemo(() => sortChapters(sourceChapters), [sourceChapters]);
   const canUseChapterRange = sortedChapters.length > 1;
@@ -241,24 +243,36 @@ export default function BookAnalysisSourceRangePicker({
   };
 
   const rangeTitle = selectedRange && selectedStartChapter && selectedEndChapter
-    ? `第 ${selectedStartChapter.chapterIndex + 1} 章 ~ 第 ${selectedEndChapter.chapterIndex + 1} 章`
-    : "全文";
+    ? t("sourceRange.rangeTitle", {
+        start: selectedStartChapter.chapterIndex + 1,
+        end: selectedEndChapter.chapterIndex + 1,
+      })
+    : t("sourceRange.fullText");
   const rangeDetail = selectedRange && selectedStartChapter && selectedEndChapter
-    ? `${selectedChapterCount} 章 · 约 ${formatCount(selectedCharCount)} 字 · 占全文 ${Math.round(percent)}%`
-    : `${sortedChapters.length > 0 ? `${sortedChapters.length} 章 · ` : ""}约 ${formatCount(sourceCharCount)} 字`;
+    ? t("sourceRange.rangeDetail", {
+        chapters: selectedChapterCount,
+        chars: formatCount(selectedCharCount),
+        percent: Math.round(percent),
+      })
+    : sortedChapters.length > 0
+      ? t("sourceRange.rangeDetailFull", { chapters: sortedChapters.length, chars: formatCount(sourceCharCount) })
+      : t("sourceRange.rangeDetailFullNoChapters", { chars: formatCount(sourceCharCount) });
   const charModeHint = selectedRange && selectedStartChapter && selectedEndChapter
-    ? `按章节边界覆盖第 ${selectedStartChapter.chapterIndex + 1} 章 ~ 第 ${selectedEndChapter.chapterIndex + 1} 章`
-    : "输入字数后会自动换算为章节范围";
+    ? t("sourceRange.charModeHintRange", {
+        start: selectedStartChapter.chapterIndex + 1,
+        end: selectedEndChapter.chapterIndex + 1,
+      })
+    : t("sourceRange.charModeHintEmpty");
 
   return (
     <div className="space-y-2 rounded-md border bg-background p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-sm font-medium">原文范围</div>
+        <div className="text-sm font-medium">{t("sourceRange.title")}</div>
         <div className="inline-flex rounded-md bg-muted/40 p-1">
           {([
-            ["full", "全文"],
-            ["chapter", "按章节"],
-            ["chars", "按字数"],
+            ["full", t("sourceRange.fullText")],
+            ["chapter", t("sourceRange.modeChapter")],
+            ["chars", t("sourceRange.modeChars")],
           ] as const).map(([key, label]) => (
             <button
               key={key}
@@ -292,7 +306,7 @@ export default function BookAnalysisSourceRangePicker({
               >
                 {sortedChapters.map((chapter) => (
                   <option key={chapter.id} value={chapter.chapterIndex}>
-                    起：第 {chapter.chapterIndex + 1} 章 · {shortTitle(chapter.title)}
+                    {t("sourceRange.optionStart", { index: chapter.chapterIndex + 1, title: shortTitle(chapter.title) })}
                   </option>
                 ))}
               </SelectControl>
@@ -309,7 +323,7 @@ export default function BookAnalysisSourceRangePicker({
                   .filter((chapter) => chapter.chapterIndex >= (selectedRange?.startChapterIndex ?? sortedChapters[0]?.chapterIndex ?? 0))
                   .map((chapter) => (
                     <option key={chapter.id} value={chapter.chapterIndex}>
-                      止：第 {chapter.chapterIndex + 1} 章 · {shortTitle(chapter.title)}
+                      {t("sourceRange.optionEnd", { index: chapter.chapterIndex + 1, title: shortTitle(chapter.title) })}
                     </option>
                   ))}
               </SelectControl>
@@ -334,7 +348,7 @@ export default function BookAnalysisSourceRangePicker({
               disabled={!canUseChapterRange}
               onChange={(event) => setCharStartInput(event.target.value)}
               onBlur={() => applyCharRange(charStartInput, charEndInput)}
-              placeholder="起始字数，如 5000"
+              placeholder={t("sourceRange.charStartPlaceholder")}
             />
             <Input
               className="h-9 text-xs"
@@ -342,7 +356,7 @@ export default function BookAnalysisSourceRangePicker({
               disabled={!canUseChapterRange}
               onChange={(event) => setCharEndInput(event.target.value)}
               onBlur={() => applyCharRange(charStartInput, charEndInput)}
-              placeholder="结束字数，如 5万"
+              placeholder={t("sourceRange.charEndPlaceholder")}
             />
           </div>
           <div className="text-xs text-muted-foreground">{charModeHint}</div>
@@ -359,11 +373,11 @@ export default function BookAnalysisSourceRangePicker({
 
       {mode === "chapter" && canUseChapterRange ? (
         <div className="flex flex-wrap gap-1.5">
-          <QuickButton onClick={() => applyChapterPreset("first5")}>前 5 章</QuickButton>
-          <QuickButton onClick={() => applyChapterPreset("last5")}>后 5 章</QuickButton>
-          <QuickButton onClick={() => applyChapterPreset("frontThird")}>前 1/3</QuickButton>
-          <QuickButton onClick={() => applyChapterPreset("middleThird")}>中 1/3</QuickButton>
-          <QuickButton onClick={() => applyChapterPreset("backThird")}>后 1/3</QuickButton>
+          <QuickButton onClick={() => applyChapterPreset("first5")}>{t("sourceRange.presetFirst5")}</QuickButton>
+          <QuickButton onClick={() => applyChapterPreset("last5")}>{t("sourceRange.presetLast5")}</QuickButton>
+          <QuickButton onClick={() => applyChapterPreset("frontThird")}>{t("sourceRange.presetFrontThird")}</QuickButton>
+          <QuickButton onClick={() => applyChapterPreset("middleThird")}>{t("sourceRange.presetMiddleThird")}</QuickButton>
+          <QuickButton onClick={() => applyChapterPreset("backThird")}>{t("sourceRange.presetBackThird")}</QuickButton>
         </div>
       ) : null}
 
@@ -415,15 +429,16 @@ function RangeLoadHint({
   error?: string;
   sourceSelected: boolean;
 }) {
-  let message = "选择文档后可按章节或字数限制本次分析输入。";
+  const { t } = useTranslation("bookAnalysisComponents");
+  let message = t("sourceRange.hintDefault");
   if (sourceSelected && loading) {
-    message = "正在加载章节范围...";
+    message = t("sourceRange.hintLoading");
   } else if (sourceSelected && error) {
-    message = "章节范围加载失败，可先按全文创建拆书。";
+    message = t("sourceRange.hintError");
   } else if (sourceSelected && requested) {
-    message = "当前文档章节不足，可按全文创建拆书。";
+    message = t("sourceRange.hintInsufficient");
   } else if (sourceSelected) {
-    message = "切换到范围模式后会加载章节范围。";
+    message = t("sourceRange.hintSwitch");
   }
   return (
     <div className="rounded-md border bg-muted/20 px-3 py-2 text-xs leading-5 text-muted-foreground">

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,6 +58,7 @@ import {
 } from "./components/workspace/worldWorkspaceShared";
 
 export default function WorldWorkspace() {
+  const { t, i18n } = useTranslation("worlds");
   const navigate = useNavigate();
   const { id = "" } = useParams();
   const llm = useLLMStore();
@@ -125,7 +127,7 @@ export default function WorldWorkspace() {
   const consistencyIssues = useMemo(() => world?.consistencyIssues ?? [], [world?.consistencyIssues]);
   const consistencyReport = useMemo(
     () => parseConsistencyReport(world?.consistencyReport, consistencyIssues),
-    [consistencyIssues, world?.consistencyReport],
+    [consistencyIssues, world?.consistencyReport, i18n.language],
   );
   const selectedLayerMeta = useMemo(
     () => LAYERS.find((item) => item.key === selectedLayer) ?? LAYERS[0],
@@ -272,11 +274,11 @@ export default function WorldWorkspace() {
     mutationFn: (worldId: string) => deleteWorld(worldId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.worlds.all });
-      toast.success("世界样本已删除。");
+      toast.success(t("workspace.toast.deleteSuccess"));
       navigate("/worlds", { replace: true });
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "删除世界样本失败。");
+      toast.error(error instanceof Error ? error.message : t("workspace.toast.deleteError"));
     },
   });
 
@@ -293,7 +295,7 @@ export default function WorldWorkspace() {
     if (!id || !world) {
       return;
     }
-    const confirmed = window.confirm(`确认删除世界样本「${world.name}」？此操作不可恢复。`);
+    const confirmed = window.confirm(t("workspace.confirm.delete", { worldName: world.name }));
     if (!confirmed) {
       return;
     }
@@ -304,7 +306,7 @@ export default function WorldWorkspace() {
     <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>世界工作台：{world?.name ?? "加载中..."} {world?.version ? `(v${world.version})` : ""}</CardTitle>
+          <CardTitle>{t("workspace.title.prefix")}{world?.name ?? t("workspace.title.loading")} {world?.version ? `(v${world.version})` : ""}</CardTitle>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <LLMSelector />
             <Button
@@ -313,7 +315,7 @@ export default function WorldWorkspace() {
               onClick={handleDelete}
               disabled={!id || !world || deleteWorldMutation.isPending}
             >
-              {deleteWorldMutation.isPending ? "删除中..." : "删除世界样本"}
+              {deleteWorldMutation.isPending ? t("workspace.action.deleting") : t("workspace.action.delete")}
             </Button>
           </div>
         </CardHeader>
@@ -330,12 +332,12 @@ export default function WorldWorkspace() {
         className="space-y-4"
       >
         <TabsList className="flex flex-wrap">
-          <TabsTrigger value="structure">整理世界手册</TabsTrigger>
-          <TabsTrigger value="overview">查看手册{featureFlags.worldVisEnabled ? "/可视化" : ""}</TabsTrigger>
-          <TabsTrigger value="layers">分层草稿</TabsTrigger>
-          <TabsTrigger value="deepening">补齐手册</TabsTrigger>
-          <TabsTrigger value="consistency">手册体检</TabsTrigger>
-          <TabsTrigger value="assets">资料与版本</TabsTrigger>
+          <TabsTrigger value="structure">{t("workspace.tab.structure")}</TabsTrigger>
+          <TabsTrigger value="overview">{t("workspace.tab.overview")}{featureFlags.worldVisEnabled ? t("workspace.tab.overviewVisSuffix") : ""}</TabsTrigger>
+          <TabsTrigger value="layers">{t("workspace.tab.layers")}</TabsTrigger>
+          <TabsTrigger value="deepening">{t("workspace.tab.deepening")}</TabsTrigger>
+          <TabsTrigger value="consistency">{t("workspace.tab.consistency")}</TabsTrigger>
+          <TabsTrigger value="assets">{t("workspace.tab.assets")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -388,13 +390,13 @@ export default function WorldWorkspace() {
             <>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between gap-3">
-                  <CardTitle>高级字段维护</CardTitle>
+                  <CardTitle>{t("workspace.advanced.title")}</CardTitle>
                   <Button variant="outline" size="sm" onClick={() => setAdvancedStructureOpen(false)}>
-                    返回整理手册
+                    {t("workspace.advanced.back")}
                   </Button>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
-                  这里用于处理势力关系、地点控制权、结构导入等细节。普通整理优先回到世界手册。
+                  {t("workspace.advanced.description")}
                 </CardContent>
               </Card>
               {id ? (

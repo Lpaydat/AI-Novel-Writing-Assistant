@@ -1,5 +1,6 @@
 import type { BookAnalysisDetail } from "@ai-novel/shared/types/bookAnalysis";
 import { Columns2, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ export default function BookAnalysisWorkspaceToolbar(props: BookAnalysisWorkspac
     onOpenBudgetAdjust,
     onOpenBudgetResume,
   } = props;
+  const { t } = useTranslation("bookAnalysisComponents");
 
   const budgetTokens = selectedAnalysis.budgetTokens ?? null;
   const usedTokens = selectedAnalysis.usedTokens ?? 0;
@@ -73,14 +75,14 @@ export default function BookAnalysisWorkspaceToolbar(props: BookAnalysisWorkspac
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="truncate text-lg font-semibold tracking-normal">{selectedAnalysis.title}</h2>
             <Badge variant="outline">{formatStatus(selectedAnalysis.status)}</Badge>
-            {selectedAnalysis.publishedDocumentId ? <Badge variant="secondary">已发布</Badge> : null}
-            {selectedAnalysis.sourceRange ? <Badge variant="secondary">{selectedAnalysis.sourceRange.label ?? "选定章节"}</Badge> : null}
-            <Badge variant="outline">进度 {Math.round(selectedAnalysis.progress * 100)}%</Badge>
+            {selectedAnalysis.publishedDocumentId ? <Badge variant="secondary">{t("toolbar.published")}</Badge> : null}
+            {selectedAnalysis.sourceRange ? <Badge variant="secondary">{selectedAnalysis.sourceRange.label ?? t("toolbar.selectedChapters")}</Badge> : null}
+            <Badge variant="outline">{t("toolbar.progress", { percent: Math.round(selectedAnalysis.progress * 100) })}</Badge>
             <span className="inline-flex items-center gap-1">
               <Badge variant={budgetExceeded ? "destructive" : "outline"}>
-                预算 {budgetTokens
-                  ? `${formatTokenCount(usedTokens)}/${formatTokenCount(budgetTokens)}`
-                  : `${formatTokenCount(usedTokens)}/不限`}
+                {budgetTokens
+                  ? t("toolbar.budgetWithLimit", { used: formatTokenCount(usedTokens), limit: formatTokenCount(budgetTokens) })
+                  : t("toolbar.budgetUnlimited", { used: formatTokenCount(usedTokens) })}
               </Badge>
               {canAdjustBudget ? (
                 <Button
@@ -88,24 +90,25 @@ export default function BookAnalysisWorkspaceToolbar(props: BookAnalysisWorkspac
                   size="icon"
                   variant="ghost"
                   className="h-6 w-6"
-                  title="调整拆书预算"
+                  title={t("toolbar.adjustBudgetTitle")}
                   onClick={onOpenBudgetAdjust}
                   disabled={pending.updateBudget || pending.resumeWithBudget}
                 >
                   <Pencil className="h-3.5 w-3.5" />
-                  <span className="sr-only">调整拆书预算</span>
+                  <span className="sr-only">{t("toolbar.adjustBudgetTitle")}</span>
                 </Button>
               ) : null}
             </span>
           </div>
           <div className="text-xs text-muted-foreground">
-            {selectedAnalysis.documentTitle} | 源版本 v{selectedAnalysis.documentVersionNumber}{selectedAnalysis.sourceRange ? ` | 范围：${selectedAnalysis.sourceRange.label ?? "选定章节"}` : ""}
-            {selectedAnalysis.isCurrentVersion ? "" : ` | 当前激活版本 v${selectedAnalysis.currentDocumentVersionNumber}`}
+            {t("toolbar.sourceVersion", { title: selectedAnalysis.documentTitle, version: selectedAnalysis.documentVersionNumber })}
+            {selectedAnalysis.sourceRange ? t("toolbar.rangeSuffix", { label: selectedAnalysis.sourceRange.label ?? t("toolbar.selectedChapters") }) : ""}
+            {selectedAnalysis.isCurrentVersion ? "" : t("toolbar.currentActiveVersion", { version: selectedAnalysis.currentDocumentVersionNumber })}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={onCopy} disabled={pending.copy}>
-            复制
+            {t("toolbar.copy")}
           </Button>
           {budgetResumeAvailable ? (
             <Button
@@ -113,7 +116,7 @@ export default function BookAnalysisWorkspaceToolbar(props: BookAnalysisWorkspac
               onClick={onOpenBudgetResume}
               disabled={pending.resumeWithBudget || selectedAnalysis.status === "archived"}
             >
-              {pending.resumeWithBudget ? "提交中..." : "扩容预算并续跑"}
+              {pending.resumeWithBudget ? t("toolbar.submitting") : t("toolbar.resumeWithBudget")}
             </Button>
           ) : null}
           <Button
@@ -122,24 +125,24 @@ export default function BookAnalysisWorkspaceToolbar(props: BookAnalysisWorkspac
             onClick={() => onRebuild(selectedAnalysis.id)}
             disabled={pending.rebuild || selectedAnalysis.status === "archived"}
           >
-            重新生成
+            {t("toolbar.rebuild")}
           </Button>
           <Button
             size="sm"
             onClick={onPublish}
             disabled={!selectedNovelId || pending.publish || selectedAnalysis.status === "archived"}
-            title={!selectedNovelId ? "请在下方「分析信息与发布」中选择目标小说" : "发布到小说知识库"}
+            title={!selectedNovelId ? t("toolbar.publishTitleNoNovel") : t("toolbar.publishTitle")}
           >
-            {pending.publish ? "发布中..." : "发布"}
+            {pending.publish ? t("toolbar.publishing") : t("toolbar.publish")}
           </Button>
           <Button asChild size="sm" variant="outline">
-            <Link to={`/tasks?kind=book_analysis&id=${selectedAnalysis.id}`}>任务中心</Link>
+            <Link to={`/tasks?kind=book_analysis&id=${selectedAnalysis.id}`}>{t("toolbar.taskCenter")}</Link>
           </Button>
           <Button size="sm" variant="outline" onClick={() => onDownload("markdown")}>
-            导出 MD
+            {t("toolbar.exportMd")}
           </Button>
           <Button size="sm" variant="outline" onClick={() => onDownload("json")}>
-            导出 JSON
+            {t("toolbar.exportJson")}
           </Button>
           <Button
             size="sm"
@@ -147,7 +150,7 @@ export default function BookAnalysisWorkspaceToolbar(props: BookAnalysisWorkspac
             onClick={onCreateStyleProfile}
             disabled={pending.createStyleProfile || selectedAnalysis.status === "archived"}
           >
-            {pending.createStyleProfile ? "生成写法中..." : "生成写法"}
+            {pending.createStyleProfile ? t("toolbar.creatingStyle") : t("toolbar.createStyle")}
           </Button>
           <Button
             size="sm"
@@ -155,7 +158,7 @@ export default function BookAnalysisWorkspaceToolbar(props: BookAnalysisWorkspac
             onClick={() => onArchive(selectedAnalysis.id)}
             disabled={pending.archive || selectedAnalysis.status === "archived"}
           >
-            归档
+            {t("toolbar.archive")}
           </Button>
           {dualPaneAvailable ? (
             <Button
@@ -163,10 +166,10 @@ export default function BookAnalysisWorkspaceToolbar(props: BookAnalysisWorkspac
               size="sm"
               variant={isDualPane ? "default" : "outline"}
               onClick={() => onDualPaneChange(!isDualPane)}
-              title={isDualPane ? "关闭双栏对照" : "打开双栏对照"}
+              title={isDualPane ? t("toolbar.dualPaneClose") : t("toolbar.dualPaneOpen")}
             >
               <Columns2 className="mr-1.5 h-3.5 w-3.5" />
-              双栏
+              {t("toolbar.dualPane")}
             </Button>
           ) : null}
         </div>

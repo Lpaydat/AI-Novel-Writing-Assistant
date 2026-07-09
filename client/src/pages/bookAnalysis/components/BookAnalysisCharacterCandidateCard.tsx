@@ -3,6 +3,7 @@ import type {
   BookAnalysisCharacterDimension,
   BookAnalysisCharacterGenerationDepth,
 } from "@ai-novel/shared/types/bookAnalysisCharacter";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -32,6 +33,7 @@ export default function BookAnalysisCharacterCandidateCard(props: BookAnalysisCh
     onGenerate,
     onDelete,
   } = props;
+  const { t } = useTranslation("bookAnalysisComponents");
   const generating = isGenerating || character.status === "generating";
   const failed = character.status === "failed";
 
@@ -42,7 +44,7 @@ export default function BookAnalysisCharacterCandidateCard(props: BookAnalysisCh
           <div className="flex flex-wrap items-center gap-2">
             <div className="font-medium">{character.name}</div>
             <Badge variant={failed ? "destructive" : "outline"}>
-              {generating ? "生成中" : failed ? "生成失败" : "候选"}
+              {generating ? t("candidateCard.generating") : failed ? t("candidateCard.failed") : t("candidateCard.candidate")}
             </Badge>
             {character.importance ? <Badge variant="secondary">{character.importance}</Badge> : null}
           </div>
@@ -54,7 +56,7 @@ export default function BookAnalysisCharacterCandidateCard(props: BookAnalysisCh
             onClick={() => void onGenerate(character.id, { generationDepth, selectedDimensions })}
             disabled={disabled || generating || selectedDimensions.length === 0}
           >
-            {generating ? "生成中..." : failed ? "重试生成" : "生成档案"}
+            {generating ? t("candidateCard.generatingEllipsis") : failed ? t("candidateCard.retry") : t("candidateCard.generateProfile")}
           </Button>
           <Button
             size="sm"
@@ -62,7 +64,7 @@ export default function BookAnalysisCharacterCandidateCard(props: BookAnalysisCh
             onClick={() => void onDelete(character.id)}
             disabled={disabled || generating}
           >
-            删除
+            {t("candidateCard.delete")}
           </Button>
         </div>
       </div>

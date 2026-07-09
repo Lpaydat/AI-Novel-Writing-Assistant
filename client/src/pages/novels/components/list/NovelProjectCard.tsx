@@ -1,4 +1,6 @@
 import type { KeyboardEvent, MouseEvent } from "react";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { BookOpen, Gauge, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { DirectorContinuationMode } from "@ai-novel/shared/types/novelDirector";
@@ -39,6 +41,7 @@ export function NovelProjectCard(props: {
   onDownload: (input: { novelId: string; novelTitle: string }) => void;
   onDelete: (novelId: string, title: string) => void;
 }) {
+  const { t } = useTranslation("novelsList");
   const task = props.novel.latestAutoDirectorTask ?? null;
   const workflow = buildWorkflowDisplay(props.novel);
   const workflowBadge = getWorkflowBadge(task);
@@ -76,8 +79,8 @@ export function NovelProjectCard(props: {
               {props.novel.title}
             </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-              <span>{props.novel.status === "published" ? "已发布" : "草稿"}</span>
-              <span>{props.novel.writingMode === "continuation" ? "续写" : "原创"}</span>
+              <span>{props.novel.status === "published" ? t("status.published") : t("status.draft")}</span>
+              <span>{props.novel.writingMode === "continuation" ? t("writingMode.continuation") : t("writingMode.original")}</span>
               {workflowBadge ? (
                 <span className={toneTextClass(workflow.tone)}>{workflowBadge.label}</span>
               ) : null}
@@ -86,7 +89,7 @@ export function NovelProjectCard(props: {
         </div>
 
         <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">
-          {props.novel.description || "暂无简介"}
+          {props.novel.description || t("card.noDescription")}
         </p>
 
         <div className={cn("rounded-xl p-3", toneSurfaceClass(workflow.tone))}>
@@ -97,25 +100,27 @@ export function NovelProjectCard(props: {
                 {workflow.currentStage}{workflow.currentAction ? ` · ${workflow.currentAction}` : ""}
               </div>
             </div>
-            <div className="text-xs font-medium tabular-nums text-foreground">进度 {workflow.progress}%</div>
+            <div className="text-xs font-medium tabular-nums text-foreground">{t("card.progress", { progress: workflow.progress })}</div>
           </div>
           <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{workflow.description}</p>
           {workflow.running ? (
             <NovelWorkflowRunningIndicator
               className="mt-3"
               progress={task?.progress ?? 0}
-              label={workflow.currentAction || "AI 正在后台持续推进"}
+              label={workflow.currentAction || t("card.runningLabel")}
             />
           ) : (
             <div className="mt-3 flex items-center justify-between rounded-lg bg-background/45 px-3 py-2 text-xs text-muted-foreground">
               <span className="line-clamp-1">
-                {workflow.lastHealthyStage ? `最近健康阶段：${workflow.lastHealthyStage}` : "等待下一步操作"}
+                {workflow.lastHealthyStage
+                  ? t("card.lastHealthyStage", { stage: workflow.lastHealthyStage })
+                  : t("card.awaitingNextStep")}
               </span>
               <span className="font-medium tabular-nums text-foreground">{workflow.progress}%</span>
             </div>
           )}
           {workflow.running && workflow.lastHealthyStage ? (
-            <div className="mt-2 text-xs text-muted-foreground">最近健康阶段：{workflow.lastHealthyStage}</div>
+            <div className="mt-2 text-xs text-muted-foreground">{t("card.lastHealthyStage", { stage: workflow.lastHealthyStage })}</div>
           ) : null}
         </div>
 
@@ -131,10 +136,10 @@ export function NovelProjectCard(props: {
         </div>
 
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-          <span>项目：{formatProgressStatus(props.novel.projectStatus)}</span>
-          <span>主线：{formatProgressStatus(props.novel.storylineStatus)}</span>
-          <span>大纲：{formatProgressStatus(props.novel.outlineStatus)}</span>
-          <span>Token：{formatTokenCount(props.novel.tokenUsage?.totalTokens)}</span>
+          <span>{t("card.project", { status: formatProgressStatus(props.novel.projectStatus) })}</span>
+          <span>{t("card.storyline", { status: formatProgressStatus(props.novel.storylineStatus) })}</span>
+          <span>{t("card.outline", { status: formatProgressStatus(props.novel.outlineStatus) })}</span>
+          <span>{t("card.token", { value: formatTokenCount(props.novel.tokenUsage?.totalTokens) })}</span>
         </div>
 
         <div className="mt-auto flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
@@ -146,6 +151,7 @@ export function NovelProjectCard(props: {
               pending: isWorkflowPending,
               onContinueWorkflow: props.onContinueWorkflow,
               onStopCardClick: stopCardClick,
+              t,
             })}
             <Button
               type="button"
@@ -157,21 +163,21 @@ export function NovelProjectCard(props: {
               }}
             >
               <Gauge className="mr-1.5 h-4 w-4" aria-hidden="true" />
-              AI 驾驶舱
+              {t("card.cockpit")}
             </Button>
           </div>
           <div className="flex flex-wrap items-center gap-1">
             {task ? (
               <Button asChild size="sm" variant="ghost">
                 <Link to={`/novels/${props.novel.id}/edit?directorTaskId=${task.id}&taskPanel=1`} onClick={stopCardClick}>
-                  执行详情
+                  {t("card.executionDetails")}
                 </Link>
               </Button>
             ) : null}
             <Button asChild size="sm" variant="ghost">
               <Link to={`/novels/${props.novel.id}/preview`} onClick={stopCardClick}>
                 <BookOpen className="mr-1.5 h-4 w-4" aria-hidden="true" />
-                预览
+                {t("card.preview")}
               </Link>
             </Button>
             <Button
@@ -186,7 +192,7 @@ export function NovelProjectCard(props: {
               }}
               disabled={isDownloadPending}
             >
-              {isDownloadPending ? "导出中..." : "导出"}
+              {isDownloadPending ? t("card.exporting") : t("card.export")}
             </Button>
             <Button
               size="sm"
@@ -199,7 +205,7 @@ export function NovelProjectCard(props: {
               disabled={isDeletePending}
             >
               <Trash2 className="mr-1.5 h-4 w-4" aria-hidden="true" />
-              {isDeletePending ? "删除中..." : "删除"}
+              {isDeletePending ? t("card.deleting") : t("card.delete")}
             </Button>
           </div>
         </div>
@@ -215,7 +221,9 @@ function renderPrimaryAction(input: {
   pending: boolean;
   onContinueWorkflow: (input: { taskId: string; mode?: DirectorContinuationMode }) => void;
   onStopCardClick: (event: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) => void;
+  t: TFunction;
 }) {
+  const { t } = input;
   if (canContinueChapterBatchAutoExecution(input.task)) {
     return (
       <Button
@@ -232,7 +240,7 @@ function renderPrimaryAction(input: {
         }}
         disabled={input.pending}
       >
-        {input.pending ? "继续执行中..." : input.label}
+        {input.pending ? t("card.continuingExecution") : input.label}
       </Button>
     );
   }
@@ -249,7 +257,7 @@ function renderPrimaryAction(input: {
         }}
         disabled={input.pending}
       >
-        {input.pending ? "继续中..." : input.label}
+        {input.pending ? t("card.continuing") : input.label}
       </Button>
     );
   }

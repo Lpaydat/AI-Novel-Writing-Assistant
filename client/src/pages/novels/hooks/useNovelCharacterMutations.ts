@@ -22,6 +22,7 @@ import type {
   SupplementalCharacterCandidate,
   SupplementalCharacterGenerateInput,
 } from "@ai-novel/shared/types/novel";
+import i18n from "@/i18n";
 
 interface LLMState {
   provider?: LLMProvider;
@@ -121,7 +122,7 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
         endOrder: pipelineForm.endOrder,
       }),
     onSuccess: async (response) => {
-      setCharacterMessage(response.message ?? `角色时间线同步完成，本次新增 ${response.data?.syncedCount ?? 0} 条。`);
+      setCharacterMessage(response.message ?? i18n.t("character.timelineSynced", { ns: "novelsHooks", count: response.data?.syncedCount ?? 0 }));
       await invalidateCharacterViews(queryClient, id, selectedCharacterId || "none");
     },
   });
@@ -133,7 +134,7 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
         endOrder: pipelineForm.endOrder,
       }),
     onSuccess: async (response) => {
-      setCharacterMessage(response.message ?? `全角色时间线同步完成，共新增 ${response.data?.syncedCount ?? 0} 条事件。`);
+      setCharacterMessage(response.message ?? i18n.t("character.allTimelineSynced", { ns: "novelsHooks", count: response.data?.syncedCount ?? 0 }));
       await invalidateCharacterViews(queryClient, id, selectedCharacterId || "none");
     },
   });
@@ -146,7 +147,7 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
         temperature: 0.4,
       }),
     onSuccess: async () => {
-      setCharacterMessage("角色信息已按时间线完成演进更新。");
+      setCharacterMessage(i18n.t("character.evolved", { ns: "novelsHooks" }));
       await invalidateCharacterViews(queryClient, id, selectedCharacterId || "none");
     },
   });
@@ -161,10 +162,10 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
       }),
     onSuccess: (response) => {
       const count = Object.keys(response.data?.fields ?? {}).length;
-      setCharacterMessage(count > 0 ? `已生成 ${count} 项外显资料建议，请确认后写入。` : "当前角色没有可补写的外显资料。");
+      setCharacterMessage(count > 0 ? i18n.t("character.visibleProfileGenerated", { ns: "novelsHooks", count }) : i18n.t("character.visibleProfileNone", { ns: "novelsHooks" }));
     },
     onError: (error) => {
-      setCharacterMessage(error instanceof Error ? error.message : "外显资料生成失败。");
+      setCharacterMessage(error instanceof Error ? error.message : i18n.t("character.visibleProfileGenerateFailed", { ns: "novelsHooks" }));
     },
   });
 
@@ -178,11 +179,11 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
     },
     onSuccess: async (response) => {
       const count = response.data?.appliedFields.length ?? 0;
-      setCharacterMessage(count > 0 ? `已写入 ${count} 项外显资料。` : "没有新的外显资料需要写入。");
+      setCharacterMessage(count > 0 ? i18n.t("character.visibleProfileApplied", { ns: "novelsHooks", count }) : i18n.t("character.visibleProfileApplyNone", { ns: "novelsHooks" }));
       await invalidateCharacterViews(queryClient, id, selectedCharacterId || "none");
     },
     onError: (error) => {
-      setCharacterMessage(error instanceof Error ? error.message : "外显资料写入失败。");
+      setCharacterMessage(error instanceof Error ? error.message : i18n.t("character.visibleProfileApplyFailed", { ns: "novelsHooks" }));
     },
   });
 
@@ -196,10 +197,10 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
       }),
     onSuccess: (response) => {
       const count = response.data?.results.filter((item) => item.hasApplicableChanges).length ?? 0;
-      setCharacterMessage(count > 0 ? `已生成 ${count} 个角色的外显资料建议，请确认后写入。` : "当前角色资料暂时没有需要补写的外显内容。");
+      setCharacterMessage(count > 0 ? i18n.t("character.batchVisibleProfileGenerated", { ns: "novelsHooks", count }) : i18n.t("character.batchVisibleProfileNone", { ns: "novelsHooks" }));
     },
     onError: (error) => {
-      setCharacterMessage(error instanceof Error ? error.message : "批量外显资料生成失败。");
+      setCharacterMessage(error instanceof Error ? error.message : i18n.t("character.batchVisibleProfileGenerateFailed", { ns: "novelsHooks" }));
     },
   });
 
@@ -216,11 +217,11 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
     },
     onSuccess: async (response) => {
       const count = response.data?.results.reduce((sum, item) => sum + item.appliedFields.length, 0) ?? 0;
-      setCharacterMessage(count > 0 ? `已批量写入 ${count} 项外显资料。` : "没有新的外显资料需要批量写入。");
+      setCharacterMessage(count > 0 ? i18n.t("character.batchVisibleProfileApplied", { ns: "novelsHooks", count }) : i18n.t("character.batchVisibleProfileApplyNone", { ns: "novelsHooks" }));
       await invalidateCharacterViews(queryClient, id, selectedCharacterId || "none");
     },
     onError: (error) => {
-      setCharacterMessage(error instanceof Error ? error.message : "批量外显资料写入失败。");
+      setCharacterMessage(error instanceof Error ? error.message : i18n.t("character.batchVisibleProfileApplyFailed", { ns: "novelsHooks" }));
     },
   });
 
@@ -237,10 +238,10 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
       const issueText = (response.data?.issues ?? [])
         .map((item) => `${item.severity.toUpperCase()}: ${item.message}`)
         .join(" | ");
-      setCharacterMessage(`世界规则检查(${status}) ${warningText} ${issueText}`.trim());
+      setCharacterMessage(i18n.t("character.worldCheck", { ns: "novelsHooks", status, warnings: warningText, issues: issueText }).trim());
     },
     onError: (error) => {
-      setCharacterMessage(error instanceof Error ? error.message : "世界规则检查失败。");
+      setCharacterMessage(error instanceof Error ? error.message : i18n.t("character.worldCheckFailed", { ns: "novelsHooks" }));
     },
   });
 
@@ -263,7 +264,7 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
         currentGoal: characterForm.currentGoal,
       }),
     onSuccess: async () => {
-      setCharacterMessage("角色信息已保存。");
+      setCharacterMessage(i18n.t("character.saved", { ns: "novelsHooks" }));
       await invalidateCharacterViews(queryClient, id, selectedCharacterId || "none");
     },
   });
@@ -271,7 +272,7 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
   const importBaseCharacterMutation = useMutation({
     mutationFn: async () => {
       if (!selectedBaseCharacter) {
-        throw new Error("请先选择要导入的基础角色。");
+        throw new Error(i18n.t("character.selectBaseCharacterFirst", { ns: "novelsHooks" }));
       }
       return createNovelCharacter(id, {
         name: selectedBaseCharacter.name,
@@ -283,14 +284,14 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
       });
     },
     onSuccess: async (response) => {
-      setCharacterMessage(response.message ?? "基础角色已导入到当前小说。");
+      setCharacterMessage(response.message ?? i18n.t("character.baseImported", { ns: "novelsHooks" }));
       if (response.data?.id) {
         setSelectedCharacterId(response.data.id);
       }
       await invalidateCharacterViews(queryClient, id, response.data?.id ?? selectedCharacterId ?? "none");
     },
     onError: (error) => {
-      setCharacterMessage(error instanceof Error ? error.message : "导入基础角色失败。");
+      setCharacterMessage(error instanceof Error ? error.message : i18n.t("character.baseImportFailed", { ns: "novelsHooks" }));
     },
   });
 
@@ -308,7 +309,7 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
       });
     },
     onSuccess: async (response) => {
-      setCharacterMessage(response.message ?? "角色创建成功。");
+      setCharacterMessage(response.message ?? i18n.t("character.created", { ns: "novelsHooks" }));
       setQuickCharacterForm((prev) => ({ ...prev, name: "" }));
       if (response.data?.id) {
         setSelectedCharacterId(response.data.id);
@@ -316,14 +317,14 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
       await invalidateCharacterViews(queryClient, id, response.data?.id ?? selectedCharacterId ?? "none");
     },
     onError: (error) => {
-      setCharacterMessage(error instanceof Error ? error.message : "角色创建失败。");
+      setCharacterMessage(error instanceof Error ? error.message : i18n.t("character.createFailed", { ns: "novelsHooks" }));
     },
   });
 
   const deleteCharacterMutation = useMutation({
     mutationFn: (characterId: string) => deleteNovelCharacter(id, characterId),
     onSuccess: async (_response, deletedCharacterId) => {
-      setCharacterMessage("角色已删除。");
+      setCharacterMessage(i18n.t("character.deleted", { ns: "novelsHooks" }));
       if (selectedCharacterId === deletedCharacterId) {
         const fallback = characters.find((item) => item.id !== deletedCharacterId);
         setSelectedCharacterId(fallback?.id ?? "");
@@ -331,7 +332,7 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
       await invalidateCharacterViews(queryClient, id, deletedCharacterId);
     },
     onError: (error) => {
-      setCharacterMessage(error instanceof Error ? error.message : "删除角色失败。");
+      setCharacterMessage(error instanceof Error ? error.message : i18n.t("character.deleteFailed", { ns: "novelsHooks" }));
     },
   });
 
@@ -344,7 +345,7 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
         temperature: payload.temperature ?? 0.55,
       }),
     onError: (error) => {
-      setCharacterMessage(error instanceof Error ? error.message : "补充角色生成失败。");
+      setCharacterMessage(error instanceof Error ? error.message : i18n.t("character.supplementalGenerateFailed", { ns: "novelsHooks" }));
     },
   });
 
@@ -355,7 +356,12 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
       const relationCount = response.data?.relationCount ?? 0;
       setCharacterMessage(
         response.message
-        ?? `补充角色已创建${relationCount > 0 ? `，并同步 ${relationCount} 条结构化关系` : ""}。`,
+        ?? i18n.t("character.supplementalCreated", {
+          ns: "novelsHooks",
+          suffix: relationCount > 0
+            ? i18n.t("character.supplementalRelationSuffix", { ns: "novelsHooks", count: relationCount })
+            : "",
+        }),
       );
       if (createdCharacterId) {
         setSelectedCharacterId(createdCharacterId);
@@ -363,7 +369,7 @@ export function useNovelCharacterMutations(input: UseNovelCharacterMutationsInpu
       await invalidateCharacterViews(queryClient, id, createdCharacterId || selectedCharacterId || "none");
     },
     onError: (error) => {
-      setCharacterMessage(error instanceof Error ? error.message : "应用补充角色失败。");
+      setCharacterMessage(error instanceof Error ? error.message : i18n.t("character.supplementalApplyFailed", { ns: "novelsHooks" }));
     },
   });
 

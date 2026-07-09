@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { UnifiedTaskDetail } from "@ai-novel/shared/types/task";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -47,6 +48,7 @@ function completedThrough(stage: AutoDirectorCreateStageKey): Set<AutoDirectorCr
 }
 
 export default function AutoDirectorCreatePage() {
+  const { t, i18n } = useTranslation("novelsAutoDirector");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const reducedMotion = useReducedMotion();
@@ -107,7 +109,7 @@ export default function AutoDirectorCreatePage() {
       }
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "恢复自动导演任务失败。");
+      toast.error(error instanceof Error ? error.message : t("page.restoreTaskFailed"));
     },
   });
 
@@ -170,10 +172,10 @@ export default function AutoDirectorCreatePage() {
       postGenerationStyleReviewEnabled: controller.directorBasicForm.postGenerationStyleReviewEnabled,
     }),
     candidates: controller.batches.length > 0
-      ? `已生成 ${controller.batches.length} 批方向候选`
+      ? t("page.summary.candidates.generated", { count: controller.batches.length })
       : controller.hasActiveDirectorTask
-        ? "导演任务进行中"
-        : "等待生成方向候选",
+        ? t("page.summary.candidates.inProgress")
+        : t("page.summary.candidates.waiting"),
   }), [
     controller.batches.length,
     controller.directorBasicForm,
@@ -186,6 +188,10 @@ export default function AutoDirectorCreatePage() {
     controller.styleProfiles,
     controller.worldSetupMode,
     worldOptions,
+    // summarize* helpers and the candidates fallback resolve i18n strings, so
+    // recompute when the active locale changes.
+    i18n.language,
+    t,
   ]);
 
   const markStageCompleted = (stage: AutoDirectorCreateStageKey) => {
@@ -293,13 +299,13 @@ export default function AutoDirectorCreatePage() {
       {showSummaryBar ? (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <div className="text-2xl font-semibold tracking-normal text-foreground">AI 自动导演创建</div>
+            <div className="text-2xl font-semibold tracking-normal text-foreground">{t("page.title")}</div>
             <div className="mt-1 text-sm leading-6 text-muted-foreground">
-              从一个起始想法开始，逐步确认默认设置，再选择整本书方向。
+              {t("page.subtitle")}
             </div>
           </div>
           <Button type="button" variant="outline" asChild>
-            <Link to="/novels/create">手动创建</Link>
+            <Link to="/novels/create">{t("page.manualCreate")}</Link>
           </Button>
         </div>
       ) : null}
@@ -314,7 +320,7 @@ export default function AutoDirectorCreatePage() {
               <StageSummaryCard
                 key={stage.key}
                 order={stage.order}
-                label={stage.label}
+                label={t(stage.label)}
                 stageKey={stage.key}
                 summary={summaries[stage.key]}
                 active={active}
@@ -329,7 +335,7 @@ export default function AutoDirectorCreatePage() {
 
       {restoreWorkflowMutation.isPending && normalizedTaskId ? (
         <div className="rounded-lg bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-          正在恢复自动导演现场。
+          {t("page.restoringSession")}
         </div>
       ) : null}
 

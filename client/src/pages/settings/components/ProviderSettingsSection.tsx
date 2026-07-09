@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { LLMProvider } from "@ai-novel/shared/types/llm";
 import type { APIKeyStatus, ProviderBalanceStatus } from "@/api/settings";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export default function ProviderSettingsSection(props: {
     onRefreshBalance,
     onToggleReasoning,
   } = props;
+  const { t } = useTranslation("settingsComponents");
   const balanceMap = new Map(balances.map((item) => [item.provider, item]));
   const viewModels: ProviderCardViewModel[] = providers.map((provider) => {
     const balance = balanceMap.get(provider.provider);
@@ -61,13 +63,13 @@ export default function ProviderSettingsSection(props: {
     <Card id="settings-provider-section" className="min-w-0 scroll-mt-20 overflow-hidden">
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <CardTitle>模型厂商</CardTitle>
+          <CardTitle>{t("providerSection.title")}</CardTitle>
           <CardDescription className={AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}>
-            先保证至少一个文本模型可用；余额明细、请求限制和模型列表可以在高级详情里检查。
+            {t("providerSection.description")}
           </CardDescription>
         </div>
         <Button className={AUTO_DIRECTOR_MOBILE_CLASSES.fullWidthAction} onClick={onCreateCustomProvider}>
-          新增自定义厂商
+          {t("providerSection.addCustom")}
         </Button>
       </CardHeader>
       <CardContent className="grid min-w-0 gap-3 md:grid-cols-2">

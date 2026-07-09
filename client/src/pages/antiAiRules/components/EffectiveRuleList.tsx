@@ -1,7 +1,7 @@
 import type { AntiAiEffectiveRuleItem } from "@ai-novel/shared/types/styleEngine";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
-import { severityLabels, typeLabels } from "../antiAiRulesPage.shared";
+import { severityLabelKeys, typeLabelKeys } from "../antiAiRulesPage.shared";
 
 interface EffectiveRuleListProps {
   title: string;
@@ -23,7 +23,7 @@ export default function EffectiveRuleList(props: EffectiveRuleListProps) {
                 <Badge variant={item.source === "global_baseline" ? "default" : "secondary"}>
                   {item.source === "global_baseline" ? t("effectiveList.sourceGlobal") : t("effectiveList.sourceStyle")}
                 </Badge>
-                <Badge variant="outline">{typeLabels[item.rule.type]} / {severityLabels[item.rule.severity]}</Badge>
+                <Badge variant="outline">{t(typeLabelKeys[item.rule.type])} / {t(severityLabelKeys[item.rule.severity])}</Badge>
               </div>
               <div className="mt-2 text-xs leading-5 text-muted-foreground">
                 {item.sourceLabel}{item.weight !== 1 ? t("effectiveList.strength", { weight: item.weight }) : ""}

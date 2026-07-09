@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronDown } from "lucide-react";
 import type { LLMProvider } from "@ai-novel/shared/types/llm";
 import type { APIKeyStatus, ProviderBalanceStatus } from "@/api/settings";
+import i18n from "@/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -28,15 +30,20 @@ function getBalanceSummary(input: {
 }) {
   const { provider, balance, isBalanceLoading } = input;
   if (provider.kind === "custom") {
-    return "自定义厂商暂不接入余额查询。";
+    return i18n.t("statusCard.balanceCustomNotSupported", { ns: "settingsComponents" });
   }
   if (isBalanceLoading) {
-    return "正在查询余额...";
+    return i18n.t("statusCard.balanceLoading", { ns: "settingsComponents" });
   }
   if (balance?.status === "available") {
-    return `余额 ${formatBalanceAmount(balance.availableBalance, balance.currency)}`;
+    return i18n.t("statusCard.balanceAvailable", {
+      ns: "settingsComponents",
+      amount: formatBalanceAmount(balance.availableBalance, balance.currency),
+    });
   }
-  return balance?.error ?? balance?.message ?? (provider.isConfigured ? "当前暂未获取余额信息。" : "请先配置 API Key。");
+  return balance?.error ?? balance?.message ?? (provider.isConfigured
+    ? i18n.t("statusCard.balanceNoInfo", { ns: "settingsComponents" })
+    : i18n.t("statusCard.balanceNeedConfig", { ns: "settingsComponents" }));
 }
 
 export default function ProviderStatusCard(props: {
@@ -57,16 +64,17 @@ export default function ProviderStatusCard(props: {
     onToggleReasoning,
     isRefreshingModels,
   } = props;
+  const { t } = useTranslation("settingsComponents");
   const { provider, balance } = item;
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
   const imageModelLabel = provider.supportsImageGeneration
-    ? provider.currentImageModel || provider.defaultImageModel || "未设置"
-    : "不支持图像生成";
+    ? provider.currentImageModel || provider.defaultImageModel || t("statusCard.imageModelNotSet")
+    : t("statusCard.imageModelUnsupported");
   const visibleModels = modelsOpen ? provider.models : provider.models.slice(0, 8);
   const canUseProvider = provider.isConfigured && provider.isActive && Boolean(provider.currentModel);
-  const testDisabledReason = provider.isConfigured ? "" : "配置 API Key 后可以测试连接。";
-  const refreshDisabledReason = provider.isConfigured ? "" : "配置 API Key 后可以刷新模型列表。";
+  const testDisabledReason = provider.isConfigured ? "" : t("statusCard.testDisabledReason");
+  const refreshDisabledReason = provider.isConfigured ? "" : t("statusCard.refreshDisabledReason");
 
   return (
     <div
@@ -79,29 +87,29 @@ export default function ProviderStatusCard(props: {
         <div className="min-w-0 space-y-1">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <div className={`font-medium ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>{provider.name}</div>
-            {provider.kind === "custom" ? <Badge variant="outline">自定义</Badge> : null}
+            {provider.kind === "custom" ? <Badge variant="outline">{t("statusCard.customBadge")}</Badge> : null}
           </div>
           <div className={`text-xs text-muted-foreground ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>
-            {canUseProvider ? "可用于创作任务。" : "完成配置后可用于创作任务。"}
+            {canUseProvider ? t("statusCard.usableForTasks") : t("statusCard.usableAfterConfig")}
           </div>
         </div>
         <Badge
           variant={canUseProvider ? "default" : "outline"}
           className={canUseProvider ? "bg-emerald-600 text-white hover:bg-emerald-600" : ""}
         >
-          {canUseProvider ? "可用" : provider.isConfigured ? "已配置" : "未配置"}
+          {canUseProvider ? t("statusCard.statusUsable") : provider.isConfigured ? t("statusCard.statusConfigured") : t("statusCard.statusNotConfigured")}
         </Badge>
       </div>
 
       <div className="mb-3 grid min-w-0 gap-2 text-sm md:grid-cols-2">
         <div className="min-w-0 rounded-md border bg-background/70 p-2">
-          <div className="text-xs text-muted-foreground">文本模型</div>
+          <div className="text-xs text-muted-foreground">{t("statusCard.textModelLabel")}</div>
           <div className={`mt-1 font-medium ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>
             {provider.currentModel || "-"}
           </div>
         </div>
         <div className="min-w-0 rounded-md border bg-background/70 p-2">
-          <div className="text-xs text-muted-foreground">图像模型</div>
+          <div className="text-xs text-muted-foreground">{t("statusCard.imageModelLabel")}</div>
           <div className={`mt-1 font-medium ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>
             {imageModelLabel}
           </div>
@@ -124,7 +132,7 @@ export default function ProviderStatusCard(props: {
 
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         <Button size="sm" className="w-full sm:w-auto" onClick={() => onOpenConfig(provider.provider)}>
-          {provider.kind === "custom" ? "编辑" : "配置"}
+          {provider.kind === "custom" ? t("statusCard.edit") : t("statusCard.config")}
         </Button>
         <Button
           size="sm"
@@ -134,7 +142,7 @@ export default function ProviderStatusCard(props: {
           onClick={() => onTest(provider)}
           disabled={!provider.isConfigured || item.isTesting}
         >
-          {item.isTesting ? "测试中..." : "测试连接"}
+          {item.isTesting ? t("statusCard.testing") : t("statusCard.testConnection")}
         </Button>
         <Button
           size="sm"
@@ -144,18 +152,18 @@ export default function ProviderStatusCard(props: {
           onClick={() => onRefreshModels(provider.provider)}
           disabled={!provider.isConfigured || isRefreshingModels}
         >
-          {isRefreshingModels ? "刷新中..." : "刷新模型"}
+          {isRefreshingModels ? t("statusCard.refreshing") : t("statusCard.refreshModels")}
         </Button>
         {provider.kind === "builtin" ? (
           <Button
             size="sm"
             variant="outline"
             className="w-full sm:w-auto"
-            title={item.canRefreshBalance ? "" : "当前厂商不能直接刷新余额。"}
+            title={item.canRefreshBalance ? "" : t("statusCard.refreshBalanceDisabledReason")}
             onClick={() => onRefreshBalance(provider.provider)}
             disabled={!item.canRefreshBalance || item.isBalanceRefreshing}
           >
-            {item.isBalanceRefreshing ? "余额刷新中..." : "刷新余额"}
+            {item.isBalanceRefreshing ? t("statusCard.balanceRefreshing") : t("statusCard.refreshBalance")}
           </Button>
         ) : null}
       </div>
@@ -167,7 +175,7 @@ export default function ProviderStatusCard(props: {
           aria-expanded={advancedOpen}
           onClick={() => setAdvancedOpen((prev) => !prev)}
         >
-          <span>高级详情</span>
+          <span>{t("statusCard.advancedDetails")}</span>
           <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", advancedOpen ? "rotate-180" : "")} />
         </button>
       </div>
@@ -175,7 +183,7 @@ export default function ProviderStatusCard(props: {
       {advancedOpen ? (
         <div className="mt-3 space-y-3">
           <div className={`text-xs text-muted-foreground ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>
-            API 地址：{provider.currentBaseURL || "-"}
+            {t("statusCard.baseUrlDisplay", { url: provider.currentBaseURL || "-" })}
           </div>
           <ProviderRequestLimitSummary
             concurrencyLimit={provider.concurrencyLimit}
@@ -183,15 +191,15 @@ export default function ProviderStatusCard(props: {
           />
           <div className="flex flex-col gap-3 rounded-md border bg-background/60 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0 space-y-1">
-              <div className="text-xs font-medium text-muted-foreground">思考功能</div>
+              <div className="text-xs font-medium text-muted-foreground">{t("statusCard.reasoningLabel")}</div>
               <div className={`text-xs text-muted-foreground ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>
                 {provider.reasoningEnabled
-                  ? "当前会返回并展示模型思考内容。"
-                  : "当前会隐藏思考内容；MiniMax 会自动清洗正文里的 thinking 内容。"}
+                  ? t("statusCard.reasoningOn")
+                  : t("statusCard.reasoningOff")}
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <span className="text-xs text-muted-foreground">{provider.reasoningEnabled ? "已开启" : "已关闭"}</span>
+              <span className="text-xs text-muted-foreground">{provider.reasoningEnabled ? t("statusCard.reasoningEnabledLabel") : t("statusCard.reasoningDisabledLabel")}</span>
               <Switch
                 checked={provider.reasoningEnabled}
                 disabled={item.isReasoningUpdating}
@@ -202,26 +210,26 @@ export default function ProviderStatusCard(props: {
 
           <div className="rounded-md border border-dashed bg-background/60 p-3">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <div className="text-xs font-medium text-muted-foreground">余额明细</div>
+              <div className="text-xs font-medium text-muted-foreground">{t("statusCard.balanceDetails")}</div>
               {balance?.status === "available" ? (
-                <Badge variant="outline">最近刷新 {formatBalanceTime(balance.fetchedAt)}</Badge>
+                <Badge variant="outline">{t("statusCard.lastRefreshed", { time: formatBalanceTime(balance.fetchedAt) })}</Badge>
               ) : null}
             </div>
             {provider.kind === "custom" ? (
               <div className={`text-sm text-muted-foreground ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>
-                自定义 OpenAI 兼容厂商暂不接入余额查询。
+                {t("statusCard.customBalanceNotSupported")}
               </div>
             ) : balance?.status === "available" ? (
               <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
-                {balance.cashBalance !== null ? <div>现金余额：{formatBalanceAmount(balance.cashBalance, balance.currency)}</div> : null}
-                {balance.voucherBalance !== null ? <div>代金券余额：{formatBalanceAmount(balance.voucherBalance, balance.currency)}</div> : null}
-                {balance.chargeBalance !== null ? <div>充值余额：{formatBalanceAmount(balance.chargeBalance, balance.currency)}</div> : null}
-                {balance.toppedUpBalance !== null ? <div>累计充值：{formatBalanceAmount(balance.toppedUpBalance, balance.currency)}</div> : null}
-                {balance.grantedBalance !== null ? <div>赠送额度：{formatBalanceAmount(balance.grantedBalance, balance.currency)}</div> : null}
+                {balance.cashBalance !== null ? <div>{t("statusCard.cashBalance", { amount: formatBalanceAmount(balance.cashBalance, balance.currency) })}</div> : null}
+                {balance.voucherBalance !== null ? <div>{t("statusCard.voucherBalance", { amount: formatBalanceAmount(balance.voucherBalance, balance.currency) })}</div> : null}
+                {balance.chargeBalance !== null ? <div>{t("statusCard.chargeBalance", { amount: formatBalanceAmount(balance.chargeBalance, balance.currency) })}</div> : null}
+                {balance.toppedUpBalance !== null ? <div>{t("statusCard.toppedUpBalance", { amount: formatBalanceAmount(balance.toppedUpBalance, balance.currency) })}</div> : null}
+                {balance.grantedBalance !== null ? <div>{t("statusCard.grantedBalance", { amount: formatBalanceAmount(balance.grantedBalance, balance.currency) })}</div> : null}
               </div>
             ) : (
               <div className={`text-sm text-muted-foreground ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>
-                {balance?.error ?? balance?.message ?? (provider.isConfigured ? "当前暂未获取余额信息。" : "请先配置 API Key。")}
+                {balance?.error ?? balance?.message ?? (provider.isConfigured ? t("statusCard.balanceNoInfo") : t("statusCard.balanceNeedConfig"))}
               </div>
             )}
           </div>
@@ -246,7 +254,7 @@ export default function ProviderStatusCard(props: {
                 className="text-xs font-medium text-primary transition-opacity hover:opacity-80"
                 onClick={() => setModelsOpen((prev) => !prev)}
               >
-                {modelsOpen ? "收起模型列表" : `展开全部 ${provider.models.length} 个模型`}
+                {modelsOpen ? t("statusCard.collapseModels") : t("statusCard.expandAllModels", { count: provider.models.length })}
               </button>
             ) : null}
           </div>

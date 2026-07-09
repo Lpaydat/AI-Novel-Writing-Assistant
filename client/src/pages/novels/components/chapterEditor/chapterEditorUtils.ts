@@ -1,18 +1,25 @@
 import type { Descendant, Value } from "platejs";
 import type { ChapterEditorOperation } from "@ai-novel/shared/types/novel";
+import i18n from "@/i18n";
 import type {
   ChapterEditorRequestBuilderInput,
   ChapterEditorSelectionRange,
   SelectionToolbarPosition,
 } from "./chapterEditorTypes";
 
+/**
+ * Maps each operation to its i18n key (namespace `novelsChapterEditor`). Values
+ * are translation KEYS, not display text — resolve at React call sites with
+ * `t(CHAPTER_EDITOR_OPERATION_LABELS[operation])` so the label follows the
+ * active locale instead of being frozen at module load.
+ */
 export const CHAPTER_EDITOR_OPERATION_LABELS: Record<ChapterEditorOperation, string> = {
-  polish: "优化表达",
-  expand: "扩写",
-  compress: "精简",
-  emotion: "强化情绪",
-  conflict: "强化冲突",
-  custom: "自定义指令",
+  polish: "operationLabel.polish",
+  expand: "operationLabel.expand",
+  compress: "operationLabel.compress",
+  emotion: "operationLabel.emotion",
+  conflict: "operationLabel.conflict",
+  custom: "operationLabel.custom",
 };
 
 export function normalizeEditorText(text: string): string {
@@ -333,13 +340,15 @@ export function buildAiRevisionRequest(input: ChapterEditorRequestBuilderInput) 
 
 export function getSaveStatusLabel(status: "idle" | "saving" | "saved" | "error", isDirty: boolean): string {
   if (status === "saving") {
-    return "保存中";
+    return i18n.t("saveStatus.saving", { ns: "novelsChapterEditor" });
   }
   if (status === "saved") {
-    return "已保存";
+    return i18n.t("saveStatus.saved", { ns: "novelsChapterEditor" });
   }
   if (status === "error") {
-    return "保存失败";
+    return i18n.t("saveStatus.error", { ns: "novelsChapterEditor" });
   }
-  return isDirty ? "待保存" : "已同步";
+  return isDirty
+    ? i18n.t("saveStatus.dirty", { ns: "novelsChapterEditor" })
+    : i18n.t("saveStatus.synced", { ns: "novelsChapterEditor" });
 }

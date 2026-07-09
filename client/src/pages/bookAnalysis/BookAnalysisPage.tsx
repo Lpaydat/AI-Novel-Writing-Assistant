@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import OpenInCreativeHubButton from "@/components/creativeHub/OpenInCreativeHubButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BookAnalysisBudgetAdjustDialog from "./components/BookAnalysisBudgetAdjustDialog";
@@ -15,6 +16,7 @@ import { useBookAnalysisDualPanePreference } from "./hooks/useBookAnalysisDualPa
 import { useBookAnalysisWorkspace } from "./hooks/useBookAnalysisWorkspace";
 
 export default function BookAnalysisPage() {
+  const { t } = useTranslation("bookAnalysis");
   const workspace = useBookAnalysisWorkspace();
   const dualPanePreference = useBookAnalysisDualPanePreference();
   const chapterReader = useBookAnalysisChapterReader();
@@ -40,7 +42,7 @@ export default function BookAnalysisPage() {
       await workspace.createAnalysis();
       setCreateDialogOpen(false);
     } catch {
-      // 保持弹窗打开，用户可在错误提示后重试
+      // Keep the dialog open so the user can retry after seeing the error.
     }
   };
 
@@ -49,7 +51,7 @@ export default function BookAnalysisPage() {
       await workspace.createDiagnosisAnalysis();
       setCreateDialogOpen(false);
     } catch {
-      // 保持弹窗打开
+      // Keep the dialog open.
     }
   };
 
@@ -111,7 +113,7 @@ export default function BookAnalysisPage() {
             bookAnalysisId: workspace.selectedAnalysisId || null,
             knowledgeDocumentIds: workspace.selectedDocumentId ? [workspace.selectedDocumentId] : [],
           }}
-          label="拆书结果发往创作中枢"
+          label={t("openInCreativeHub.label")}
         />
       </div>
       <div className="grid gap-4 xl:grid-cols-[240px_minmax(0,1fr)]">
@@ -206,10 +208,10 @@ export default function BookAnalysisPage() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>拆书分析工作区</CardTitle>
+                <CardTitle>{t("emptyState.title")}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
-                请先在左侧选择一个分析，或从知识文档创建新分析。
+                {t("emptyState.description")}
               </CardContent>
             </Card>
           )}

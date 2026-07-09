@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import NovelAutoDirectorCandidateBatches from "../components/NovelAutoDirectorCandidateBatches";
 import NovelAutoDirectorProgressPanel from "../components/NovelAutoDirectorProgressPanel";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ export default function StageCandidates({
   controller,
   onRegenerateSettings,
 }: StageCandidatesProps) {
+  const { t } = useTranslation("novelsAutoDirector");
   if (controller.dialogMode !== "candidate_selection") {
     return (
       <section className="space-y-4">
@@ -36,9 +38,9 @@ export default function StageCandidates({
     <section className="space-y-5">
       <div className="flex flex-col gap-4 pb-1 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <div className="break-words text-2xl font-semibold leading-9 text-foreground [overflow-wrap:anywhere]">方向候选</div>
+          <div className="break-words text-2xl font-semibold leading-9 text-foreground [overflow-wrap:anywhere]">{t("candidates.heading")}</div>
           <div className="mt-1 max-w-3xl break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">
-            先选最贴近你想法的一套方向；不满意时再展开调整或生成新一轮。
+            {t("candidates.subheading")}
           </div>
         </div>
         <Button
@@ -48,7 +50,7 @@ export default function StageCandidates({
           className="shrink-0 text-muted-foreground hover:text-foreground"
           onClick={onRegenerateSettings}
         >
-          回改设定
+          {t("candidates.backToSettings")}
         </Button>
       </div>
       <NovelAutoDirectorCandidateBatches

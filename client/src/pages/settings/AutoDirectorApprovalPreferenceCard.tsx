@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronDown } from "lucide-react";
 import type { DirectorAutoApprovalPreferenceSettings } from "@ai-novel/shared/types/autoDirectorApproval";
 import AutoDirectorApprovalPointMultiSelect, {
@@ -16,6 +17,7 @@ export function AutoDirectorApprovalPreferenceCard(props: {
   onSave: () => void;
   isSaving: boolean;
 }) {
+  const { t } = useTranslation("settings");
   const [isOpen, setIsOpen] = useState(false);
   const {
     settings,
@@ -24,15 +26,15 @@ export function AutoDirectorApprovalPreferenceCard(props: {
     onSave,
     isSaving,
   } = props;
-  const toggleLabel = isOpen ? "收起审批授权偏好" : "展开审批授权偏好";
+  const toggleLabel = isOpen ? t("approvalPreference.collapse") : t("approvalPreference.expand");
 
   return (
     <Card className="min-w-0 overflow-hidden">
       <CardHeader className="flex-row items-start justify-between gap-3 space-y-0">
         <div className="min-w-0 space-y-1.5">
-          <CardTitle>审批授权偏好</CardTitle>
+          <CardTitle>{t("approvalPreference.title")}</CardTitle>
           <CardDescription className={AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}>
-            自动导演按范围执行时，会先带入这里的默认授权。未授权的审批点仍会停下等待你确认。
+            {t("approvalPreference.description")}
           </CardDescription>
         </div>
         <Button
@@ -52,7 +54,7 @@ export function AutoDirectorApprovalPreferenceCard(props: {
       {isOpen ? (
         <CardContent id="auto-director-approval-preference-content" className="space-y-4">
           <div className={`rounded-md border bg-muted/15 p-3 text-sm text-muted-foreground ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>
-            当前默认：{summarizeDirectorAutoApprovalPoints(draftCodes)}
+            {t("approvalPreference.currentDefault", { summary: summarizeDirectorAutoApprovalPoints(draftCodes) })}
           </div>
           <AutoDirectorApprovalPointMultiSelect
             value={draftCodes}
@@ -62,7 +64,7 @@ export function AutoDirectorApprovalPreferenceCard(props: {
           />
           <div className={AUTO_DIRECTOR_MOBILE_CLASSES.settingsActionRow}>
             <Button className={AUTO_DIRECTOR_MOBILE_CLASSES.fullWidthAction} onClick={onSave} disabled={isSaving}>
-              {isSaving ? "保存中..." : "保存审批授权偏好"}
+              {isSaving ? t("common.saving") : t("approvalPreference.save")}
             </Button>
           </div>
         </CardContent>

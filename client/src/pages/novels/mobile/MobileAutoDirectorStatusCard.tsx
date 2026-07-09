@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import WorkflowProgressBar, {
@@ -11,19 +12,19 @@ interface MobileAutoDirectorStatusCardProps {
   takeover: NovelEditTakeoverState;
 }
 
-function modeLabel(mode: NovelEditTakeoverState["mode"]): string {
+function modeLabelKey(mode: NovelEditTakeoverState["mode"]): string {
   switch (mode) {
     case "loading":
-      return "加载中";
+      return "mode.loading";
     case "running":
-      return "接管中";
+      return "mode.running";
     case "waiting":
-      return "等待确认";
+      return "mode.waiting";
     case "action_required":
-      return "待处理";
+      return "mode.actionRequired";
     case "failed":
     default:
-      return "异常";
+      return "mode.failed";
   }
 }
 
@@ -51,6 +52,7 @@ function cardClass(mode: NovelEditTakeoverState["mode"]): string {
 }
 
 export default function MobileAutoDirectorStatusCard({ takeover }: MobileAutoDirectorStatusCardProps) {
+  const { t } = useTranslation("novelsMobile");
   const resolvedProgress = typeof takeover.progress === "number"
     ? normalizeProgressPercent(takeover.progress)
     : null;
@@ -62,7 +64,7 @@ export default function MobileAutoDirectorStatusCard({ takeover }: MobileAutoDir
           <div className="flex min-w-0 items-center gap-2">
             <h2 className="truncate text-sm font-semibold text-foreground">{takeover.title}</h2>
             <Badge variant={takeover.mode === "failed" ? "destructive" : "secondary"} className="shrink-0">
-              {modeLabel(takeover.mode)}
+              {t(modeLabelKey(takeover.mode))}
             </Badge>
           </div>
           <p className="line-clamp-2 text-xs text-muted-foreground">{takeover.description}</p>
@@ -84,7 +86,7 @@ export default function MobileAutoDirectorStatusCard({ takeover }: MobileAutoDir
             <div className="truncate text-foreground">{takeover.currentAction}</div>
           ) : null}
           {takeover.checkpointLabel ? (
-            <div className="truncate text-muted-foreground">检查点：{takeover.checkpointLabel}</div>
+            <div className="truncate text-muted-foreground">{t("checkpointLabel", { label: takeover.checkpointLabel })}</div>
           ) : null}
         </div>
       ) : null}

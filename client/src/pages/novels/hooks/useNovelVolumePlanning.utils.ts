@@ -8,6 +8,7 @@ import type {
   VolumeStrategyPlan,
 } from "@ai-novel/shared/types/novel";
 import { normalizeVolumeDraft } from "../volumePlan.utils";
+import i18n from "@/i18n";
 
 export function serializeVolumeDraftSnapshot(volumes: VolumePlan[]): string {
   return JSON.stringify(normalizeVolumeDraft(volumes).map((volume) => ({
@@ -101,7 +102,7 @@ export function resolveCustomVolumeCountInput(
   if (!Number.isFinite(parsed)) {
     return {
       value: null,
-      message: "请先输入有效的固定卷数。",
+      message: i18n.t("volumeUtils.invalidCountInput", { ns: "novelsHooks" }),
     };
   }
   if (
@@ -110,7 +111,11 @@ export function resolveCustomVolumeCountInput(
   ) {
     return {
       value: null,
-      message: `固定卷数必须落在 ${volumeCountGuidance.allowedVolumeCountRange.min}-${volumeCountGuidance.allowedVolumeCountRange.max} 卷之间。`,
+      message: i18n.t("volumeUtils.countOutOfRange", {
+        ns: "novelsHooks",
+        min: volumeCountGuidance.allowedVolumeCountRange.min,
+        max: volumeCountGuidance.allowedVolumeCountRange.max,
+      }),
     };
   }
   return {
@@ -121,6 +126,6 @@ export function resolveCustomVolumeCountInput(
 
 export function buildGenerationNotice(strategyPlan: VolumeStrategyPlan | null): string {
   return strategyPlan
-    ? "当前工作区已进入二期链路：先审卷战略，再确认卷骨架，之后按卷生成节奏板和章节列表。"
-    : "先生成卷战略建议，让系统帮你决定卷数和硬/软规划，再进入卷骨架。";
+    ? i18n.t("volumeUtils.noticeWithStrategy", { ns: "novelsHooks" })
+    : i18n.t("volumeUtils.noticeNoStrategy", { ns: "novelsHooks" });
 }

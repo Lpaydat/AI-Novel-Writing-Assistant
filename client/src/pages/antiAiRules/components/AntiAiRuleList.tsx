@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { RuleFilter, severityLabels, typeLabels } from "../antiAiRulesPage.shared";
+import { RuleFilter, severityLabelKeys, typeLabelKeys } from "../antiAiRulesPage.shared";
 import AntiAiToggleLine from "./AntiAiToggleLine";
 
 interface AntiAiRuleListProps {
@@ -72,7 +72,7 @@ export default function AntiAiRuleList(props: AntiAiRuleListProps) {
                     <Badge variant={rule.enabled ? "secondary" : "outline"}>{rule.enabled ? t("list.badgeEnabled") : t("list.badgeDisabled")}</Badge>
                     {rule.globalBaselineEnabled ? <Badge>{t("list.badgeGlobal")}</Badge> : <Badge variant="outline">{t("list.badgeBindable")}</Badge>}
                     {isTesting ? <Badge variant="secondary">{t("list.badgeTesting")}</Badge> : null}
-                    <Badge variant="outline">{typeLabels[rule.type]} / {severityLabels[rule.severity]}</Badge>
+                    <Badge variant="outline">{t(typeLabelKeys[rule.type])} / {t(severityLabelKeys[rule.severity])}</Badge>
                   </div>
                   <div className="mt-2 text-sm leading-6 text-muted-foreground">{rule.description}</div>
                   {rule.detectPatterns.length > 0 ? (

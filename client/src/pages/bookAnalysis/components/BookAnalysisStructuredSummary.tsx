@@ -10,6 +10,7 @@ import {
   normalizeBookAnalysisTimelineNodes,
 } from "@ai-novel/shared/utils/bookAnalysisTimeline";
 import { Info } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import type { BookAnalysisMode } from "../hooks/bookAnalysisWorkspace.types";
 
@@ -76,6 +77,7 @@ function getWarningLabels(section: BookAnalysisSection): string[] {
 }
 
 function TimelineNodeList({ nodes }: { nodes: BookAnalysisTimelineNode[] }) {
+  const { t } = useTranslation("bookAnalysisComponents");
   const groups = groupBookAnalysisTimelineNodesByPhase(nodes);
   return (
     <div className="mt-2 space-y-2">
@@ -87,8 +89,8 @@ function TimelineNodeList({ nodes }: { nodes: BookAnalysisTimelineNode[] }) {
               <div className="leading-5 text-foreground">{node.label}</div>
               {node.timeHint || node.sourceRefs?.length ? (
                 <div className="mt-1 flex flex-wrap gap-1 text-[11px] text-muted-foreground">
-                  {node.timeHint ? <span>时间：{node.timeHint}</span> : null}
-                  {node.sourceRefs?.length ? <span>来源：{node.sourceRefs.join("、")}</span> : null}
+                  {node.timeHint ? <span>{t("structuredSummary.timeLabel", { time: node.timeHint })}</span> : null}
+                  {node.sourceRefs?.length ? <span>{t("structuredSummary.sourceLabel", { refs: node.sourceRefs.join(t("common.enumerationSeparator")) })}</span> : null}
                 </div>
               ) : null}
             </div>
@@ -110,6 +112,7 @@ export default function BookAnalysisStructuredSummary({
   evidenceItems?: BookAnalysisEvidenceItem[];
   currentChapterIndex?: number | null;
 }) {
+  const { t } = useTranslation("bookAnalysisComponents");
   const rows = buildSummaryRows(section, evidenceItems);
   const warningLabels = getWarningLabels(section);
   if (rows.length === 0) {
@@ -119,14 +122,14 @@ export default function BookAnalysisStructuredSummary({
   return (
     <div className="space-y-3 rounded-md border bg-muted/20 p-3">
       <div className="flex items-center justify-between gap-2">
-        <div className="text-sm font-medium">{analysisMode === "diagnosis" ? "诊断结论" : "关键结论"}</div>
+        <div className="text-sm font-medium">{analysisMode === "diagnosis" ? t("structuredSummary.diagnosisConclusion") : t("structuredSummary.keyConclusion")}</div>
         <div className="text-xs text-muted-foreground">
-          {analysisMode === "diagnosis" ? "来自结构化稿件诊断" : "来自结构化拆书结果"}
+          {analysisMode === "diagnosis" ? t("structuredSummary.fromDiagnosis") : t("structuredSummary.fromAnalysis")}
         </div>
       </div>
       {warningLabels.length > 0 ? (
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-          以下字段内容较多，已按上限保留：{warningLabels.join("、")}
+          {t("structuredSummary.warningLabels", { labels: warningLabels.join(t("common.enumerationSeparator")) })}
         </div>
       ) : null}
       <div className="grid gap-2 md:grid-cols-2">
@@ -136,14 +139,14 @@ export default function BookAnalysisStructuredSummary({
               <span>{row.label}</span>
               {row.evidence.length > 0 ? (
                 <span
-                  aria-label={`${row.label}的来源摘录`}
+                  aria-label={t("structuredSummary.evidenceAria", { label: row.label })}
                   title={formatEvidenceTooltip(row.evidence)}
                 >
                   <Info className="h-3.5 w-3.5 text-primary" />
                 </span>
               ) : null}
               {currentChapterIndex !== null && row.timelineNodes.length > 0 && row.evidence.some((item) => item.chapterIndex === currentChapterIndex) ? (
-                <Badge variant="secondary">本章</Badge>
+                <Badge variant="secondary">{t("structuredSummary.currentChapter")}</Badge>
               ) : null}
             </div>
             {row.timelineNodes.length > 0 ? (
@@ -161,7 +164,7 @@ export default function BookAnalysisStructuredSummary({
                       className="inline-flex items-center gap-1 rounded-md border bg-muted/30 px-2 py-1 text-xs leading-5 text-foreground"
                     >
                       <span>{value}</span>
-                      {isCurrentChapterValue ? <Badge variant="secondary">本章</Badge> : null}
+                      {isCurrentChapterValue ? <Badge variant="secondary">{t("structuredSummary.currentChapter")}</Badge> : null}
                     </span>
                   );
                 })}

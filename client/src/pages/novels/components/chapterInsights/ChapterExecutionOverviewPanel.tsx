@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import type { ChapterRuntimePackage } from "@ai-novel/shared/types/chapterRuntime";
 import type { Chapter, StoryPlan } from "@ai-novel/shared/types/novel";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +49,7 @@ function OverviewStat(props: { label: string; value: string; hint?: string }) {
 }
 
 export default function ChapterExecutionOverviewPanel(props: ChapterExecutionOverviewPanelProps) {
+  const { t } = useTranslation("novelsChapterInsights");
   const {
     selectedChapter,
     chapterPlan,
@@ -60,14 +62,14 @@ export default function ChapterExecutionOverviewPanel(props: ChapterExecutionOve
   if (!selectedChapter) {
     return (
       <section className="rounded-2xl border border-dashed border-border/70 bg-background p-4 text-sm leading-6 text-muted-foreground">
-        选中章节后，这里显示本章状态、目标、字数、质量和待处理问题。
+        {t("overview.emptyPrompt")}
       </section>
     );
   }
 
-  const chapterLabel = `第${selectedChapter.order}章`;
-  const chapterTitle = selectedChapter.title || "未命名章节";
-  const chapterObjective = chapterPlan?.objective ?? selectedChapter.expectation ?? "这一章还没有明确目标，建议先补章节计划。";
+  const chapterLabel = t("common.chapterLabel", { order: selectedChapter.order });
+  const chapterTitle = selectedChapter.title || t("common.unnamedChapter");
+  const chapterObjective = chapterPlan?.objective ?? selectedChapter.expectation ?? t("common.noObjective");
   const runtimePackage = chapterRuntimePackage?.chapterId === selectedChapter.id ? chapterRuntimePackage : null;
   const lengthControl = runtimePackage?.lengthControl ?? null;
   const qualityOverall = chapterQualityReport?.overall ?? selectedChapter.qualityScore ?? null;
@@ -77,7 +79,7 @@ export default function ChapterExecutionOverviewPanel(props: ChapterExecutionOve
   const currentWordCount = runtimePackage?.draft.wordCount ?? selectedChapter.content?.trim().length ?? 0;
   const targetWordCount = selectedChapter.targetWordCount ?? null;
   const issueCount = openAuditIssues.length || reviewResult?.issues?.length || 0;
-  const updatedAt = selectedChapter.updatedAt ? formatLocaleDateTime(selectedChapter.updatedAt) : "暂无";
+  const updatedAt = selectedChapter.updatedAt ? formatLocaleDateTime(selectedChapter.updatedAt) : t("common.notAvailable");
 
   return (
     <section className="space-y-3 rounded-2xl border border-border/70 bg-background/95 p-4">
@@ -90,12 +92,12 @@ export default function ChapterExecutionOverviewPanel(props: ChapterExecutionOve
             </Badge>
             {generationLabel ? <Badge variant="outline">{generationLabel}</Badge> : null}
             {typeof qualityOverall === "number" ? (
-              <Badge variant={getQualityBadgeVariant(qualityOverall)}>质量 {qualityOverall}</Badge>
+              <Badge variant={getQualityBadgeVariant(qualityOverall)}>{t("overview.qualityBadge", { score: qualityOverall })}</Badge>
             ) : null}
           </div>
 
           <div className="space-y-2">
-            <div className="text-xs font-medium text-muted-foreground">章节概览</div>
+            <div className="text-xs font-medium text-muted-foreground">{t("overview.sectionTitle")}</div>
             <div className="text-base font-semibold text-foreground">{chapterTitle}</div>
             <p className="line-clamp-6 text-sm leading-6 text-muted-foreground">
               {chapterObjective}
@@ -104,28 +106,50 @@ export default function ChapterExecutionOverviewPanel(props: ChapterExecutionOve
         </div>
 
         <Button asChild size="sm" variant="outline" className="w-full justify-center">
-          <Link to={`/novels/${selectedChapter.novelId}/chapters/${selectedChapter.id}`}>打开章节编辑器</Link>
+          <Link to={`/novels/${selectedChapter.novelId}/chapters/${selectedChapter.id}`}>{t("overview.openEditor")}</Link>
         </Button>
       </div>
 
       <div className="space-y-2">
-        <OverviewStat label="当前字数" value={String(currentWordCount)} hint="主面板正在显示的正文长度。" />
-        <OverviewStat label="章节目标" value={targetWordCount ? `${targetWordCount} 字` : "未设定"} hint="用于判断当前篇幅是否足够。" />
-        <OverviewStat label="待处理问题" value={String(issueCount)} hint="问题越少，越适合继续推进。" />
-        <OverviewStat label="最近更新" value={updatedAt} hint="用于判断这一章是否需要重新检查。" />
+        <OverviewStat
+          label={t("overview.stat.currentWordCount")}
+          value={String(currentWordCount)}
+          hint={t("overview.stat.currentWordCountHint")}
+        />
+        <OverviewStat
+          label={t("common.chapterTarget")}
+          value={targetWordCount ? t("common.wordCount", { value: targetWordCount }) : t("overview.notSet")}
+          hint={t("overview.stat.chapterTargetHint")}
+        />
+        <OverviewStat
+          label={t("overview.stat.pendingIssues")}
+          value={String(issueCount)}
+          hint={t("overview.stat.pendingIssuesHint")}
+        />
+        <OverviewStat
+          label={t("overview.stat.lastUpdated")}
+          value={updatedAt}
+          hint={t("overview.stat.lastUpdatedHint")}
+        />
       </div>
 
       {lengthControl ? (
         <div className="space-y-2">
           <OverviewStat
-            label="预算区间"
+            label={t("overview.stat.budgetRange")}
             value={`${lengthControl.softMinWordCount}-${lengthControl.softMaxWordCount}`}
-            hint={`硬上限 ${lengthControl.hardMaxWordCount} 字`}
+            hint={t("overview.stat.hardCapHint", { value: lengthControl.hardMaxWordCount })}
           />
           <OverviewStat
-            label="控字模式"
-            value={lengthControl.wordControlMode === "prompt_only" ? "自然优先" : lengthControl.wordControlMode === "balanced" ? "标准控字" : "混合控字"}
-            hint={`偏差 ${Math.round(lengthControl.variance * 100)}%`}
+            label={t("overview.stat.wordControlMode")}
+            value={
+              lengthControl.wordControlMode === "prompt_only"
+                ? t("overview.wordControlMode.naturalFirst")
+                : lengthControl.wordControlMode === "balanced"
+                  ? t("overview.wordControlMode.standard")
+                  : t("overview.wordControlMode.hybrid")
+            }
+            hint={t("overview.stat.varianceHint", { percent: Math.round(lengthControl.variance * 100) })}
           />
         </div>
       ) : null}

@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { useTranslation } from "react-i18next";
 import type { APIKeyStatus } from "@/api/settings";
 import SearchableSelect from "@/components/common/SearchableSelect";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,8 @@ export default function ProviderConfigDialog({
   deleteDisabled,
   deleteLabel,
 }: ProviderConfigDialogProps) {
-  const primaryModelLabel = isCreatingCustomProvider ? "默认模型（可选）" : isCustomDialog ? "默认模型" : "模型名称";
+  const { t } = useTranslation("settingsComponents");
+  const primaryModelLabel = isCreatingCustomProvider ? t("dialog.primaryModelLabelCustomOptional") : isCustomDialog ? t("dialog.primaryModelLabelCustom") : t("dialog.primaryModelLabelBuiltin");
   const canSelectListedModels = selectableModels.length > 0;
   const imageModelOptions = editingConfig?.imageModels ?? [];
   const canSelectImageModels = imageModelOptions.length > 0;
@@ -72,7 +74,7 @@ export default function ProviderConfigDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <AppDialogContent
         className="max-w-lg"
-        title={isCreatingCustomProvider ? "新增自定义厂商" : isCustomDialog ? "编辑自定义厂商" : "配置模型厂商"}
+        title={isCreatingCustomProvider ? t("dialog.titleCreate") : isCustomDialog ? t("dialog.titleEditCustom") : t("dialog.titleConfig")}
         footer={(
           <>
             <Button className="w-full sm:w-auto" onClick={onSubmit} disabled={submitDisabled}>
@@ -85,7 +87,7 @@ export default function ProviderConfigDialog({
               onClick={onTest}
               disabled={testDisabled}
             >
-              测试连接
+              {t("dialog.testConnection")}
             </Button>
 
             {editingConfig?.kind === "custom" ? (
@@ -105,10 +107,10 @@ export default function ProviderConfigDialog({
         <div className="space-y-3">
           {isCustomDialog ? (
             <div className="space-y-1">
-              <div className="text-xs text-muted-foreground">厂商名称</div>
+              <div className="text-xs text-muted-foreground">{t("dialog.providerNameLabel")}</div>
               <Input
                 value={form.displayName}
-                placeholder="例如：我的模型网关"
+                placeholder={t("dialog.providerNamePlaceholder")}
                 onChange={(event) => setForm((prev) => ({ ...prev, displayName: event.target.value }))}
               />
             </div>
@@ -116,14 +118,14 @@ export default function ProviderConfigDialog({
 
           {(isCustomDialog || editingConfig?.requiresApiKey === false) ? (
             <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-              API Key 可以留空；填写 API 地址后可获取模型列表，系统会选择一个默认模型。
+              {t("dialog.apiKeyOptionalNote")}
             </div>
           ) : null}
 
           <Input
             type="password"
             value={form.key}
-            placeholder={editingConfig?.isConfigured ? "留空则沿用保存的 API Key" : "输入 API Key"}
+            placeholder={editingConfig?.isConfigured ? t("dialog.keyPlaceholderKeep") : t("dialog.keyPlaceholderEnter")}
             onChange={(event) => {
               setForm((prev) => ({ ...prev, key: event.target.value }));
               if (isCreatingCustomProvider) {
@@ -133,7 +135,7 @@ export default function ProviderConfigDialog({
           />
 
           <div className="space-y-1">
-            <div className="text-xs text-muted-foreground">API 地址</div>
+            <div className="text-xs text-muted-foreground">{t("dialog.baseUrlLabel")}</div>
             <Input
               value={form.baseURL}
               placeholder={editingConfig?.defaultBaseURL ?? "https://api.example.com/v1"}
@@ -150,8 +152,8 @@ export default function ProviderConfigDialog({
             />
             <div className="text-xs text-muted-foreground">
               {isCreatingCustomProvider
-                ? "填写 OpenAI 兼容 API 地址，通常以 /v1 结尾；本地 Ollama 常见地址是 http://127.0.0.1:11434/v1。"
-                : "留空会使用默认地址；本地 Ollama 常见地址是 http://127.0.0.1:11434/v1。"}
+                ? t("dialog.baseUrlHintCreate")
+                : t("dialog.baseUrlHintEdit")}
             </div>
           </div>
 
@@ -164,7 +166,7 @@ export default function ProviderConfigDialog({
                 onClick={onPreviewModels}
                 disabled={isPreviewingModels || !form.baseURL.trim()}
               >
-                {isPreviewingModels ? "获取中..." : "获取模型列表"}
+                {isPreviewingModels ? t("dialog.fetchingModels") : t("dialog.fetchModels")}
               </Button>
               {previewModelsResult ? (
                 <div className="break-words text-xs text-muted-foreground [overflow-wrap:anywhere]">
@@ -176,14 +178,14 @@ export default function ProviderConfigDialog({
 
           {canSelectListedModels ? (
             <div className="space-y-1">
-              <div className="text-xs text-muted-foreground">可用模型</div>
+              <div className="text-xs text-muted-foreground">{t("dialog.availableModelsLabel")}</div>
               <SearchableSelect
                 value={form.model}
                 onValueChange={(value) => setForm((prev) => ({ ...prev, model: value }))}
                 options={selectableModels.map((model) => ({ value: model }))}
-                placeholder="选择模型"
-                searchPlaceholder="搜索模型"
-                emptyText="没有可用模型"
+                placeholder={t("dialog.selectModelPlaceholder")}
+                searchPlaceholder={t("dialog.searchModelPlaceholder")}
+                emptyText={t("dialog.noModels")}
               />
             </div>
           ) : null}
@@ -192,23 +194,23 @@ export default function ProviderConfigDialog({
             <div className="text-xs text-muted-foreground">{primaryModelLabel}</div>
             <div className="text-xs text-muted-foreground">
               {isCreatingCustomProvider
-                ? "获取模型列表后会自动填入第一个可用模型；接口不返回列表时，可以手动填写。"
+                ? t("dialog.primaryModelHintCreate")
                 : editingConfig?.kind === "custom" && !canSelectListedModels
-                  ? "可点击厂商卡片的“刷新模型”获取列表，也可以手动填写默认模型。"
-                  : "如果列表里没有目标模型，可以手动输入。"}
+                  ? t("dialog.primaryModelHintCustomRefresh")
+                  : t("dialog.primaryModelHintDefault")}
             </div>
           </div>
           <Input
             value={form.model}
-            placeholder="也可以直接手动输入模型名"
+            placeholder={t("dialog.modelInputPlaceholder")}
             onChange={(event) => setForm((prev) => ({ ...prev, model: event.target.value }))}
           />
 
           <div className="space-y-3 rounded-md border bg-muted/20 p-3">
             <div className="space-y-1">
-              <div className="text-xs text-muted-foreground">图像模型（可选）</div>
+              <div className="text-xs text-muted-foreground">{t("dialog.imageModelLabel")}</div>
               <div className="text-xs text-muted-foreground">
-                填写后，角色形象图生成可以选择这个厂商；留空则只用于文本模型。
+                {t("dialog.imageModelHint")}
               </div>
             </div>
             {canSelectImageModels ? (
@@ -217,19 +219,19 @@ export default function ProviderConfigDialog({
                   value={form.imageModel}
                   onValueChange={(value) => setForm((prev) => ({ ...prev, imageModel: value }))}
                   options={imageModelOptions.map((model) => ({ value: model }))}
-                  placeholder="选择图像模型"
-                  searchPlaceholder="搜索图像模型"
-                  emptyText="没有可用的图像模型"
+                  placeholder={t("dialog.selectImageModelPlaceholder")}
+                  searchPlaceholder={t("dialog.searchImageModelPlaceholder")}
+                  emptyText={t("dialog.noImageModels")}
                 />
               </div>
             ) : null}
             <Input
               value={form.imageModel}
-              placeholder={editingConfig?.defaultImageModel ?? "输入图像模型名"}
+              placeholder={editingConfig?.defaultImageModel ?? t("dialog.imageModelInputPlaceholder")}
               onChange={(event) => setForm((prev) => ({ ...prev, imageModel: event.target.value }))}
             />
             <div className="text-xs text-muted-foreground">
-              图片生成会调用这个厂商的 OpenAI 兼容图像接口。
+              {t("dialog.imageApiHint")}
             </div>
           </div>
 

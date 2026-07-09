@@ -17,6 +17,7 @@ import { buildNovelUpdatePayload, type NovelBasicFormState } from "../novelBasic
 import type { ChapterReviewResult } from "../chapterPlanning.shared";
 import type { StructuredSyncOptions } from "../novelEdit.utils";
 import { syncNovelWorkflowStageSilently } from "../novelWorkflow.client";
+import i18n from "@/i18n";
 
 interface LlmSettings {
   provider?: LLMProvider;
@@ -130,7 +131,7 @@ export function useNovelEditMutations({
       syncToChapterExecution: true,
     }),
     onSuccess: async () => {
-      setStructuredMessage("节奏拆章已保存，章节执行区会直接使用同一批章节。");
+      setStructuredMessage(i18n.t("editMutations.structuredSaved", { ns: "novelsHooks" }));
       await syncNovelWorkflowStageSilently({
         novelId: id,
         stage: "structured_outline",
@@ -186,7 +187,12 @@ export function useNovelEditMutations({
     onSuccess: async (response) => {
       const preview = response.data;
       setStructuredMessage(
-        `连接修复完成：新增 ${preview?.createCount ?? 0}，更新 ${preview?.updateCount ?? 0}，删除 ${preview?.deleteCount ?? 0}。`,
+        i18n.t("editMutations.syncRepairDone", {
+          ns: "novelsHooks",
+          createCount: preview?.createCount ?? 0,
+          updateCount: preview?.updateCount ?? 0,
+          deleteCount: preview?.deleteCount ?? 0,
+        }),
       );
       await syncNovelWorkflowStageSilently({
         novelId: id,
@@ -199,7 +205,7 @@ export function useNovelEditMutations({
       await invalidateNovelDetail();
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : "章节同步失败。";
+      const message = error instanceof Error ? error.message : i18n.t("editMutations.syncFailed", { ns: "novelsHooks" });
       setStructuredMessage(message);
     },
   });

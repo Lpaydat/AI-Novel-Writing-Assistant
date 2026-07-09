@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 import type { AutoDirectorChannelSettings } from "@/api/settings";
 
 export interface AutoDirectorEventOption {
@@ -97,11 +98,16 @@ export function summarizeSelectedAutoDirectorEvents(codes: string[]): string {
   const labels = codes
     .map((code) => AUTO_DIRECTOR_EVENT_LABEL_MAP.get(code))
     .filter((label): label is string => Boolean(label));
+  const separator = i18n.t("channel.events.separator", { ns: "settings" });
   if (labels.length === 0) {
-    return "未订阅事件";
+    return i18n.t("channel.events.none", { ns: "settings" });
   }
   if (labels.length <= 2) {
-    return labels.join("、");
+    return labels.join(separator);
   }
-  return `${labels.slice(0, 2).join("、")} 等 ${labels.length} 项`;
+  return i18n.t("channel.events.summaryMore", {
+    ns: "settings",
+    items: labels.slice(0, 2).join(separator),
+    count: labels.length,
+  });
 }

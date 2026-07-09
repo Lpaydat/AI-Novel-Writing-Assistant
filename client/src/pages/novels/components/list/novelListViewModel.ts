@@ -3,6 +3,7 @@ import type {
   ProjectProgressStatus,
 } from "@ai-novel/shared/types/novel";
 import type { NovelListResponse } from "@/api/novel/shared";
+import i18n from "@/i18n";
 import {
   canContinueChapterBatchAutoExecution,
   canContinueDirector,
@@ -23,6 +24,7 @@ export const NOVEL_LIST_PAGE_SIZE = 24;
 
 export interface NovelListSummaryItem {
   id: string;
+  /** `novelsList` translation key; resolve with `t(label)` at the render site. */
   label: string;
   value: number;
   tone: NovelListTone;
@@ -57,18 +59,18 @@ export function filterNovelList(input: {
 
 export function formatProgressStatus(status?: ProjectProgressStatus | null): string {
   if (status === "completed") {
-    return "已完成";
+    return i18n.t("progressStatus.completed", { ns: "novelsList" });
   }
   if (status === "in_progress") {
-    return "进行中";
+    return i18n.t("progressStatus.inProgress", { ns: "novelsList" });
   }
   if (status === "rework") {
-    return "待返工";
+    return i18n.t("progressStatus.rework", { ns: "novelsList" });
   }
   if (status === "blocked") {
-    return "受阻";
+    return i18n.t("progressStatus.blocked", { ns: "novelsList" });
   }
-  return "未开始";
+  return i18n.t("progressStatus.notStarted", { ns: "novelsList" });
 }
 
 export function formatTokenCount(value?: number | null): string {
@@ -91,10 +93,10 @@ export function buildNovelListSummary(novels: NovelListItem[]): NovelListSummary
   }).length;
 
   return [
-    { id: "running", label: "推进中", value: running, tone: running > 0 ? "info" : "neutral" },
-    { id: "waiting", label: "待确认", value: waiting, tone: waiting > 0 ? "warning" : "neutral" },
-    { id: "ready", label: "可写章节", value: ready, tone: ready > 0 ? "success" : "neutral" },
-    { id: "issue", label: "暂停/失败", value: issue, tone: issue > 0 ? "danger" : "neutral" },
+    { id: "running", label: "summary.running", value: running, tone: running > 0 ? "info" : "neutral" },
+    { id: "waiting", label: "summary.waiting", value: waiting, tone: waiting > 0 ? "warning" : "neutral" },
+    { id: "ready", label: "summary.ready", value: ready, tone: ready > 0 ? "success" : "neutral" },
+    { id: "issue", label: "summary.issue", value: issue, tone: issue > 0 ? "danger" : "neutral" },
   ];
 }
 
@@ -123,10 +125,10 @@ export function buildWorkflowDisplay(novel: NovelListItem): WorkflowDisplay {
   if (!task) {
     return {
       tone: "neutral",
-      label: "资料项目",
-      description: novel.description?.trim() || "没有自动导演任务，可以进入项目继续完善资料或章节。",
+      label: i18n.t("workflow.materialProject", { ns: "novelsList" }),
+      description: novel.description?.trim() || i18n.t("workflow.noTaskDescription", { ns: "novelsList" }),
       progress: 0,
-      currentStage: "未进入自动导演",
+      currentStage: i18n.t("workflow.stageNotEntered", { ns: "novelsList" }),
       currentAction: "",
       lastHealthyStage: "",
       running: false,
@@ -135,10 +137,10 @@ export function buildWorkflowDisplay(novel: NovelListItem): WorkflowDisplay {
   const currentAction = task.currentItemLabel?.trim() || "";
   return {
     tone: getWorkflowTone(task),
-    label: task.displayStatus?.trim() || task.resumeAction?.trim() || task.nextActionLabel?.trim() || "自动导演",
-    description: description || "系统保留推进状态，可以继续查看或恢复。",
+    label: task.displayStatus?.trim() || task.resumeAction?.trim() || task.nextActionLabel?.trim() || i18n.t("workflow.autoDirector", { ns: "novelsList" }),
+    description: description || i18n.t("workflow.retainedDescription", { ns: "novelsList" }),
     progress: Math.round(task.progress * 100),
-    currentStage: task.currentStage ?? "自动导演",
+    currentStage: task.currentStage ?? i18n.t("workflow.autoDirector", { ns: "novelsList" }),
     currentAction,
     lastHealthyStage: task.lastHealthyStage ?? "",
     running: isWorkflowRunningInBackground(task),
@@ -148,21 +150,27 @@ export function buildWorkflowDisplay(novel: NovelListItem): WorkflowDisplay {
 export function getPrimaryActionLabel(novel: NovelListItem): string {
   const task = novel.latestAutoDirectorTask ?? null;
   if (canContinueChapterBatchAutoExecution(task)) {
-    return task?.resumeAction ?? `继续自动执行${task?.executionScopeLabel ?? "当前章节范围"}`;
+    return (
+      task?.resumeAction ??
+      i18n.t("action.continueAutoExecute", {
+        ns: "novelsList",
+        scope: task?.executionScopeLabel ?? i18n.t("action.currentChapterRange", { ns: "novelsList" }),
+      })
+    );
   }
   if (canContinueDirector(task)) {
-    return task?.resumeAction ?? "继续导演";
+    return task?.resumeAction ?? i18n.t("action.continueDirector", { ns: "novelsList" });
   }
   if (requiresCandidateSelection(task)) {
-    return task?.resumeAction ?? "继续确认方向";
+    return task?.resumeAction ?? i18n.t("action.continueConfirmDirection", { ns: "novelsList" });
   }
   if (canEnterChapterExecution(task)) {
-    return "进入章节执行";
+    return i18n.t("action.enterChapterExecution", { ns: "novelsList" });
   }
   if (task) {
-    return "查看推进状态";
+    return i18n.t("action.viewProgress", { ns: "novelsList" });
   }
-  return "编辑小说";
+  return i18n.t("action.editNovel", { ns: "novelsList" });
 }
 
 export function getProjectAssetRows(novel: NovelListItem): Array<{
@@ -171,15 +179,15 @@ export function getProjectAssetRows(novel: NovelListItem): Array<{
   tone?: NovelListTone;
 }> {
   return [
-    { label: "章节", value: String(novel._count.chapters) },
-    { label: "角色", value: String(novel._count.characters) },
+    { label: i18n.t("asset.chapters", { ns: "novelsList" }), value: String(novel._count.chapters) },
+    { label: i18n.t("asset.characters", { ns: "novelsList" }), value: String(novel._count.characters) },
     {
-      label: "世界观",
-      value: novel.world?.name ?? "未绑定",
+      label: i18n.t("asset.world", { ns: "novelsList" }),
+      value: novel.world?.name ?? i18n.t("asset.unbound", { ns: "novelsList" }),
       tone: novel.world?.name ? "neutral" : "warning",
     },
     {
-      label: "资源",
+      label: i18n.t("asset.resource", { ns: "novelsList" }),
       value: `${novel.resourceReadyScore ?? 0}/100`,
       tone: (novel.resourceReadyScore ?? 0) >= 60 ? "success" : "warning",
     },

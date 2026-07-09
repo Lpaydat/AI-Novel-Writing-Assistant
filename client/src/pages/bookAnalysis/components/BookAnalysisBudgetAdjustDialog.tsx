@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { BookAnalysisDetail } from "@ai-novel/shared/types/bookAnalysis";
 import { Button } from "@/components/ui/button";
 import { AppDialogContent, Dialog } from "@/components/ui/dialog";
@@ -62,6 +63,7 @@ export default function BookAnalysisBudgetAdjustDialog(props: BookAnalysisBudget
     onOpenChange,
     onSubmit,
   } = props;
+  const { t } = useTranslation("bookAnalysisComponents");
   const [budgetInput, setBudgetInput] = useState("");
   const usedTokens = analysis.usedTokens ?? 0;
   const currentBudget = analysis.budgetTokens ?? null;
@@ -106,18 +108,18 @@ export default function BookAnalysisBudgetAdjustDialog(props: BookAnalysisBudget
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <AppDialogContent
-        title={mode === "resume" ? "扩容预算并续跑" : "调整拆书预算"}
+        title={mode === "resume" ? t("budgetAdjust.titleResume") : t("budgetAdjust.titleAdjust")}
         description={mode === "resume"
-          ? "为这次拆书设置新的预算上限，并继续处理未完成的小节。"
-          : "修改预算上限后，累计用量保留，后续小节按新的上限检查。"}
+          ? t("budgetAdjust.descriptionResume")
+          : t("budgetAdjust.descriptionAdjust")}
         className="max-w-xl"
         footer={
           <div className="flex w-full justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
-              取消
+              {t("budgetAdjust.cancel")}
             </Button>
             <Button type="button" onClick={handleSubmit} disabled={!canSubmit}>
-              {pending ? "提交中..." : mode === "resume" ? "扩容并续跑" : "保存调整"}
+              {pending ? t("budgetAdjust.submitting") : mode === "resume" ? t("budgetAdjust.submitResume") : t("budgetAdjust.submitAdjust")}
             </Button>
           </div>
         }
@@ -125,27 +127,35 @@ export default function BookAnalysisBudgetAdjustDialog(props: BookAnalysisBudget
         <div className="space-y-4">
           {mode === "resume" ? (
             <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
-              本次会重做 {retrySectionCount} 节，成功的 {succeededSectionCount} 节保留
-              {frozenSectionCount > 0 ? `，冻结的 ${frozenSectionCount} 节跳过` : ""}。
+              {frozenSectionCount > 0
+                ? t("budgetAdjust.resumeSummaryWithFrozen", {
+                    retry: retrySectionCount,
+                    succeeded: succeededSectionCount,
+                    frozen: frozenSectionCount,
+                  })
+                : t("budgetAdjust.resumeSummary", {
+                    retry: retrySectionCount,
+                    succeeded: succeededSectionCount,
+                  })}
             </div>
           ) : null}
 
           <div className="grid gap-2 rounded-md border bg-muted/20 p-3 text-sm sm:grid-cols-3">
             <div>
-              <div className="text-xs text-muted-foreground">累计用量</div>
+              <div className="text-xs text-muted-foreground">{t("budgetAdjust.usedTokensLabel")}</div>
               <div className="mt-1 font-mono tabular-nums">{formatTokenCount(usedTokens)}</div>
             </div>
             <div>
-              <div className="text-xs text-muted-foreground">预算上限</div>
+              <div className="text-xs text-muted-foreground">{t("budgetAdjust.budgetLimitLabel")}</div>
               <div className="mt-1 font-mono tabular-nums">
-                {currentBudget ? formatTokenCount(currentBudget) : "不限"}
+                {currentBudget ? formatTokenCount(currentBudget) : t("budgetAdjust.unlimited")}
               </div>
             </div>
             <div>
-              <div className="text-xs text-muted-foreground">调整后剩余</div>
+              <div className="text-xs text-muted-foreground">{t("budgetAdjust.remainingAfterLabel")}</div>
               <div className="mt-1 font-mono tabular-nums">
                 {parsedBudget === null
-                  ? "不限"
+                  ? t("budgetAdjust.unlimited")
                   : remainingTokens === null
                     ? "-"
                     : formatTokenCount(remainingTokens)}
@@ -156,7 +166,7 @@ export default function BookAnalysisBudgetAdjustDialog(props: BookAnalysisBudget
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
               <label htmlFor="book-analysis-budget-input" className="text-sm font-medium">
-                新预算上限
+                {t("budgetAdjust.newBudgetLabel")}
               </label>
               {mode === "resume" ? (
                 <button
@@ -164,7 +174,7 @@ export default function BookAnalysisBudgetAdjustDialog(props: BookAnalysisBudget
                   className="text-xs text-primary underline-offset-4 hover:underline"
                   onClick={() => setBudgetInput(String(recommendedResumeBudget))}
                 >
-                  使用建议值 {formatTokenCount(recommendedResumeBudget)}
+                  {t("budgetAdjust.useSuggested", { value: formatTokenCount(recommendedResumeBudget) })}
                 </button>
               ) : null}
             </div>
@@ -177,24 +187,27 @@ export default function BookAnalysisBudgetAdjustDialog(props: BookAnalysisBudget
                 step={1_000}
                 value={budgetInput}
                 onChange={(event) => setBudgetInput(event.target.value)}
-                placeholder={allowUnlimited ? "留空表示不限" : String(recommendedResumeBudget)}
+                placeholder={allowUnlimited ? t("budgetAdjust.placeholderUnlimited") : String(recommendedResumeBudget)}
                 className="text-right font-mono tabular-nums"
               />
               <span className="shrink-0 text-xs text-muted-foreground">tokens</span>
             </div>
             {!hasValidBudget ? (
               <div className="text-xs text-destructive">
-                请输入 {formatTokenCount(MIN_BUDGET_TOKENS)} 到 {formatTokenCount(MAX_BUDGET_TOKENS)} 之间的整数。
+                {t("budgetAdjust.rangeError", {
+                  min: formatTokenCount(MIN_BUDGET_TOKENS),
+                  max: formatTokenCount(MAX_BUDGET_TOKENS),
+                })}
               </div>
             ) : null}
             {mode === "adjust" && analysis.status === "running" ? (
               <div className="text-xs leading-5 text-muted-foreground">
-                调低预算不会立即终止当前小节，会在下个小节边界按新上限检查。
+                {t("budgetAdjust.lowerBudgetHint")}
               </div>
             ) : null}
             {budgetIsFinite && remainingTokens !== null && remainingTokens < 0 ? (
               <div className="text-xs leading-5 text-amber-700">
-                新预算低于累计用量，继续生成时会触发预算停止。
+                {t("budgetAdjust.belowUsedHint")}
               </div>
             ) : null}
           </div>

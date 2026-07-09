@@ -1,22 +1,23 @@
+import i18n from "@/i18n";
 import type { BookAnalysisDetail, BookAnalysisSection, BookAnalysisStatus } from "@ai-novel/shared/types/bookAnalysis";
 import type { SectionDraft } from "./bookAnalysis.types";
 
 export function formatStatus(status: BookAnalysisStatus | BookAnalysisSection["status"]): string {
   switch (status) {
     case "draft":
-      return "草稿";
+      return i18n.t("status.draft", { ns: "bookAnalysis" });
     case "queued":
-      return "排队中";
+      return i18n.t("status.queued", { ns: "bookAnalysis" });
     case "running":
-      return "运行中";
+      return i18n.t("status.running", { ns: "bookAnalysis" });
     case "succeeded":
-      return "成功";
+      return i18n.t("status.succeeded", { ns: "bookAnalysis" });
     case "failed":
-      return "失败";
+      return i18n.t("status.failed", { ns: "bookAnalysis" });
     case "archived":
-      return "已归档";
+      return i18n.t("status.archived", { ns: "bookAnalysis" });
     case "idle":
-      return "待处理";
+      return i18n.t("status.idle", { ns: "bookAnalysis" });
     default:
       return status;
   }
@@ -25,21 +26,21 @@ export function formatStatus(status: BookAnalysisStatus | BookAnalysisSection["s
 export function formatStage(stage?: string | null): string {
   switch (stage) {
     case "loading_cache":
-      return "查缓存";
+      return i18n.t("stage.loadingCache", { ns: "bookAnalysis" });
     case "preparing_notes":
-      return "准备 notes";
+      return i18n.t("stage.preparingNotes", { ns: "bookAnalysis" });
     case "generating_overview":
-      return "生成总览";
+      return i18n.t("stage.generatingOverview", { ns: "bookAnalysis" });
     case "generating_sections":
-      return "生成章节";
+      return i18n.t("stage.generatingSections", { ns: "bookAnalysis" });
     default:
-      return stage?.trim() || "暂无";
+      return stage?.trim() || i18n.t("common.none", { ns: "bookAnalysis" });
   }
 }
 
 export function formatDate(value?: string | null): string {
   if (!value) {
-    return "暂无";
+    return i18n.t("common.none", { ns: "bookAnalysis" });
   }
   return new Date(value).toLocaleString();
 }

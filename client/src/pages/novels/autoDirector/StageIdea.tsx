@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { DirectorIdeaInspiration } from "@ai-novel/shared/types/novelDirector";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
@@ -28,6 +29,7 @@ export default function StageIdea({
   canContinue,
   isGenerating,
 }: StageIdeaProps) {
+  const { t } = useTranslation("novelsAutoDirector");
   const reducedMotion = useReducedMotion();
   const [showInspirations, setShowInspirations] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -48,7 +50,7 @@ export default function StageIdea({
 
   const useIdeaInspiration = (text: string) => {
     if (idea.trim()) {
-      const confirmed = window.confirm("上方起始想法已有内容。确认使用这条灵感并覆盖原内容吗？");
+      const confirmed = window.confirm(t("idea.confirmOverwrite"));
       if (!confirmed) {
         return;
       }
@@ -87,10 +89,10 @@ export default function StageIdea({
         className="w-full text-center"
       >
         <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-[32px]">
-          用一句话，开始你的整本书
+          {t("idea.title")}
         </h1>
         <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
-          写下你想看的故事，AI 会先帮你整理成可选择的整本书方向。
+          {t("idea.description")}
         </p>
       </motion.div>
 
@@ -105,7 +107,7 @@ export default function StageIdea({
           className="min-h-[180px] w-full resize-none bg-transparent px-1 py-1 text-base leading-7 text-foreground outline-none placeholder:text-muted-foreground/60 sm:text-lg sm:leading-8"
           value={idea}
           onChange={(event) => onIdeaChange(event.target.value)}
-          placeholder="例如：普通女大学生误入异能组织，一边上学打工，一边调查父亲失踪真相。"
+          placeholder={t("idea.placeholder")}
         />
         <div className="flex flex-col gap-2 pt-3 sm:flex-row sm:items-center sm:justify-between">
           <button
@@ -115,7 +117,7 @@ export default function StageIdea({
             disabled={isGeneratingIdeaInspirations}
           >
             <Sparkles className="h-4 w-4" />
-            {isGeneratingIdeaInspirations ? "正在准备几个开头..." : "没有想法？看几个开头"}
+            {isGeneratingIdeaInspirations ? t("idea.inspirations.preparing") : t("idea.inspirations.trigger")}
           </button>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <button
@@ -124,10 +126,10 @@ export default function StageIdea({
               onClick={onQuickGenerate}
               disabled={!canContinue || isGenerating}
             >
-              {isGenerating ? "生成中..." : "用默认设置直接生成方向"}
+              {isGenerating ? t("common.generating") : t("idea.quickGenerate")}
             </button>
             <Button type="button" onClick={onContinue} disabled={!canContinue}>
-              继续完善设定
+              {t("idea.continue")}
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>

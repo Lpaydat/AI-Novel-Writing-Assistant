@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import type { BookAnalysisDetail } from "@ai-novel/shared/types/bookAnalysis";
 import {
   resumeBookAnalysisWithBudget,
@@ -11,6 +12,7 @@ export function useAnalysisBudget(input: {
   refreshAnalysisData: (analysisId: string) => Promise<void>;
   onAnalysisUpdated: (analysis: BookAnalysisDetail) => void;
 }) {
+  const { t } = useTranslation("bookAnalysis");
   const { selectedAnalysisId, refreshAnalysisData, onAnalysisUpdated } = input;
   const queryClient = useQueryClient();
 
@@ -22,12 +24,12 @@ export function useAnalysisBudget(input: {
         return;
       }
       onAnalysisUpdated(response.data);
-      toast.success("拆书预算已保存。");
+      toast.success(t("budget.saveSuccess"));
       await queryClient.invalidateQueries({ queryKey: ["book-analysis"] });
       await refreshAnalysisData(payload.id);
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "预算保存失败。");
+      toast.error(error instanceof Error ? error.message : t("budget.saveError"));
     },
   });
 
@@ -39,12 +41,12 @@ export function useAnalysisBudget(input: {
         return;
       }
       onAnalysisUpdated(response.data);
-      toast.success("已提交续跑任务。");
+      toast.success(t("budget.resumeSuccess"));
       await queryClient.invalidateQueries({ queryKey: ["book-analysis"] });
       await refreshAnalysisData(payload.id);
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "续跑任务提交失败。");
+      toast.error(error instanceof Error ? error.message : t("budget.resumeError"));
     },
   });
 

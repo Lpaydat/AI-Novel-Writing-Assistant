@@ -3,6 +3,7 @@ import type {
   BookAnalysisStatus,
 } from "@ai-novel/shared/types/bookAnalysis";
 import { Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,33 +33,34 @@ export default function BookAnalysisSidebar(props: BookAnalysisSidebarProps) {
     onOpenAnalysis,
     onOpenCreateDialog,
   } = props;
+  const { t } = useTranslation("bookAnalysisComponents");
 
   return (
     <Card>
       <CardHeader className="space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <CardTitle>分析列表</CardTitle>
+          <CardTitle>{t("sidebar.title")}</CardTitle>
           <Badge variant="outline">{analyses.length}</Badge>
         </div>
         <Button type="button" size="sm" className="w-full" onClick={onOpenCreateDialog}>
           <Plus className="mr-1.5 h-4 w-4" />
-          新建拆书
+          {t("sidebar.create")}
         </Button>
       </CardHeader>
       <CardContent className="space-y-3">
-        <Input value={keyword} onChange={(event) => onKeywordChange(event.target.value)} placeholder="搜索标题或关键词" />
+        <Input value={keyword} onChange={(event) => onKeywordChange(event.target.value)} placeholder={t("sidebar.searchPlaceholder")} />
         <SelectControl
           className="h-10 w-full rounded-md border bg-background px-3 text-sm"
           value={status}
           onChange={(event) => onStatusChange(event.target.value as BookAnalysisStatus | "")}
         >
-          <option value="">全部状态</option>
-          <option value="draft">草稿</option>
-          <option value="queued">排队中</option>
-          <option value="running">运行中</option>
-          <option value="succeeded">成功</option>
-          <option value="failed">失败</option>
-          <option value="archived">已归档</option>
+          <option value="">{t("sidebar.statusAll")}</option>
+          <option value="draft">{t("sidebar.statusDraft")}</option>
+          <option value="queued">{t("sidebar.statusQueued")}</option>
+          <option value="running">{t("sidebar.statusRunning")}</option>
+          <option value="succeeded">{t("sidebar.statusSucceeded")}</option>
+          <option value="failed">{t("sidebar.statusFailed")}</option>
+          <option value="archived">{t("sidebar.statusArchived")}</option>
         </SelectControl>
 
         <div className="space-y-2">
@@ -78,12 +80,12 @@ export default function BookAnalysisSidebar(props: BookAnalysisSidebarProps) {
                     {item.documentTitle} | v{item.documentVersionNumber}
                   </div>
                   {item.sourceRange ? (
-                    <div className="mt-1 truncate text-[11px] text-muted-foreground">范围：{item.sourceRange.label ?? "选定章节"}</div>
+                    <div className="mt-1 truncate text-[11px] text-muted-foreground">{t("sidebar.rangeLabel", { label: item.sourceRange.label ?? t("sidebar.selectedChapters") })}</div>
                   ) : null}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   {item.publishedDocumentId && (
-                    <Badge variant="secondary" className="text-[10px]">已发布</Badge>
+                    <Badge variant="secondary" className="text-[10px]">{t("sidebar.published")}</Badge>
                   )}
                   <Badge variant="outline" className="text-[10px]">{formatStatus(item.status)}</Badge>
                 </div>
@@ -99,7 +101,7 @@ export default function BookAnalysisSidebar(props: BookAnalysisSidebarProps) {
 
           {analyses.length === 0 ? (
             <div className="rounded-md border border-dashed p-4 text-xs text-muted-foreground">
-              暂无拆书分析，点击上方「新建拆书」开始。
+              {t("sidebar.empty")}
             </div>
           ) : null}
         </div>

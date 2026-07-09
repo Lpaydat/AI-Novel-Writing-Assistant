@@ -8,19 +8,25 @@ import {
   READER_CHANNEL_OPTIONS,
 } from "../novelBasicInfo.shared";
 import type { DirectorRunModeOption } from "../components/NovelAutoDirectorDialog.shared";
+import i18n from "@/i18n";
 
 export type AutoDirectorCreateStageKey = "idea" | "basic" | "world_style" | "model_run" | "candidates";
 
+/**
+ * `label` holds an i18n key (namespace `novelsAutoDirector`) resolved with
+ * `t()` at the React call site so the label follows the active locale rather
+ * than freezing at module-load time.
+ */
 export const AUTO_DIRECTOR_CREATE_STAGES: Array<{
   key: AutoDirectorCreateStageKey;
   order: number;
   label: string;
 }> = [
-  { key: "idea", order: 0, label: "起始想法" },
-  { key: "basic", order: 1, label: "导演起始设置" },
-  { key: "world_style", order: 2, label: "世界与写法" },
-  { key: "model_run", order: 3, label: "模型与运行方式" },
-  { key: "candidates", order: 4, label: "方向候选" },
+  { key: "idea", order: 0, label: "stages.label.idea" },
+  { key: "basic", order: 1, label: "stages.label.basic" },
+  { key: "world_style", order: 2, label: "stages.label.world_style" },
+  { key: "model_run", order: 3, label: "stages.label.model_run" },
+  { key: "candidates", order: 4, label: "stages.label.candidates" },
 ];
 
 function findLabel(options: Array<{ value: string; label: string }>, value: string): string {
@@ -30,7 +36,7 @@ function findLabel(options: Array<{ value: string; label: string }>, value: stri
 export function summarizeIdea(idea: string): string {
   const normalized = idea.trim().replace(/\s+/g, " ");
   if (!normalized) {
-    return "等待填写起始想法";
+    return i18n.t("stages.summary.idea.empty", { ns: "novelsAutoDirector" });
   }
   return normalized.length > 42 ? `${normalized.slice(0, 42)}...` : normalized;
 }
@@ -41,7 +47,7 @@ export function summarizeBasicStage(basicForm: NovelBasicFormState): string {
     findLabel(POV_OPTIONS, basicForm.narrativePov),
     findLabel(PACE_OPTIONS, basicForm.pacePreference),
     findLabel(EMOTION_OPTIONS, basicForm.emotionIntensity),
-    `约 ${basicForm.estimatedChapterCount} 章`,
+    i18n.t("stages.summary.basic.chapters", { ns: "novelsAutoDirector", count: basicForm.estimatedChapterCount }),
   ].join(" · ");
 }
 
@@ -55,14 +61,16 @@ export function summarizeWorldStyleStage(input: {
 }): string {
   const selectedWorld = input.worldOptions.find((world) => world.id === input.basicForm.worldId);
   const worldLabel = selectedWorld
-    ? `参考世界：${selectedWorld.name}`
+    ? i18n.t("stages.summary.world.reference", { ns: "novelsAutoDirector", name: selectedWorld.name })
     : input.worldSetupMode === "skip"
-      ? "暂不使用世界观"
-      : "自动生成本书世界";
+      ? i18n.t("stages.summary.world.skip", { ns: "novelsAutoDirector" })
+      : i18n.t("stages.summary.world.autoGenerate", { ns: "novelsAutoDirector" });
   const styleProfile = input.styleProfiles.find((profile) => profile.id === input.styleProfileId);
   const styleLabel = styleProfile?.name
     ?? input.selectedStyleSummary?.headline
-    ?? (input.basicForm.styleTone.trim() ? `文风：${input.basicForm.styleTone.trim()}` : "默认写法");
+    ?? (input.basicForm.styleTone.trim()
+      ? i18n.t("stages.summary.style.tone", { ns: "novelsAutoDirector", tone: input.basicForm.styleTone.trim() })
+      : i18n.t("stages.summary.style.default", { ns: "novelsAutoDirector" }));
   return `${worldLabel} · ${styleLabel}`;
 }
 
@@ -72,5 +80,7 @@ export function summarizeModelRunStage(input: {
   postGenerationStyleReviewEnabled: boolean;
 }): string {
   const runModeLabel = input.runModeOptions.find((option) => option.value === input.runMode)?.label ?? input.runMode;
-  return `${runModeLabel} · ${input.postGenerationStyleReviewEnabled ? "正文后检测 AI 味" : "不做正文后 AI 味检测"}`;
+  return `${runModeLabel} · ${input.postGenerationStyleReviewEnabled
+    ? i18n.t("stages.summary.run.styleReviewOn", { ns: "novelsAutoDirector" })
+    : i18n.t("stages.summary.run.styleReviewOff", { ns: "novelsAutoDirector" })}`;
 }

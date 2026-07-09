@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   BookAnalysisPreset,
@@ -37,6 +38,7 @@ function buildNovelOptions(items: Array<{ id: string; title: string }>): NovelOp
 }
 
 export function useBookAnalysisWorkspace(): BookAnalysisWorkspace {
+  const { t } = useTranslation("bookAnalysis");
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const llmStore = useLLMStore();
@@ -153,7 +155,7 @@ export function useBookAnalysisWorkspace(): BookAnalysisWorkspace {
   const sourceChaptersError = sourceChaptersQuery.error instanceof Error
     ? sourceChaptersQuery.error.message
     : sourceChaptersQuery.error
-      ? "章节范围加载失败。"
+      ? t("sourceChapters.loadError")
       : "";
   const versionOptions = sourceDocumentQuery.data?.data?.versions ?? [];
   const selectedPreset = useMemo(
@@ -264,7 +266,7 @@ export function useBookAnalysisWorkspace(): BookAnalysisWorkspace {
       const documentResponse = await exportNovelAsKnowledgeDocument(selectedDiagnosisNovelId);
       const document = documentResponse.data;
       if (!document) {
-        throw new Error("小说正文导出失败。");
+        throw new Error(t("diagnosis.exportError"));
       }
       const analysisResponse = await createBookAnalysis({
         documentId: document.id,
@@ -295,7 +297,7 @@ export function useBookAnalysisWorkspace(): BookAnalysisWorkspace {
       await queryClient.invalidateQueries({ queryKey: queryKeys.knowledge.documents("book-analysis-source") });
       await queryClient.invalidateQueries({ queryKey: queryKeys.knowledge.detail(result.document.id) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.bookAnalysis.list(listKey) });
-      toast.success("已导出小说正文并创建诊断拆书。");
+      toast.success(t("diagnosis.createSuccess"));
     },
   });
 

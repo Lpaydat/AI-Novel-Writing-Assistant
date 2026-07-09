@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import type { StatusFilter, WritingModeFilter } from "./novelListViewModel";
 
@@ -7,17 +8,18 @@ export function NovelListFilterBar(props: {
   onStatusChange: (status: StatusFilter) => void;
   onWritingModeChange: (mode: WritingModeFilter) => void;
 }) {
+  const { t } = useTranslation("novelsList");
   return (
     <section className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 pb-4">
-      <FilterGroup label="状态">
-        <SegmentButton active={props.status === "all"} onClick={() => props.onStatusChange("all")}>全部</SegmentButton>
-        <SegmentButton active={props.status === "draft"} onClick={() => props.onStatusChange("draft")}>草稿</SegmentButton>
-        <SegmentButton active={props.status === "published"} onClick={() => props.onStatusChange("published")}>已发布</SegmentButton>
+      <FilterGroup label={t("filter.status")}>
+        <SegmentButton active={props.status === "all"} onClick={() => props.onStatusChange("all")}>{t("filter.all")}</SegmentButton>
+        <SegmentButton active={props.status === "draft"} onClick={() => props.onStatusChange("draft")}>{t("status.draft")}</SegmentButton>
+        <SegmentButton active={props.status === "published"} onClick={() => props.onStatusChange("published")}>{t("status.published")}</SegmentButton>
       </FilterGroup>
-      <FilterGroup label="类型">
-        <SegmentButton active={props.writingMode === "all"} onClick={() => props.onWritingModeChange("all")}>全部</SegmentButton>
-        <SegmentButton active={props.writingMode === "original"} onClick={() => props.onWritingModeChange("original")}>原创</SegmentButton>
-        <SegmentButton active={props.writingMode === "continuation"} onClick={() => props.onWritingModeChange("continuation")}>续写</SegmentButton>
+      <FilterGroup label={t("filter.type")}>
+        <SegmentButton active={props.writingMode === "all"} onClick={() => props.onWritingModeChange("all")}>{t("filter.all")}</SegmentButton>
+        <SegmentButton active={props.writingMode === "original"} onClick={() => props.onWritingModeChange("original")}>{t("writingMode.original")}</SegmentButton>
+        <SegmentButton active={props.writingMode === "continuation"} onClick={() => props.onWritingModeChange("continuation")}>{t("writingMode.continuation")}</SegmentButton>
       </FilterGroup>
     </section>
   );

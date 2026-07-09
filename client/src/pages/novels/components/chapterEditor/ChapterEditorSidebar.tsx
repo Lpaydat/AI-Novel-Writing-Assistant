@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { Chapter, ChapterEditorDiagnosticCard, ChapterEditorWorkspaceResponse } from "@ai-novel/shared/types/novel";
 import { Button } from "@/components/ui/button";
 
@@ -32,6 +33,7 @@ function LoadingBar(props: { widthClassName?: string }) {
 }
 
 export default function ChapterEditorSidebar(props: ChapterEditorSidebarProps) {
+  const { t } = useTranslation("novelsChapterEditor");
   const {
     chapter,
     workspace,
@@ -61,20 +63,23 @@ export default function ChapterEditorSidebar(props: ChapterEditorSidebarProps) {
             {onBack ? (
               <div>
                 <Button size="sm" variant="outline" onClick={onBack}>
-                  返回章节执行页
+                  {t("sidebar.backToChapterExecution")}
                 </Button>
               </div>
             ) : null}
 
             <div className="space-y-3">
               <div className="text-lg font-semibold leading-7 text-foreground">
-                第 {chapter.order} 章 · {chapter.title?.trim() || "未命名章节"}
+                {t("sidebar.chapterHeading", {
+                  order: chapter.order,
+                  title: chapter.title?.trim() || t("sidebar.untitledChapter"),
+                })}
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <MetaChip label={`${wordCount} 字`} />
+                <MetaChip label={t("sidebar.wordCount", { count: wordCount })} />
                 <MetaChip label={saveStatusLabel} />
-                <MetaChip label={isWorkspaceLoading ? "LLM 分析中" : `问题 ${workspace?.chapterMeta.openIssueCount ?? 0}`} />
+                <MetaChip label={isWorkspaceLoading ? t("sidebar.llmAnalyzing") : t("sidebar.issueCount", { count: workspace?.chapterMeta.openIssueCount ?? 0 })} />
               </div>
 
               {isWorkspaceLoading ? (
@@ -84,7 +89,7 @@ export default function ChapterEditorSidebar(props: ChapterEditorSidebarProps) {
                 </div>
               ) : workspace?.chapterMeta.styleSummary ? (
                 <div className="text-sm leading-6 text-muted-foreground">
-                  当前写法资产：{workspace.chapterMeta.styleSummary}
+                  {t("sidebar.styleAsset", { summary: workspace.chapterMeta.styleSummary })}
                 </div>
               ) : null}
             </div>
@@ -96,11 +101,11 @@ export default function ChapterEditorSidebar(props: ChapterEditorSidebarProps) {
                 disabled={!isDirty || isSaving}
                 className="w-full"
               >
-                {isSaving ? "保存中..." : "保存"}
+                {isSaving ? t("sidebar.saving") : t("sidebar.save")}
               </Button>
               {onOpenVersionHistory ? (
                 <Button size="sm" variant="outline" onClick={onOpenVersionHistory} className="w-full">
-                  版本入口
+                  {t("sidebar.versionEntry")}
                 </Button>
               ) : null}
             </div>
@@ -109,15 +114,15 @@ export default function ChapterEditorSidebar(props: ChapterEditorSidebarProps) {
 
         <div className="shrink-0 rounded-3xl border border-border/70 bg-background p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="text-sm font-medium text-foreground">宏观定位</div>
+            <div className="text-sm font-medium text-foreground">{t("sidebar.macroPositioning")}</div>
             <span className="text-xs text-muted-foreground">
-              {isWorkspaceLoading ? "AI 分析中" : workspace?.refreshReason ?? "实时生成"}
+              {isWorkspaceLoading ? t("sidebar.aiAnalyzing") : workspace?.refreshReason ?? t("sidebar.realtimeGenerated")}
             </span>
           </div>
 
           {isWorkspaceLoading ? (
             <div className="space-y-4 text-sm leading-6 text-muted-foreground">
-              <div>AI 正在分析本章在卷内的位置、节奏建议和章节任务。</div>
+              <div>{t("sidebar.macroLoadingBody")}</div>
               <div className="space-y-3">
                 <LoadingBar widthClassName="w-2/3" />
                 <LoadingBar widthClassName="w-full" />
@@ -128,47 +133,47 @@ export default function ChapterEditorSidebar(props: ChapterEditorSidebarProps) {
           ) : macroContext ? (
             <div className="space-y-4 text-sm leading-6">
               <div>
-                <div className="mb-1 font-medium text-foreground">本章在本卷中的位置</div>
+                <div className="mb-1 font-medium text-foreground">{t("sidebar.macroPositionTitle")}</div>
                 <div className="text-muted-foreground">
                   {macroContext.volumeTitle} · {macroContext.volumePositionLabel} · {macroContext.volumePhaseLabel}
                 </div>
               </div>
               <div>
-                <div className="mb-1 font-medium text-foreground">当前节奏建议</div>
+                <div className="mb-1 font-medium text-foreground">{t("sidebar.paceTitle")}</div>
                 <div className="text-muted-foreground">{macroContext.paceDirective}</div>
               </div>
               <div>
-                <div className="mb-1 font-medium text-foreground">本章主要任务</div>
+                <div className="mb-1 font-medium text-foreground">{t("sidebar.missionTitle")}</div>
                 <div className="text-muted-foreground">{macroContext.chapterMission}</div>
               </div>
               <div>
-                <div className="mb-1 font-medium text-foreground">前后章节衔接</div>
+                <div className="mb-1 font-medium text-foreground">{t("sidebar.bridgeTitle")}</div>
                 <div className="space-y-2 text-muted-foreground">
-                  <div>承接上一章：{macroContext.previousChapterBridge}</div>
-                  <div>铺向下一章：{macroContext.nextChapterBridge}</div>
+                  <div>{t("sidebar.previousBridge", { bridge: macroContext.previousChapterBridge })}</div>
+                  <div>{t("sidebar.nextBridge", { bridge: macroContext.nextChapterBridge })}</div>
                 </div>
               </div>
             </div>
           ) : isWorkspaceError ? (
             <div className="text-sm leading-6 text-muted-foreground">
-              宏观定位暂时加载失败，你仍然可以先编辑正文或在右侧直接发起 AI 修正。
+              {t("sidebar.macroError")}
             </div>
           ) : (
             <div className="text-sm leading-6 text-muted-foreground">
-              正在准备本章的卷内定位和节奏建议。
+              {t("sidebar.macroPreparing")}
             </div>
           )}
         </div>
 
         <div className="min-h-0 shrink-0 rounded-3xl border border-border/70 bg-background p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="text-sm font-medium text-foreground">待处理问题卡</div>
+            <div className="text-sm font-medium text-foreground">{t("sidebar.pendingIssueCards")}</div>
             <span className="text-xs text-muted-foreground">
               {isWorkspaceLoading
-                ? "AI 正在梳理"
+                ? t("sidebar.aiOrganizing")
                 : recommendedTask
-                  ? `当前推荐：${recommendedTask.title}`
-                  : "等待问题卡"}
+                  ? t("sidebar.currentRecommendation", { title: recommendedTask.title })
+                  : t("sidebar.waitingIssueCards")}
             </span>
           </div>
 
@@ -176,7 +181,7 @@ export default function ChapterEditorSidebar(props: ChapterEditorSidebarProps) {
             {isWorkspaceLoading ? (
               <>
                 <div className="rounded-2xl border border-dashed border-border/70 bg-muted/10 p-4 text-sm leading-6 text-muted-foreground">
-                  AI 正在按章节问题、卷内位置和节奏目标梳理优先修正项，请稍候。
+                  {t("sidebar.issueLoadingBody")}
                 </div>
                 {[0, 1].map((item) => (
                   <div key={item} className="rounded-2xl border border-border/70 bg-muted/10 p-3">
@@ -211,12 +216,12 @@ export default function ChapterEditorSidebar(props: ChapterEditorSidebarProps) {
                     <div>
                       <div className="text-sm font-medium text-foreground">{card.title}</div>
                       <div className="mt-1 text-xs text-muted-foreground">
-                        {card.paragraphLabel || "整章"} · {card.severity}
+                        {card.paragraphLabel || t("sidebar.wholeChapter")} · {card.severity}
                       </div>
                     </div>
                     {isRecommended ? (
                       <span className="rounded-full bg-emerald-100 px-2 py-1 text-[11px] text-emerald-800">
-                        推荐先修
+                        {t("sidebar.recommendFirst")}
                       </span>
                     ) : null}
                   </div>
@@ -230,10 +235,10 @@ export default function ChapterEditorSidebar(props: ChapterEditorSidebarProps) {
                       variant={isSelected ? "default" : "outline"}
                       onClick={() => onFocusDiagnostic(card)}
                     >
-                      {isSelected ? "取消定位" : "定位到正文"}
+                      {isSelected ? t("sidebar.cancelLocate") : t("sidebar.locateInText")}
                     </Button>
                     <Button size="sm" onClick={() => onRunDiagnostic(card)}>
-                      直接用 AI 处理
+                      {t("sidebar.handleWithAi")}
                     </Button>
                   </div>
                 </div>
@@ -241,10 +246,10 @@ export default function ChapterEditorSidebar(props: ChapterEditorSidebarProps) {
             }) : (
               <div className="rounded-2xl border border-dashed border-border/70 bg-muted/10 p-4 text-sm leading-6 text-muted-foreground">
                 {isWorkspaceError
-                  ? "问题卡暂时加载失败，你可以先在右侧直接输入修改意见，或手动选中片段发起修正。"
+                  ? t("sidebar.issueCardsError")
                   : workspace
-                  ? "AI 暂时还没有整理出明确的问题卡，你可以先在右侧直接输入修改意见，或手动选中片段发起修正。"
-                  : "正在加载本章工作区。"}
+                  ? t("sidebar.issueCardsEmpty")
+                  : t("sidebar.workspaceLoading")}
               </div>
             )}
           </div>
