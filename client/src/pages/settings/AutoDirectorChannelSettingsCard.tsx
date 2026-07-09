@@ -50,8 +50,8 @@ function AutoDirectorEventMultiSelect(props: {
                   }}
                 />
                 <div className="min-w-0 space-y-1">
-                  <div className={`${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText} text-sm font-medium`}>{item.label}</div>
-                  <div className={`${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText} text-xs text-muted-foreground`}>{item.description}</div>
+                  <div className={`${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText} text-sm font-medium`}>{t(item.labelKey)}</div>
+                  <div className={`${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText} text-xs text-muted-foreground`}>{t(item.descriptionKey)}</div>
                 </div>
               </label>
             );

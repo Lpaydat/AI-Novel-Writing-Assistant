@@ -17,9 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import {
-  CONTEXT_GROUP_LABELS,
+  CONTEXT_GROUP_LABEL_KEYS,
   LOCKED_CONTEXT_GROUPS,
-  SLOT_KIND_LABELS,
+  SLOT_KIND_LABEL_KEYS,
 } from "../promptWorkbenchLabels";
 import type { PromptEditorSection, PromptSlotValue } from "../promptWorkbenchTypes";
 import { PromptPreviewPanel } from "./PromptPreviewPanel";
@@ -165,7 +165,7 @@ function SlotBadges({ section }: { section: PromptEditorSection }) {
   return (
     <div className="flex flex-wrap gap-2">
       <Badge variant="outline" className="border-[#cbdad6] bg-[#f7fbf9] text-[#315f58]">
-        {SLOT_KIND_LABELS[section.kind] ?? section.kind}
+        {t(SLOT_KIND_LABEL_KEYS[section.kind] ?? section.kind)}
       </Badge>
       <Badge
         variant={section.source === "official" ? "outline" : "secondary"}
@@ -557,7 +557,7 @@ function ContextReferenceChips(props: {
               title={requirement.group}
             >
               {locked ? <LockKeyhole className="h-3 w-3" /> : null}
-              {CONTEXT_GROUP_LABELS[requirement.group] ?? requirement.group}
+              {t(CONTEXT_GROUP_LABEL_KEYS[requirement.group] ?? requirement.group)}
             </button>
           );
         })}

@@ -3,7 +3,7 @@ import { LockKeyhole } from "lucide-react";
 import type { PromptPreviewResult } from "@/api/promptWorkbench";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MESSAGE_ROLE_LABELS } from "../promptWorkbenchLabels";
+import { MESSAGE_ROLE_LABEL_KEYS } from "../promptWorkbenchLabels";
 
 function JsonBlock({ value }: { value: unknown }) {
   return (
@@ -58,7 +58,7 @@ export function PromptPreviewPanel({ preview }: { preview: PromptPreviewResult |
         <TabsList className="max-w-full overflow-x-auto">
           {preview.messages.map((message, index) => (
             <TabsTrigger key={`${message.role}-${index}`} value={`${message.role}-${index}`}>
-              {MESSAGE_ROLE_LABELS[message.role] ?? message.role}
+              {t(MESSAGE_ROLE_LABEL_KEYS[message.role] ?? message.role)}
             </TabsTrigger>
           ))}
           <TabsTrigger value="diagnostics">{t("preview.diagnostics")}</TabsTrigger>
@@ -70,7 +70,7 @@ export function PromptPreviewPanel({ preview }: { preview: PromptPreviewResult |
               <div className="flex items-center justify-between gap-3 border-b border-[#dce8e4] bg-[#f8fbfa] px-3 py-2">
                 <div className="flex items-center gap-2 text-xs font-semibold text-[#52606d]">
                   <LockKeyhole className="h-3.5 w-3.5" />
-                  {MESSAGE_ROLE_LABELS[message.role] ?? message.role}
+                  {t(MESSAGE_ROLE_LABEL_KEYS[message.role] ?? message.role)}
                 </div>
                 <Badge variant="outline" className="border-[#cbdad6] bg-white text-[#52606d]">{t("preview.readonly")}</Badge>
               </div>

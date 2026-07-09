@@ -1,6 +1,7 @@
 import type { Descendant, Value } from "platejs";
 import type { PromptTemplateReferenceCatalog, PromptTemplateReferenceItem } from "@/api/promptWorkbench";
-import { CONTEXT_GROUP_LABELS } from "./promptWorkbenchLabels.ts";
+import i18n from "@/i18n";
+import { CONTEXT_GROUP_LABEL_KEYS } from "./promptWorkbenchLabels.ts";
 
 export const PROMPT_TOKEN_ELEMENT_TYPE = "prompt-token";
 export const PROMPT_TOKEN_PARAGRAPH_TYPE = "p";
@@ -67,7 +68,8 @@ export function labelTemplateToken(input: {
 }): string {
   const { key, kind, reference } = input;
   if (kind === "context") {
-    return CONTEXT_GROUP_LABELS[key] ?? reference?.label ?? key;
+    const groupKey = CONTEXT_GROUP_LABEL_KEYS[key];
+    return groupKey ? i18n.t(groupKey, { ns: "promptWorkbench" }) : reference?.label ?? key;
   }
   if (reference?.label) {
     return reference.label;

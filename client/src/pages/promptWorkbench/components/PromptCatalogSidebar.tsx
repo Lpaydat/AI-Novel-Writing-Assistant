@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
-  MANAGEMENT_STATUS_LABELS,
-  OUTPUT_TYPE_LABELS,
-  TASK_TYPE_LABELS,
+  MANAGEMENT_STATUS_LABEL_KEYS,
+  OUTPUT_TYPE_LABEL_KEYS,
+  TASK_TYPE_LABEL_KEYS,
 } from "../promptWorkbenchLabels";
 
 interface PromptCatalogSidebarProps {
@@ -66,8 +66,8 @@ function PromptListItem(props: {
             {prompt.id}
           </div>
           <div className="mt-0.5 truncate text-[11px] leading-4 text-muted-foreground">
-            {prompt.version} · {TASK_TYPE_LABELS[prompt.taskType] ?? prompt.taskType} ·{" "}
-            {OUTPUT_TYPE_LABELS[prompt.mode] ?? prompt.mode}
+            {prompt.version} · {t(TASK_TYPE_LABEL_KEYS[prompt.taskType] ?? prompt.taskType)} ·{" "}
+            {t(OUTPUT_TYPE_LABEL_KEYS[prompt.mode] ?? prompt.mode)}
           </div>
         </div>
         <span className={cn(
@@ -81,7 +81,7 @@ function PromptListItem(props: {
             prompt.slotSupported ? "bg-[#0f766e]" : "bg-[#94a3b8]",
           )} />
           <span className="truncate">
-            {prompt.slotSupported ? t("sidebar.customizable") : MANAGEMENT_STATUS_LABELS[prompt.managementStatus]}
+            {prompt.slotSupported ? t("sidebar.customizable") : t(MANAGEMENT_STATUS_LABEL_KEYS[prompt.managementStatus])}
           </span>
         </span>
       </div>

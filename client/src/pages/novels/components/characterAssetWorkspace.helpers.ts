@@ -1,35 +1,38 @@
 import type { Character, CharacterCastRole, CharacterGender } from "@ai-novel/shared/types/novel";
 
-const CAST_ROLE_LABELS: Record<CharacterCastRole, string> = {
-  protagonist: "主角",
-  antagonist: "主对手",
-  ally: "同盟",
-  foil: "镜像角色",
-  mentor: "导师",
-  love_interest: "情感牵引",
-  pressure_source: "压力源",
-  catalyst: "催化者",
+// Locale-aware: values are `novelsEditA` namespace translation keys. The getters
+// below RETURN a translation key; resolve it with t()/i18n.t at the call site
+// (module-load i18n.t would freeze the locale).
+const CAST_ROLE_LABEL_KEYS: Record<CharacterCastRole, string> = {
+  protagonist: "shared.castRoleProtagonist",
+  antagonist: "shared.castRoleAntagonist",
+  ally: "shared.castRoleAlly",
+  foil: "shared.castRoleFoil",
+  mentor: "shared.castRoleMentor",
+  love_interest: "shared.castRoleLoveInterest",
+  pressure_source: "shared.castRolePressureSource",
+  catalyst: "shared.castRoleCatalyst",
 };
 
-const CHARACTER_GENDER_LABELS: Record<CharacterGender, string> = {
-  male: "男",
-  female: "女",
-  other: "其他",
-  unknown: "未知",
+const CHARACTER_GENDER_LABEL_KEYS: Record<CharacterGender, string> = {
+  male: "shared.characterGenderMale",
+  female: "shared.characterGenderFemale",
+  other: "shared.characterGenderOther",
+  unknown: "shared.characterGenderUnknown",
 };
 
 export function getCastRoleLabel(castRole?: CharacterCastRole | null): string {
   if (!castRole) {
-    return "未定义";
+    return "shared.castRoleUndefined";
   }
-  return CAST_ROLE_LABELS[castRole] ?? castRole;
+  return CAST_ROLE_LABEL_KEYS[castRole] ?? castRole;
 }
 
 export function getCharacterGenderLabel(gender?: CharacterGender | null): string {
   if (!gender) {
-    return "未知";
+    return "shared.characterGenderUnknown";
   }
-  return CHARACTER_GENDER_LABELS[gender] ?? gender;
+  return CHARACTER_GENDER_LABEL_KEYS[gender] ?? gender;
 }
 
 export function isProtagonistCharacter(character?: Character | null): boolean {

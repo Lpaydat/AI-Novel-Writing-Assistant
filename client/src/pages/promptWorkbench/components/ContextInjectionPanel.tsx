@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import SelectControl from "@/components/common/SelectControl";
+import i18n from "@/i18n";
 import {
-  CONTEXT_GROUP_LABELS,
-  CONTEXT_STATUS_LABELS,
+  CONTEXT_GROUP_LABEL_KEYS,
+  CONTEXT_STATUS_LABEL_KEYS,
   LOCKED_CONTEXT_GROUPS,
 } from "../promptWorkbenchLabels";
 import type { ContextBlockStatus, ContextBlockViewModel } from "../promptWorkbenchTypes";
@@ -65,17 +66,19 @@ function buildContextBlockViewModels(
   const summarizedIds = new Set(preview.context.summarizedBlockIds);
 
   return preview.context.blocks.map((block) => {
+    const groupLabelKey = CONTEXT_GROUP_LABEL_KEYS[block.group];
+    const groupLabel = groupLabelKey ? i18n.t(groupLabelKey, { ns: "promptWorkbench" }) : "";
     const haystack = [
       block.id,
       block.group,
-      CONTEXT_GROUP_LABELS[block.group] ?? "",
+      groupLabel,
       block.source ?? "",
       block.content,
     ].join("\n").toLowerCase();
     return {
       id: block.id,
       group: block.group,
-      groupLabel: CONTEXT_GROUP_LABELS[block.group] ?? block.group,
+      groupLabel: groupLabel || block.group,
       priority: block.priority,
       required: Boolean(block.required),
       estimatedTokens: block.estimatedTokens ?? 0,
@@ -219,7 +222,7 @@ export function ContextInjectionPanel(props: {
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1">
                       <Badge variant="outline" className={cn("px-1.5 py-0 text-[11px]", statusClassName(block.status))}>
-                        {CONTEXT_STATUS_LABELS[block.status]}
+                        {t(CONTEXT_STATUS_LABEL_KEYS[block.status])}
                       </Badge>
                       <span className="text-[11px] text-muted-foreground">{block.estimatedTokens} tokens</span>
                     </div>
@@ -249,7 +252,7 @@ export function ContextInjectionPanel(props: {
                     <div className="truncate font-mono text-[11px] text-muted-foreground">{activeBlock.id}</div>
                   </div>
                   <Badge variant="outline" className={cn("px-1.5 py-0 text-[11px]", statusClassName(activeBlock.status))}>
-                    {CONTEXT_STATUS_LABELS[activeBlock.status]}
+                    {t(CONTEXT_STATUS_LABEL_KEYS[activeBlock.status])}
                   </Badge>
                 </div>
                 {onInsertToken && activeContextToken ? (

@@ -28,9 +28,9 @@ export default function CharacterFocusSummary(props: CharacterFocusSummaryProps)
             {isProtagonist ? (
               <Badge variant="secondary">{t("characterFocus.protagonistBadge")}</Badge>
             ) : (
-              <Badge variant="outline">{getCastRoleLabel(selectedCharacter.castRole)}</Badge>
+              <Badge variant="outline">{t(getCastRoleLabel(selectedCharacter.castRole), { ns: "novelsEditA" })}</Badge>
             )}
-            <Badge variant="secondary">{getCharacterGenderLabel(selectedCharacter.gender)}</Badge>
+            <Badge variant="secondary">{t(getCharacterGenderLabel(selectedCharacter.gender), { ns: "novelsEditA" })}</Badge>
           </div>
           <div className="text-sm leading-6 text-muted-foreground">
             {isProtagonist

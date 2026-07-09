@@ -9,11 +9,11 @@ import { cn } from "@/lib/utils";
 import SelectControl from "@/components/common/SelectControl";
 import {
   ENTRYPOINT_OPTIONS,
-  LOCKED_FIELD_LABELS,
-  MANAGEMENT_STATUS_LABELS,
-  OUTPUT_TYPE_LABELS,
-  SLOT_KIND_LABELS,
-  TASK_TYPE_LABELS,
+  LOCKED_FIELD_LABEL_KEYS,
+  MANAGEMENT_STATUS_LABEL_KEYS,
+  OUTPUT_TYPE_LABEL_KEYS,
+  SLOT_KIND_LABEL_KEYS,
+  TASK_TYPE_LABEL_KEYS,
   capabilityLabels,
 } from "../promptWorkbenchLabels";
 
@@ -89,11 +89,11 @@ export function PromptEditorShell(props: PromptEditorShellProps) {
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
               <span className="font-mono">{prompt.key}</span>
               <span>·</span>
-              <span>{TASK_TYPE_LABELS[prompt.taskType] ?? prompt.taskType}</span>
+              <span>{t(TASK_TYPE_LABEL_KEYS[prompt.taskType] ?? prompt.taskType)}</span>
               <span>·</span>
-              <span>{OUTPUT_TYPE_LABELS[prompt.outputType] ?? prompt.outputType}</span>
+              <span>{t(OUTPUT_TYPE_LABEL_KEYS[prompt.outputType] ?? prompt.outputType)}</span>
               <span>·</span>
-              <span>{MANAGEMENT_STATUS_LABELS[prompt.managementStatus]}</span>
+              <span>{t(MANAGEMENT_STATUS_LABEL_KEYS[prompt.managementStatus])}</span>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
               <span className="rounded-md bg-[#eef6f4] px-2 py-1 text-[#315f58]">
@@ -125,7 +125,7 @@ export function PromptEditorShell(props: PromptEditorShellProps) {
             >
               {ENTRYPOINT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.labelKey)}
                 </option>
               ))}
             </SelectControl>
@@ -207,7 +207,7 @@ export function PromptEditorShell(props: PromptEditorShellProps) {
                   className="inline-flex max-w-full items-center rounded-md bg-[#eaf7f2] px-2 py-1 text-xs text-[#25443f]"
                 >
                   {slot.label}
-                  <span className="ml-1 opacity-60">·{SLOT_KIND_LABELS[slot.kind] ?? slot.kind}</span>
+                  <span className="ml-1 opacity-60">·{t(SLOT_KIND_LABEL_KEYS[slot.kind] ?? slot.kind)}</span>
                 </span>
               )) : (
                 <span className="text-xs text-muted-foreground">{t("shell.noSlotsAvailable")}</span>
@@ -226,7 +226,7 @@ export function PromptEditorShell(props: PromptEditorShellProps) {
                   title={field}
                   className="inline-flex rounded-md border border-[#d7e0ec] bg-[#f5f8fc] px-2 py-1 text-xs text-[#52606d]"
                 >
-                  {LOCKED_FIELD_LABELS[field] ?? field}
+                  {t(LOCKED_FIELD_LABEL_KEYS[field] ?? field)}
                 </span>
               ))}
             </div>

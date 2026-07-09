@@ -466,7 +466,7 @@ export default function ModelRoutesPage() {
           <Card key={taskType}>
             <CardHeader>
               <CardTitle className="flex flex-wrap items-center gap-2">
-                <span>{label.title}</span>
+                <span>{t(label.titleKey)}</span>
                 <span className="inline-flex items-center gap-2 rounded-full border px-2 py-0.5 text-xs font-normal text-muted-foreground">
                   <RouteStatusDot state={connectivityState} />
                   {connectivityState === "healthy"
@@ -480,7 +480,7 @@ export default function ModelRoutesPage() {
                 {isDirty ? <Badge variant="secondary">{t("modelRoutes.dirty")}</Badge> : null}
               </CardTitle>
               <CardDescription>
-                {label.description}
+                {t(label.descriptionKey)}
                 <span className="ml-2 text-xs">{t("modelRoutes.taskId", { taskType })}</span>
               </CardDescription>
             </CardHeader>

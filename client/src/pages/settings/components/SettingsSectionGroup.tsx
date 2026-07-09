@@ -1,14 +1,16 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { AUTO_DIRECTOR_MOBILE_CLASSES } from "@/mobile/autoDirector";
 
 export type SettingsSectionStatus = "required" | "enhancement" | "advanced" | "maintenance";
 
-const STATUS_LABELS: Record<SettingsSectionStatus, string> = {
-  required: "开始创作必需",
-  enhancement: "写作质量增强",
-  advanced: "自动导演高级",
-  maintenance: "系统维护",
+// Locale-aware: values are `settingsComponents` namespace translation keys.
+const STATUS_LABEL_KEYS: Record<SettingsSectionStatus, string> = {
+  required: "shared.statusRequired",
+  enhancement: "shared.statusEnhancement",
+  advanced: "shared.statusAdvanced",
+  maintenance: "shared.statusMaintenance",
 };
 
 export default function SettingsSectionGroup(props: {
@@ -17,6 +19,7 @@ export default function SettingsSectionGroup(props: {
   status: SettingsSectionStatus;
   children: ReactNode;
 }) {
+  const { t } = useTranslation("settingsComponents");
   const { title, description, status, children } = props;
 
   return (
@@ -25,7 +28,7 @@ export default function SettingsSectionGroup(props: {
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-lg font-semibold tracking-normal">{title}</h2>
-            <Badge variant="outline">{STATUS_LABELS[status]}</Badge>
+            <Badge variant="outline">{t(STATUS_LABEL_KEYS[status])}</Badge>
           </div>
           <p className={`text-sm text-muted-foreground ${AUTO_DIRECTOR_MOBILE_CLASSES.wrapText}`}>
             {description}
