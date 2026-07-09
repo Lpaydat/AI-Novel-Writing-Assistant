@@ -21,17 +21,17 @@ This is an **AI production system for full-length novels**.
 
 It is not the usual "you write a sentence, the AI appends a sentence" chat mode. Instead it lets you:
 
-- 👉 Start from a single idea
-- 👉 Automatically build the world, characters, and plot structure
-- 👉 Manage knowledge and settings (RAG)
-- 👉 Control writing style and narrative consistency
-- 👉 Finally generate complete chapters — even an entire book
+- 👉 Start the whole book's planning from a single spark of inspiration — the AI proposes directions, world, characters, volume strategy, and chapter tasks
+- 👉 Chain chapter generation, review, repair, and state feedback into a pausable, resumable production line
+- 👉 Turn book analysis, the knowledge base, the writing/style engine, the character-asset ledger, and the world handbook into recallable long-term assets
+- 👉 Spin up comic and short-drama derivative studios that extend a finished novel's content into visuals and scripts
+- 👉 Come with a public intro site, deep production-chain documentation, and stage-by-stage recovery manuals
 
 > 本项目同时面向中文用户。如需中文说明，参见下方“中文简介”。
 
 ### 中文简介
 
-这是一个面向长篇小说的 AI 生产系统。从一个想法出发，自动构建世界观、人物与剧情结构，管理知识与设定（RAG），控制写作风格与叙事一致性，最终生成完整章节甚至整本小说。面向完全不懂写作的新手优先设计，核心目标是“把整本书写完”。
+这是一个面向长篇小说完成度的 AI 生产系统。从一句灵感出发，自动构建世界观、人物与剧情结构，把章节生成、审核、修复、状态回灌串成可暂停可恢复的生产链；把拆书、知识库、写法引擎、角色资源账本和世界手册都做成可召回的长期资产，并提供漫画、短剧等衍生工坊围绕已完成的小说内容做视觉与剧本延展。面向完全不懂写作的新手优先设计，核心目标是”把整本书写完”。
 
 ## Windows Desktop Edition
 
@@ -67,45 +67,66 @@ This repository is worth your attention if you are looking for:
 
 ## Available Capabilities
 
-### 1. AI Director book-opening
+### 1. AI Director book-opening and four run modes
 
-- Start from a single fuzzy inspiration and go straight into the AI director — no need to figure out the world, main plot, characters, and volume outlines yourself first. The system first consolidates project settings, aligns the book-level framing, then generates multiple full-book directions with matching title sets.
+- Start from a single fuzzy inspiration and go straight into the AI director — no need to hand-write the world, main plot, characters, and volume outlines first. The system first consolidates project settings, aligns the book-level framing, then generates multiple full-book directions with matching title sets.
 - Direction selection is no longer just "accept or regenerate the whole batch." If the first round misses, generate the next round; if one direction feels right, let the AI refine just that plan, or redo only its title set.
-- Director creation supports three advance modes: `Review by key milestones`, `Advance until ready to write`, and `Auto-execute the first 10 chapters`. The pipeline chains book-level direction, macro story planning, per-book world preparation, character preparation, volume strategy, pacing/chapter splitting, and chapter execution into one continuous flow.
-- The pipeline supports checkpoint recovery, taking over existing projects, in-page continuation, and model-switch retries. After `chapter_batch_ready` you can either enter chapter execution directly, or let the AI auto-run the first 10 chapters through writing, review, and repair.
-- The character stage no longer unconditionally commits the first roster. It now prioritizes generating character assets that can enter the prose directly; if character names still look like role-slots, lack identity anchors, or are unstable in quality, the system stops at the character review point rather than carrying a bad roster into later volume planning and chapter splitting.
+- The AI director offers four run modes: **Prepare until ready to write** (recommended for your first book), **Auto-produce the whole book**, **Execute by scope** (whole book / first N chapters / volume 1), and **AI detection and repair after prose** (layering in a quality loop).
+- In full-autopilot mode, when the model is unavailable, the quota runs out, repairs fail repeatedly, or a re-plan is requested, it deliberately stops rather than retrying forever; all state is saved to the director follow-up and can be resumed from the original checkpoint.
+- In full-auto mode, after each chapter batch completes it auto-confirms pending candidate characters, promoting them into the formal roster and triggering a dynamic rebuild — eliminating character-consistency drift in later chapters.
+- The pipeline chains book-level direction, macro story planning, per-book world, character preparation, volume strategy / volume skeleton, pacing board, chapter list, chapter refinement, chapter execution, review, and repair; every stage supports checkpoint recovery, takeover, and model-switch retries.
 
 ### 2. Creative Hub and Agent Runtime
 
-- `Creative Hub` is no longer just a chat page — it is converging into a unified creative hub: conversation, follow-ups, planning, tool calls, execution status, and turn summaries are all merging here.
-- The system has clear Planner, Tool Registry, Runtime, approval nodes, status cards, and interrupt-recovery links — showing the focus is no longer "can the AI write" but "can the AI organize a real creative workflow."
-- If you care about how AI-native products land, this is no longer a scattered pile of buttons; it is growing a skeleton worth building on.
+- `Creative Hub` is a unified creative hub that carries conversation, follow-ups, planning, tool calls, task status, and turn summaries — no longer a scattered pile of buttons.
+- The system has clear Planner, Tool Registry, Runtime, approval nodes, status cards, and interrupt-recovery links; natural-language intent is routed to the matching AI-director stage or chapter task.
+- Browser pause notifications: a system notification pops up when a checkpoint is reached, so long-running tasks are safer to leave unattended.
 
-### 3. Full-book production pipeline
+### 3. Full-book production pipeline and chapter execution
 
-- Single-chapter runtime, chapter execution, and full-book batch pipeline are converging onto one main chain — no longer the fragmented "a trial entry here, a batch button there."
-- You can launch a full-book writing task from structured planning, a chapter outline, and asset readiness, and keep watching the current stage, failure reasons, and next-step suggestions.
-- It is not yet a one-click book machine you never have to manage — but it is also past the "only good for screenshots" stage. The main chain really does advance.
+- Single-chapter runtime, chapter execution, and the full-book batch pipeline converge onto one main chain — no longer the fragmented "a trial entry here, a batch button there."
+- Chapter-generation context precisely filters the character-asset ledger by the participants in the current chapter, avoiding stuffing every character into the prompt; high-risk committed facts and pending proposals travel through different audit codes, so the prose does not write unconfirmed assets as established fact.
+- The chapter-execution chain covers prose generation, AI review, repairable-issue handling, quality-debt logging, character-state / fact / foreshadow feedback, and the next-chapter entry.
+- An LLM rate-limiter memory-leak fix evicts stale limiters when provider config changes, keeping memory stable over long runs.
 
-### 4. Style Engine
+### 4. Book Analysis workbench and character-image evolution
+
+- Book-analysis character profiles come in four tiers — **Brief / Standard / In-depth / Complete** — where the In-depth and Complete tiers trace back to source passages to fill in missing dimensions.
+- **Character-image evolution**: an incremental scan of appearance chapters at 25% / 50% / 75% / 100% coverage settles each chapter's looks, clothing, state, and scene anchors, then generates stage images of the same character from chapter snapshots; extracted short appearance descriptors land in a pending area and merge into the profile once checked.
+- Chapter images can reference the character's base image to keep face shape, hairstyle, and signature details consistent.
+- Book Analysis also offers dual-pane reading, chapter-level evidence traceback, scope-targeted analysis, a token-budget guard, and a manuscript diagnosis mode.
+
+### 5. Style Engine and anti-AI rules
 
 - Writing style is no longer just a long paragraph inside a prompt; it is a long-term asset you can save, edit, bind, trial-write, and reuse.
-- You can extract style features from existing text and save the original sample alongside, so you no longer rely on memory to guess "where that flavor came from."
-- Extracted features settle into a visible feature pool; once in the editor you can enable, disable, and combine them per item, and the style rules recompile in sync — convenient for trial writing, correction, and full-book binding.
-- This means the Style Engine is genuinely participating in generation, detection, and correction — not a sidebar concept feature.
+- You can extract style features from existing text alongside the original sample; features settle into a visible feature pool where you enable, disable, and combine them per item, and the rules recompile in sync.
+- The Style Engine participates in the generation, detection, and correction chain; anti-AI rules reduce template feel, over-explaining, and vague phrasing in the prose.
 
-### 5. Per-book world, characters, book analysis, and knowledge base
+### 6. Per-book world, characters, knowledge base, and RAG
 
-- The world is no longer just a wall of setting text — you can generate a world skeleton from world intent, then settle it into a world manual, rules, factions, locations, relationships, and conflict entry points.
-- Each novel can have its own per-book world: import from the world library, generate by book theme, manually sync differences, or save back to the world library for reuse.
-- World maps and faction graphs enter the chapter context, and character preparation can leverage faction tendencies, world rules, and identity boundaries to produce characters that fit the stage.
-- Book analysis results and knowledge-base documents can feed back into planning, continuation, and prose generation; the system retrieves relevant context by the current chapter task, characters, and conflicts — not just a one-shot prompt.
+- The world upgrades from a wall of setting text into a per-book world you can generate, reuse, and sync; maps and faction graphs enter the chapter context.
+- Book-analysis results and knowledge-base documents feed back into planning, continuation, and prose generation through RAG.
+- Streaming, parallel RAG indexing: embedding and Qdrant writes run concurrently at a tunable degree; book-analysis outputs enter a facets index so retrieval includes analysis conclusions; chunk-hash dedup prevents duplicate vectors on rebuild; a retrieval trace lets the backend track why a hit matched.
 
-### 6. Model routing and local running
+### 7. Comic and short-drama derivative studios
 
-- Supports multiple providers (OpenAI, DeepSeek, SiliconFlow, xAI, …); planning, prose, and review pipelines can be routed to different models.
-- The frontend and backend are split into a monorepo, suitable for sustained local development and for extending toward a Prompt Registry, Workflow Registry, and Runtime.
-- SQLite is enough by default to run the main pipeline; wire up Qdrant only when you want the full knowledge-base / RAG experience — you do not have to stand up all the infrastructure up front.
+- **Comic workbench**: scene consistency, character visual assets, and visual-anchor control; the storyboard and character panels use image-generation confirm dialogs to avoid accidentally burning quota.
+- **Short-drama adaptation pipeline v3**: derive short-drama scripts and shots from the novel's content.
+- The derivative studios do not open before the main chain runs through — they consume the chapters, characters, and scenes the novel has already generated.
+
+### 8. Public intro site and documentation system
+
+- A GitHub Pages **public intro site** (port 4173) showcases the main chain, product screenshots, documentation entries, and download links.
+- The docs site provides local full-text search, breadcrumbs, in-page tables of contents, previous / next navigation, tip / warn / checkpoint callout blocks, and GFM tables.
+- 33 public documents cover the project intro, installation and prep, FAQ, troubleshooting, a hands-on path to your first novel, stage-by-stage recovery manuals, the end-to-end production chain, the AI-director stage panorama, the chapter-execution chain, and the knowledge / RAG retrieval chain, plus module notes.
+- Module docs come with real product screenshots, and a technical-alias mapping table is kept at the end of the AI-director stage panorama for developers.
+
+### 9. Model routing and local running
+
+- Supports multiple providers (OpenAI, DeepSeek, SiliconFlow, xAI, …); planning, prose, review, book-analysis, and other chains can be routed to different models per task.
+- SQLite is enough by default to run the main chain; wire up Qdrant only when you want RAG retrieval.
+- Runtime parameters such as RAG concurrency and rate limits have moved from `.env` into the settings panel, taking effect immediately without a restart.
+- The monorepo is split into a pnpm workspace, with the desktop app, intro site, server, and client each independently buildable.
 
 
 ## Typical Workflow
@@ -131,6 +152,13 @@ This repository is worth your attention if you are looking for:
 
 For the full update history, see [docs/releases/release-notes.md](./docs/releases/release-notes.md).
 
+### 2026-07-09 (Auto-director candidate recovery is more stable)
+
+When you resume an AI-director task that has already generated book-level direction candidates, the candidate page now keeps the starting idea, so you can pick a plan directly, generate another round, or revise the direction from feedback.
+
+- After you return to the direction-candidate page from the Task Center or a recovery entry, the system reads the starting idea from the candidate batch, avoiding the case where the page shows candidates but reports empty parameters when you continue.
+- If the task record really is missing a starting idea, the page first prompts you to add one, then continues generating or confirming the book-level direction.
+
 ### 2026-06-09
 
 彻底修复了正文即兴写出的硬设定（交易性质、金额、票号、数量等）无法跨章保持一致的问题，并新增便于反复测试的章节重置工具。
@@ -144,6 +172,12 @@ For the full update history, see [docs/releases/release-notes.md](./docs/release
 ### Over 95% of the feature overview was written by AI
 
 These screenshots prioritize the single-book workflow used by the current version: from AI-director book opening, through project settings, macro story planning, character preparation, volume strategy, pacing/chapter splitting, and chapter execution, to quality repair — converging into one continuous advance chain rather than a set of disconnected demo pages.
+
+### Prompt Editor
+
+The Prompt Editor debugs and maintains production-grade AI-task prompt assets. The chapter-body (prose-generation) prompt supports book-scoped advanced template editing: you can insert the book contract, chapter mission, character facts, timeline, runtime variables, and slot rules via visual reference tags, then preview the final messages and context-injection result.
+
+![Prompt editor](./images/ScreenShot_2026-07-08_140153_328.png)
 
 ### Creative Hub
 
@@ -219,7 +253,7 @@ Enter book opening, management, editing, and full-book production from here.
 
 ### Book Analysis
 
-Break a reference work into structured knowledge, then feed it back into the creative pipeline.
+Book Analysis is no longer just a book report: pick Quick / Standard / Complete analysis depth covering genre positioning, plot structure, the character system, world settings, and craft techniques; character profiles support four depth tiers (Brief / Standard / In-depth / Complete), and an incremental character-image-evolution scan at 25% / 50% / 75% / 100% coverage produces cross-chapter-consistent reference images. Analysis conclusions can be published straight to the knowledge base, converted into style assets in one click, or promoted into the base character library — turning "analyzing a book" into a long-term asset your later writing can call on repeatedly, rather than a one-off note you forget after reading.
 
 ![Book analysis](./images/book-analysis.png)
 
