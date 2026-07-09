@@ -190,5 +190,13 @@
   "takeover.toast.continued": "自动导演已继续执行{{scope}}，并会在后台自动审核与修复。",
   "volumeReadiness.needStrategy": "请先生成卷战略建议，再确认卷骨架。",
   "volumeReadiness.noBeatSheet": "当前卷还没有节奏板，默认不能直接拆章节列表。",
-  "volumeReadiness.noSkeleton": "当前还没有卷骨架。"
+  "volumeReadiness.noSkeleton": "当前还没有卷骨架。",
+  "workspaceNav.basic": "项目设定",
+  "workspaceNav.chapter": "章节执行",
+  "workspaceNav.character": "角色准备",
+  "workspaceNav.history": "版本历史",
+  "workspaceNav.outline": "卷战略 / 卷骨架",
+  "workspaceNav.pipeline": "质量修复",
+  "workspaceNav.story_macro": "故事宏观规划",
+  "workspaceNav.structured": "节奏 / 拆章"
 }

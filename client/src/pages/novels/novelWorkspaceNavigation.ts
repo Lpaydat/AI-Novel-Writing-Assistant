@@ -1,5 +1,6 @@
 import type { DirectorDisplayStageKey } from "@ai-novel/shared/types/directorRuntime";
 import type { DirectorLockScope } from "@ai-novel/shared/types/novelDirector";
+import i18n from "@/i18n";
 
 export type NovelWorkspaceFlowTab =
   | "basic"
@@ -12,18 +13,20 @@ export type NovelWorkspaceFlowTab =
 
 export type NovelWorkspaceTab = NovelWorkspaceFlowTab | "history";
 
+// `label` is a getter resolving an i18n key (namespace `novels`) so tab labels
+// follow the active locale wherever consumers read `item.label`.
 export const NOVEL_WORKSPACE_FLOW_STEPS: Array<{ key: NovelWorkspaceFlowTab; label: string }> = [
-  { key: "basic", label: "项目设定" },
-  { key: "story_macro", label: "故事宏观规划" },
-  { key: "character", label: "角色准备" },
-  { key: "outline", label: "卷战略 / 卷骨架" },
-  { key: "structured", label: "节奏 / 拆章" },
-  { key: "chapter", label: "章节执行" },
-  { key: "pipeline", label: "质量修复" },
+  { key: "basic", get label() { return i18n.t("workspaceNav.basic", { ns: "novels" }); } },
+  { key: "story_macro", get label() { return i18n.t("workspaceNav.story_macro", { ns: "novels" }); } },
+  { key: "character", get label() { return i18n.t("workspaceNav.character", { ns: "novels" }); } },
+  { key: "outline", get label() { return i18n.t("workspaceNav.outline", { ns: "novels" }); } },
+  { key: "structured", get label() { return i18n.t("workspaceNav.structured", { ns: "novels" }); } },
+  { key: "chapter", get label() { return i18n.t("workspaceNav.chapter", { ns: "novels" }); } },
+  { key: "pipeline", get label() { return i18n.t("workspaceNav.pipeline", { ns: "novels" }); } },
 ];
 
 export const NOVEL_WORKSPACE_TOOL_TABS: Array<{ key: Extract<NovelWorkspaceTab, "history">; label: string }> = [
-  { key: "history", label: "版本历史" },
+  { key: "history", get label() { return i18n.t("workspaceNav.history", { ns: "novels" }); } },
 ];
 
 const NOVEL_WORKSPACE_TAB_SET = new Set<NovelWorkspaceTab>([
@@ -67,7 +70,8 @@ export function getNextNovelWorkspaceFlowTab(value: string | null | undefined): 
 
 export function getNovelWorkspaceTabLabel(value: string | null | undefined): string {
   const normalized = normalizeNovelWorkspaceTab(value);
-  return [...NOVEL_WORKSPACE_FLOW_STEPS, ...NOVEL_WORKSPACE_TOOL_TABS].find((item) => item.key === normalized)?.label ?? "项目设定";
+  return [...NOVEL_WORKSPACE_FLOW_STEPS, ...NOVEL_WORKSPACE_TOOL_TABS].find((item) => item.key === normalized)?.label
+    ?? i18n.t("workspaceNav.basic", { ns: "novels" });
 }
 
 export function scopeFromWorkspaceTab(tab: string): DirectorLockScope | null {

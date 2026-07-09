@@ -32,11 +32,11 @@ interface BookAnalysisCharacterAppearancePanelProps {
 
 const COVERAGE_MARKS = [25, 50, 75, 100];
 const IMAGE_STATUS_TEXT: Record<string, string> = {
-  queued: "排队中",
-  running: "生成中",
-  succeeded: "生成成功",
-  failed: "生成失败",
-  cancelled: "已取消",
+  queued: "imageStatus.queued",
+  running: "imageStatus.running",
+  succeeded: "imageStatus.succeeded",
+  failed: "imageStatus.failed",
+  cancelled: "imageStatus.cancelled",
 };
 
 function formatJsonSummary(value: Record<string, unknown> | null | undefined, t: TFunction): string {
@@ -336,7 +336,7 @@ export default function BookAnalysisCharacterAppearancePanel({
       ) : null}
       {activeTask ? (
         <div className="rounded-md border bg-background p-2 text-xs text-muted-foreground">
-          {t("appearance.currentImageTask", { status: IMAGE_STATUS_TEXT[activeTask.status] ?? activeTask.status })}
+          {t("appearance.currentImageTask", { status: IMAGE_STATUS_TEXT[activeTask.status] ? t(IMAGE_STATUS_TEXT[activeTask.status]) : activeTask.status })}
           {activeTask.error ? <span className="ml-2 text-destructive">{activeTask.error}</span> : null}
         </div>
       ) : null}

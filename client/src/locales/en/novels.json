@@ -190,5 +190,13 @@
   "takeover.toast.continued": "The Auto-Director resumed {{scope}} and will review and repair automatically in the background.",
   "volumeReadiness.needStrategy": "Generate the volume strategy suggestion first, then confirm the volume skeleton.",
   "volumeReadiness.noBeatSheet": "The current volume has no beat sheet yet, so by default you can't break it into a chapter list directly.",
-  "volumeReadiness.noSkeleton": "There's no volume skeleton yet."
+  "volumeReadiness.noSkeleton": "There's no volume skeleton yet.",
+  "workspaceNav.basic": "Project setup",
+  "workspaceNav.chapter": "Chapter execution",
+  "workspaceNav.character": "Character prep",
+  "workspaceNav.history": "Version history",
+  "workspaceNav.outline": "Volume strategy / skeleton",
+  "workspaceNav.pipeline": "Quality repair",
+  "workspaceNav.story_macro": "Story macro plan",
+  "workspaceNav.structured": "Pacing / chapter breakdown"
 }

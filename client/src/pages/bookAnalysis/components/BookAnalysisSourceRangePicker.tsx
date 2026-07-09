@@ -22,9 +22,9 @@ interface BookAnalysisSourceRangePickerProps {
 }
 
 const CHAR_PRESETS = [
-  { label: "前 5 万字", value: 50_000 },
-  { label: "前 10 万字", value: 100_000 },
-  { label: "前 20 万字", value: 200_000 },
+  { label: "sourceRange.charPreset50k", value: 50_000 },
+  { label: "sourceRange.charPreset100k", value: 100_000 },
+  { label: "sourceRange.charPreset200k", value: 200_000 },
 ];
 
 const numberFormatter = new Intl.NumberFormat("zh-CN");
@@ -385,7 +385,7 @@ export default function BookAnalysisSourceRangePicker({
         <div className="flex flex-wrap gap-1.5">
           {CHAR_PRESETS.map((preset) => (
             <QuickButton key={preset.value} onClick={() => applyCharPreset(preset.value)}>
-              {preset.label}
+              {t(preset.label)}
             </QuickButton>
           ))}
         </div>
