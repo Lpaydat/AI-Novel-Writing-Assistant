@@ -538,6 +538,22 @@ pnpm db:seed
 pnpm db:studio
 ```
 
+## Language (中文 / English)
+
+The interface ships in two languages. It defaults to Chinese (`zh`); switch to
+English with the **language toggle in the top navigation bar**. The choice is
+saved in `localStorage` (`ai-novel-locale`) and sent as the `Accept-Language`
+header, so server-side messages and errors localize too.
+
+Novel generation language is a separate axis from the UI: prompt templates are
+Chinese by default, and English prompt variants are opt-in via each novel's
+`language` (routed through `resolvePromptVariant`, with a Chinese fallback). So
+you can run an English UI while still generating Chinese novels, or opt a novel
+into English generation.
+
+Architecture and conventions: `docs/wiki/architecture/i18n-locale-isolation-and-routing.md`
+(English: `…-and-routing.en.md`).
+
 ## Common Commands
 
 ```bash
@@ -552,6 +568,9 @@ pnpm db:studio
 pnpm --filter @ai-novel/server test
 pnpm --filter @ai-novel/server test:routes
 pnpm --filter @ai-novel/server test:book-analysis
+# Client unit tests + i18n guards (zh byte-identity golden, zh/en key
+# completeness, no-raw-CJK allowlist check)
+pnpm test:client
 ```
 
 ## Tech Stack and Architecture
