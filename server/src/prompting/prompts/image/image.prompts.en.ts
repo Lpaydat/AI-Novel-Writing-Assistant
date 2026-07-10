@@ -3,25 +3,88 @@ import { z } from "zod";
 import type { PromptAsset } from "../../core/promptTypes";
 import type {
   CharacterImagePromptOptimizeInput,
+  ImageGenerationPromptAssistInput,
   NovelCoverBriefPromptInput,
   NovelCoverPromptOptimizeInput,
 } from "./image.prompts";
-import { novelCoverBriefSchema } from "./image.prompts";
+import { imageGenerationPromptAssistOutputSchema, novelCoverBriefSchema } from "./image.prompts";
 
 /**
- * English variants of the image-prompt optimization family:
- * `image.character.prompt_optimize`, `image.novel_cover.brief`, and
- * `image.novel_cover.prompt_optimize`.
+ * English variants of the image-prompt family:
+ * `image.generation_prompt.assist`, `image.character.prompt_optimize`,
+ * `image.novel_cover.brief`, and `image.novel_cover.prompt_optimize`.
  *
  * Domain-aware rewrites for English-language serialized fiction. Each variant
  * reuses its zh anchor's outputSchema where applicable (JSON shape is
  * language-independent) and input type. Registered alongside the zh anchors; the
  * runner swaps to a variant only when `options.locale === "en"`.
  *
- * Note: these prompts still honor `input.outputLanguage` to decide the language
- * of the *generated* image prompt; the en variant only changes the language of
- * the instructions themselves.
+ * Note: some of these prompts still honor `input.outputLanguage` to decide the
+ * language of the *generated* image prompt; the en variant only changes the
+ * language of the instructions themselves.
  */
+
+export const imageGenerationPromptAssistPromptEn: PromptAsset<
+  ImageGenerationPromptAssistInput,
+  z.infer<typeof imageGenerationPromptAssistOutputSchema>
+> = {
+  id: "image.generation_prompt.assist",
+  version: "v1",
+  taskType: "planner",
+  mode: "structured",
+  language: "en",
+  contextPolicy: {
+    maxTokensBudget: 0,
+  },
+  repairPolicy: {
+    maxAttempts: 1,
+  },
+  outputSchema: imageGenerationPromptAssistOutputSchema,
+  render: (input) => [
+    new SystemMessage([
+      "You are an image-generation prompt assistant, serving beginner authors who do not understand prompt engineering.",
+      "You help the user understand or optimize the prompt about to be sent to the image model, before the image is actually generated.",
+      "",
+      "Output only valid JSON — no Markdown, code blocks, or extra explanations.",
+      "",
+      "General rules:",
+      "1. You must respect the original prompt's character identity, scene, composition, art style, reference-image purpose, and hard constraints; do not change the core settings on your own.",
+      "2. When explaining, break a complex prompt into a user-understandable picture goal, character/scene constraints, the role of reference images, and model caveats.",
+      "3. When optimizing, only make the prompt clearer, more controllable, and better suited to the image model; do not delete key constraints such as gender lock, identity lock, strong face-shape override, speech-bubble rules, or no-text / no-watermark.",
+      "4. If reference images already exist, the optimized result must make clear that these references are used to keep consistency; do not let the model copy the reference camera angle unless the original prompt already asked to copy it.",
+      "5. Treat the negative prompt only as a risk and constraint reference; do not mix the negative prompt into optimizedPrompt unless the original prompt itself already contains negative constraints.",
+      "6. When action=optimize and the user has provided optimization requirements, adjust the prompt following the user's own wording first; if the user's request would break the core settings or key constraints, keep the key constraints and explain this in risks or changes.",
+      "",
+      "Output fields:",
+      "- summary: a one-sentence summary in English.",
+      "- details: 2-8 key points in English.",
+      "- risks: at most 5 risks or caveats in English; empty array if none.",
+      "- optimizedPrompt: provided only when action=optimize; can be filled directly back into the positive prompt.",
+      "- changes: only when action=optimize, describe which improvements were made.",
+    ].join("\n")),
+    new HumanMessage([
+      `Action: ${input.action === "optimize" ? "Optimize the current positive prompt" : "Explain the current positive prompt"}`,
+      `Entry title: ${input.title?.trim() || "Not provided"}`,
+      `Entry kind: ${input.kind?.trim() || "Not provided"}`,
+      `Image provider: ${input.provider?.trim() || "Not provided"}`,
+      `Image size: ${input.size?.trim() || "Not provided"}`,
+      "",
+      "Reference material:",
+      input.referenceImages.length
+        ? input.referenceImages.map((item, index) => `${index + 1}. ${item.kind}: ${item.label}`).join("\n")
+        : "No reference material",
+      "",
+      "Current positive prompt:",
+      input.prompt,
+      "",
+      "Current negative prompt:",
+      input.negativePrompt?.trim() || "None",
+      "",
+      "User's optimization requirements:",
+      input.action === "optimize" ? input.optimizationInstruction?.trim() || "Not provided" : "Not applicable",
+    ].join("\n")),
+  ],
+};
 
 export const imageCharacterPromptOptimizePromptEn: PromptAsset<
   CharacterImagePromptOptimizeInput,

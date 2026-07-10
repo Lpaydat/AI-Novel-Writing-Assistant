@@ -22,10 +22,13 @@ function firstRegisteredZhAsset() {
   );
 }
 
-/** A zh asset whose render({}) does not throw AND has no en variant, for the
- *  preparePromptExecution fallback tests. */
+/** A zh asset whose render({}) does not throw, for the preparePromptExecution
+ *  locale tests. Prefers a zh anchor with NO en variant (so the zh-fallback
+ *  assertion holds). At full en coverage none exists, so it falls back to a zh
+ *  anchor whose en sibling ALSO renders safely (so the en-routing branch can
+ *  render without throwing). */
 function firstRenderSafeZhAsset() {
-  const { listRegisteredPromptAssets, hasRegisteredPromptAsset } = require("../dist/prompting/registry.js");
+  const { listRegisteredPromptAssets, hasRegisteredPromptAsset, getRegisteredPromptAsset } = require("../dist/prompting/registry.js");
   const zh = listRegisteredPromptAssets().filter((a) => a.language === "zh");
   const emptyContext = {
     blocks: [],
@@ -34,12 +37,15 @@ function firstRenderSafeZhAsset() {
     summarizedBlockIds: [],
     estimatedInputTokens: 0,
   };
-  // Prefer render-safe + no-en-variant so the fallback assertion holds; else any render-safe zh.
+  const renderSafe = (asset) => {
+    try { asset.render({}, emptyContext); return true; } catch { return false; }
+  };
   const safe =
-    zh.find((a) => {
-      try { a.render({}, emptyContext); return !hasRegisteredPromptAsset(a.id, a.version, "en"); } catch { return false; }
-    })
-    ?? zh.find((a) => { try { a.render({}, emptyContext); return true; } catch { return false; } });
+    // Best: render-safe AND no en variant → exercises the zh-fallback path.
+    zh.find((a) => renderSafe(a) && !hasRegisteredPromptAsset(a.id, a.version, "en"))
+    // Full-coverage: render-safe zh whose en sibling is also render-safe → en path.
+    ?? zh.find((a) => renderSafe(a) && hasRegisteredPromptAsset(a.id, a.version, "en") && renderSafe(getRegisteredPromptAsset(a.id, a.version, "en")))
+    ?? zh.find(renderSafe);
   assert.ok(safe, "need at least one render-safe zh asset for preparePromptExecution tests");
   return safe;
 }
@@ -72,8 +78,9 @@ test("F2 risk-A: resolvePromptVariant(zh) returns the zh anchor, no fallback", (
   assert.equal(resolved.resolvedVariant, `${asset.id}@${asset.version}@zh`);
 });
 
-test("F2 fallback: resolvePromptVariant(en) falls back to zh + warns when no en variant exists", () => {
+test("F2 fallback: resolvePromptVariant(en) resolves the en variant, or falls back to zh + warns when a zh anchor still lacks one", () => {
   const asset = firstRegisteredZhAsset();
+  const hasEn = hasRegisteredPromptAsset(asset.id, asset.version, "en");
   // Capture console.warn to assert the fallback is diagnosable (round-3 SHOULD-FIX).
   const warnings = [];
   const originalWarn = console.warn;
@@ -84,14 +91,24 @@ test("F2 fallback: resolvePromptVariant(en) falls back to zh + warns when no en 
   } finally {
     console.warn = originalWarn;
   }
-  assert.ok(resolved, "en with no variant must still resolve (zh fallback)");
-  assert.equal(resolved.resolvedLocale, "zh", "fell back to zh");
-  assert.equal(resolved.localeFallback, true, "fallback flag set");
-  assert.equal(resolved.asset.language, "zh");
-  assert.ok(
-    warnings.some((w) => /no en variant/.test(w) && new RegExp(asset.id).test(w)),
-    `expected a no-en-variant warning mentioning ${asset.id}, got: ${JSON.stringify(warnings)}`,
-  );
+  assert.ok(resolved, "en must resolve (en variant or zh fallback)");
+  if (hasEn) {
+    // Full en-coverage regime: this zh anchor has an en sibling, so en resolves
+    // with no fallback. The zh-fallback branch below still fires whenever an
+    // upstream sync introduces a new zh-only prompt (its en sibling not yet added).
+    assert.equal(resolved.resolvedLocale, "en", "resolved the en variant");
+    assert.equal(resolved.localeFallback, false, "no fallback when en variant exists");
+    assert.equal(resolved.asset.language, "en");
+    assert.equal(resolved.resolvedVariant, `${asset.id}@${asset.version}@en`);
+  } else {
+    assert.equal(resolved.resolvedLocale, "zh", "fell back to zh");
+    assert.equal(resolved.localeFallback, true, "fallback flag set");
+    assert.equal(resolved.asset.language, "zh");
+    assert.ok(
+      warnings.some((w) => /no en variant/.test(w) && new RegExp(asset.id).test(w)),
+      `expected a no-en-variant warning mentioning ${asset.id}, got: ${JSON.stringify(warnings)}`,
+    );
+  }
 });
 
 test("F2 risk-A: preparePromptExecution with no locale renders the zh anchor byte-identically", () => {
@@ -110,8 +127,9 @@ test("F2 risk-A: preparePromptExecution with no locale renders the zh anchor byt
   assert.ok(Array.isArray(prepared.messages));
 });
 
-test("F2 risk-A: preparePromptExecution with locale=en falls back to zh when no en variant (streaming path covered too)", () => {
+test("F2 risk-A: preparePromptExecution(locale=en) routes to the en variant, or falls back to zh when a zh anchor still lacks one (streaming path covered too)", () => {
   const asset = firstRenderSafeZhAsset();
+  const hasEn = hasRegisteredPromptAsset(asset.id, asset.version, "en");
   const warnings = [];
   const originalWarn = console.warn;
   console.warn = (...args) => void warnings.push(args.join(" "));
@@ -126,10 +144,16 @@ test("F2 risk-A: preparePromptExecution with locale=en falls back to zh when no 
   } finally {
     console.warn = originalWarn;
   }
-  // No en variant registered for this real prompt ⇒ zh fallback, diagnosable.
-  assert.equal(prepared.invocation.resolvedLocale, "zh");
-  assert.equal(prepared.invocation.localeFallback, true);
   assert.ok(Array.isArray(prepared.messages), "still produces renderable messages");
+  if (hasEn) {
+    // Full-coverage: locale=en routes to the registered en variant, no fallback.
+    assert.equal(prepared.invocation.resolvedLocale, "en");
+    assert.equal(prepared.invocation.localeFallback, false);
+  } else {
+    // A zh-only prompt (e.g. freshly synced from upstream) ⇒ zh fallback, diagnosable.
+    assert.equal(prepared.invocation.resolvedLocale, "zh");
+    assert.equal(prepared.invocation.localeFallback, true);
+  }
 });
 
 test("F2: resolvePromptVariant returns null for an unregistered id", () => {

@@ -546,10 +546,24 @@ saved in `localStorage` (`ai-novel-locale`) and sent as the `Accept-Language`
 header, so server-side messages and errors localize too.
 
 Novel generation language is a separate axis from the UI: prompt templates are
-Chinese by default, and English prompt variants are opt-in via each novel's
-`language` (routed through `resolvePromptVariant`, with a Chinese fallback). So
-you can run an English UI while still generating Chinese novels, or opt a novel
-into English generation.
+Chinese by default, and every prompt also ships an English variant, opt-in via
+each novel's `language` (routed through `resolvePromptVariant`, with a Chinese
+fallback). So you can run an English UI while still generating Chinese novels, or
+opt a novel into English generation.
+
+**Deployment default (`AI_NOVEL_DEFAULT_LOCALE`).** For an English-first
+deployment, set `AI_NOVEL_DEFAULT_LOCALE=en` (or the alias `PROMPT_LANGUAGE=en`)
+in `server/.env`. This makes **new** novels default their `language` to English
+and makes global/pre-novel prompts (genre, title, book-candidate) default to
+English when the request carries no `Accept-Language`. It does not touch existing
+novels — they keep their own `novel.language` — and a per-request `Accept-Language`
+still wins. Unset or anything but `en` keeps the Chinese default (`zh`).
+
+Precedence for the prompt language, most specific first: per-novel `novel.language`
+(novel-scoped prompts) → request `Accept-Language` (global prompts) →
+`AI_NOVEL_DEFAULT_LOCALE` → `zh`. English is upstream-safe: every English prompt
+lives in a `*.prompts.en.ts` sibling and the Chinese originals are byte-identical,
+so upstream merges never conflict on translated text.
 
 Architecture and conventions: `docs/wiki/architecture/i18n-locale-isolation-and-routing.md`
 (English: `…-and-routing.en.md`).
