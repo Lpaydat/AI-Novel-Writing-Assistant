@@ -23,8 +23,22 @@ import { AsyncLocalStorage } from "node:async_hooks";
 
 export type AppLocale = "zh" | "en";
 
-export const DEFAULT_LOCALE: AppLocale = "zh";
 const SUPPORTED_LOCALES: ReadonlySet<AppLocale> = new Set(["zh", "en"]);
+
+/**
+ * Global default prompt/UI locale, configurable for an English-first deployment.
+ * `AI_NOVEL_DEFAULT_LOCALE` (or `PROMPT_LANGUAGE`) = `en` makes prompts default to
+ * English everywhere the caller doesn't specify one: global prompts (no
+ * `Accept-Language`) and NEW novels (their `language` defaults to this). Existing
+ * novels keep their own `novel.language`; per-request `Accept-Language` still wins.
+ * Unset / anything but `en` → `zh`.
+ */
+function readDefaultLocaleEnv(): AppLocale {
+  const raw = (process.env.AI_NOVEL_DEFAULT_LOCALE ?? process.env.PROMPT_LANGUAGE ?? "").trim().toLowerCase();
+  return raw === "en" ? "en" : "zh";
+}
+
+export const DEFAULT_LOCALE: AppLocale = readDefaultLocaleEnv();
 
 /** Normalize a raw Accept-Language token to a valid locale (zh fallback). */
 export function normalizeLocale(raw: string | null | undefined): AppLocale {

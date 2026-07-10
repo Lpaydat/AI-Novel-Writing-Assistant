@@ -1,4 +1,5 @@
 import { prisma } from "../../db/prisma";
+import { DEFAULT_LOCALE } from "../../middleware/locale";
 import { novelSetupStatusService } from "../../services/novel/NovelSetupStatusService";
 import { AgentToolError, type AgentToolName } from "../types";
 import type { AgentToolDefinition } from "./toolTypes";
@@ -115,6 +116,7 @@ export const novelWorkspaceToolDefinitions: Partial<
       const genreId = await resolveGenreIdByName(input.genre);
       const novel = await prisma.novel.create({
         data: {
+          language: DEFAULT_LOCALE,
           title: input.title,
           description: input.description ?? null,
           genreId,

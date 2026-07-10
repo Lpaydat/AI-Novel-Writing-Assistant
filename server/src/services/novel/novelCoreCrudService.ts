@@ -1,6 +1,7 @@
 import { serializeCommercialTagsJson } from "@ai-novel/shared/types/novelFraming";
 import type { NovelAutoDirectorTaskSummary } from "@ai-novel/shared/types/novel";
 import { prisma } from "../../db/prisma";
+import { DEFAULT_LOCALE } from "../../middleware/locale";
 import { AppError } from "../../middleware/errorHandler";
 import { mapNovelAutoDirectorTaskSummary } from "../task/novelWorkflowTaskSummary";
 import { getArchivedTaskIdSet } from "../task/taskArchive";
@@ -227,6 +228,9 @@ export class NovelCoreCrudService {
 
     const created = await prisma.novel.create({
       data: {
+        // New novels generate in the deployment's default locale
+        // (AI_NOVEL_DEFAULT_LOCALE); overridable per-novel afterwards.
+        language: DEFAULT_LOCALE,
         title: input.title,
         description: input.description,
         targetAudience: normalizeOptionalTextForCreate(input.targetAudience),
